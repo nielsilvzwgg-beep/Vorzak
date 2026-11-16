@@ -103,6 +103,8 @@ label{display:block;margin:10px 0 4px;color:var(--dim);font-size:15px;text-trans
 @keyframes brspin{to{transform:rotate(360deg)}}
 #brleap{position:fixed;left:50%;bottom:calc(90px + var(--sab));transform:translateX(-50%);display:none;z-index:7;pointer-events:auto;background:linear-gradient(#ff9a3c,#e06a00);color:#fff;font-weight:800;letter-spacing:2px;font-size:22px;padding:16px 34px;border-radius:40px;border:3px solid #fff;box-shadow:0 4px 18px rgba(0,0,0,.6);animation:brpulse 1s ease-in-out infinite;cursor:pointer;user-select:none}
 @keyframes brpulse{50%{transform:translateX(-50%) scale(1.07)}}
+body.brhide #hud>:not(#brov):not(#brleap):not(#center){visibility:hidden!important}
+body.brhide #touch,body.brhide .tbtn{visibility:hidden!important}
 #radar{position:fixed;left:calc(8px + var(--sal));top:calc(8px + var(--sat));width:150px;height:150px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.5);background:rgba(20,30,20,.55);box-shadow:0 2px 10px rgba(0,0,0,.55);pointer-events:auto;cursor:pointer}
 #radar canvas{width:100%;height:100%;display:block}
 #bigmap{position:fixed;inset:0;display:none;background:rgba(0,0,0,.62);align-items:center;justify-content:center;flex-direction:column;pointer-events:auto;z-index:999}
@@ -1540,11 +1542,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     brTick() {
       const n = this.players.size;
       if (!n) { if (this.ph !== 'busca') this.brReset(); else this.phEnd = this.time + this.brT[0]; return; }
-      if (this.ph === 'busca' && this.time >= this.phEnd) {
-        this.ph = 'lobby'; this.phEnd = this.time + this.brT[1]; let i = 0;
-        for (const p of this.players.values()) this.lobbySpawn(p, i++);
-        this.events.push({ e: 'br', ph: 'lobby' });
-      } else if (this.ph === 'lobby' && this.time >= this.phEnd) {
+      if ((this.ph === 'busca' || this.ph === 'lobby') && this.time >= this.phEnd) { // achou jogadores: todos direto para o trem
         this.ph = 'trem'; this.trainStartAt = this.time; let i = 0;
         for (const p of this.players.values()) { if (!p.alive) this.spawn(p); this.board(p, i++); }
         this.events.push({ e: 'br', ph: 'trem' });
@@ -4393,12 +4391,15 @@ const Sfx = (() => {
       const ov = $('brov'), lp = $('brleap'), ph = this.active ? this.brPh : null;
       const left = ph ? Math.max(0, Math.ceil((this.brDur || 1) - (now() - (this.brT0 || now())))) : 0;
       const sec = ph === 'trem' ? this.brPe : Math.min(this.brPe != null ? this.brPe : left, left || this.brPe || 0);
-      const cls = ph === 'busca' ? 'brfull' : ph === 'lobby' || ph === 'trem' ? 'brtop' : '';
+      const cls = ph === 'busca' ? 'brfull' : (ph === 'lobby' || ph === 'trem') && this.riding ? 'brtop' : ''; // depois de pular: só o HUD normal
       if (ov.className !== cls) ov.className = cls;
+      // procurando partida e dentro do trem: sem HUD (só aparece depois de pular)
+      const hide = ph === 'busca' || (ph === 'trem' && this.riding);
+      if (document.body.classList.contains('brhide') !== hide) document.body.classList.toggle('brhide', hide);
       lp.style.display = ph === 'trem' && this.riding ? 'block' : 'none';
       if (!cls) return;
       const n = this.brPn || 1;
-      if (ph === 'busca') { setT($('brt'), 'PROCURANDO JOGADORES'); setT($('brs'), n + (n === 1 ? ' jogador encontrado' : ' jogadores encontrados') + ' · até 30'); }
+      if (ph === 'busca') { setT($('brt'), 'PROCURANDO JOGADORES'); setT($('brs'), n + (n === 1 ? ' jogador encontrado' : ' jogadores encontrados') + ' · até 30 · depois todos entram no trem'); }
       else if (ph === 'lobby') { setT($('brt'), 'LOBBY · A PARTIDA COMEÇA EM'); setT($('brs'), n + (n === 1 ? ' jogador' : ' jogadores') + ' · depois todos entram no trem'); }
       else { setT($('brt'), this.riding ? 'NO TREM · PULE ONDE QUISER' : 'O TREM CHEGA NA ESTAÇÃO EM'); setT($('brs'), this.riding ? 'Toque em PULAR DO TREM (ou espaço) — o trem para no fim da linha' : 'Procure armas e kits médicos!'); }
       setT($('brn'), ph === 'trem' ? sec + 's' : String(sec));

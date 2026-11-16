@@ -955,11 +955,7 @@
     brTick() {
       const n = this.players.size;
       if (!n) { if (this.ph !== 'busca') this.brReset(); else this.phEnd = this.time + this.brT[0]; return; }
-      if (this.ph === 'busca' && this.time >= this.phEnd) {
-        this.ph = 'lobby'; this.phEnd = this.time + this.brT[1]; let i = 0;
-        for (const p of this.players.values()) this.lobbySpawn(p, i++);
-        this.events.push({ e: 'br', ph: 'lobby' });
-      } else if (this.ph === 'lobby' && this.time >= this.phEnd) {
+      if ((this.ph === 'busca' || this.ph === 'lobby') && this.time >= this.phEnd) { // achou jogadores: todos direto para o trem
         this.ph = 'trem'; this.trainStartAt = this.time; let i = 0;
         for (const p of this.players.values()) { if (!p.alive) this.spawn(p); this.board(p, i++); }
         this.events.push({ e: 'br', ph: 'trem' });
