@@ -355,8 +355,11 @@ function handle(c, m) {
     case 'quick': {
       const ranked = m.mode === 'ranked', mode = ranked ? 'tdm' : S.isFFA(m.mode) || S.isRounds(m.mode) ? m.mode : 'tdm';
       let best = null;
-      for (const r of rooms.values()) if (!r.priv && r.mode === mode && r.ranked === ranked && !r.waiting && r.members.size < r.max && (!best || r.members.size > best.members.size)) best = r;
-      if (!best) best = new Room({ name: ranked ? 'Ranqueado #' + nextRoomId : (mode === 'aberto' ? 'Mapa aberto' : mode === 'ffa' ? 'Todos contra todos' : S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata'), mode, ranked, max: ranked ? 10 : mode === 'aberto' ? 30 : 12 });
+      // mapa aberto: só entra em sala que ainda está procurando jogadores ou no lobby; senão abre outra sala
+      // (assim todo mundo sempre passa por: procurar jogadores -> lobby -> trem)
+      const brOk = (r) => mode !== 'aberto' || !r.sim.br || r.sim.ph === 'busca' || (r.sim.ph === 'lobby' && r.sim.phEnd - r.sim.time > 3);
+      for (const r of rooms.values()) if (!r.priv && r.mode === mode && r.ranked === ranked && !r.waiting && r.members.size < r.max && brOk(r) && (!best || r.members.size > best.members.size)) best = r;
+      if (!best) best = new Room({ name: ranked ? 'Ranqueado #' + nextRoomId : (mode === 'aberto' ? 'Mapa aberto #' + nextRoomId : mode === 'ffa' ? 'Todos contra todos' : S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata'), mode, ranked, max: ranked ? 10 : mode === 'aberto' ? 30 : 12 });
       return best.join(c);
     }
     case 'leave': if (room) room.leave(c); else if (c.wroom) c.wroom.wleave(c); return;

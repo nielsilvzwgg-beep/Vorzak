@@ -4378,10 +4378,13 @@ const Sfx = (() => {
       return cam;
     },
     // no trem: câmera alta atrás do jogador, para ver o mapa e escolher onde pular
+    // no trem: câmera dentro do vagão, atrás do ombro (vê os outros jogadores e a paisagem pelas janelas)
     trainCam(eye) {
-      const f = S.aimDir(this.look.yaw, Math.min(-0.15, this.look.pitch - 0.35)), D = 9;
-      const cam = { x: eye[0] - f[0] * D, y: eye[1] + 3.2 - f[1] * D, z: eye[2] - f[2] * D, yaw: this.look.yaw, pitch: Math.min(-0.15, this.look.pitch - 0.35), roll: 0 };
-      this.tpsOn = true; this.camD = D; this.camPos = [cam.x, cam.y, cam.z];
+      const T = this.map.train, yaw = this.look.yaw, pitch = this.look.pitch, f = S.aimDir(yaw, pitch), rx = Math.cos(yaw), rz = -Math.sin(yaw), D = 2.3;
+      let x = eye[0] + rx * 0.45 - f[0] * D, y = eye[1] + 0.25 - f[1] * D, z = eye[2] + rz * 0.45 - f[2] * D;
+      z = Math.max(T.z - T.hw + 0.25, Math.min(T.z + T.hw - 0.25, z)); y = Math.max(T.y0 + 0.6, Math.min(T.y1 - 0.3, y));
+      const cam = { x, y, z, yaw, pitch, roll: 0 };
+      this.tpsOn = true; this.camD = Math.hypot(x - eye[0], z - eye[2]); this.camPos = [x, y, z];
       return cam;
     },
     leap() { if (!this.riding || this.leapAt && now() - this.leapAt < 1) return; this.leapAt = now(); this.conn.send({ t: 'act', a: 'leap' }); Sfx.horn && Sfx.jump && Sfx.jump(); },
