@@ -622,7 +622,8 @@
     const len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; }
     const w = weaponOf(p);
-    let speed = p.crouch ? C.CROUCH : ((b & BTN.SPRINT) && f > 0.3 && !p.ads ? C.SPRINT : C.WALK);
+    p.sprint = !p.crouch && !!(b & BTN.SPRINT) && f > 0.3 && !p.ads && !p.medUntil; // correndo (botão CORRER / Shift)
+    let speed = p.crouch ? C.CROUCH : (p.sprint ? C.SPRINT : C.WALK);
     speed *= w.speed;
     if (p.ads) speed *= 0.65;
     if (p.medUntil) speed *= 0.6;
@@ -1434,7 +1435,7 @@
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
       }
       const mk = maskOf(this.medkits);
