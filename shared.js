@@ -57,6 +57,8 @@
     ch_noturno: { type: 'char', name: 'Operador Noturno', price: 2200, level: 1, tone: 1, gear: 'balaclava' },
     ch3_cyber: { type: 'char', name: 'Cyberpunk', price: 2500, level: 1, tone: 0, gear: 'balaclava', model: 'char_cyber' }, // personagem 3D
     ch3_carter: { type: 'char', name: 'Carter', price: 2000, level: 1, tone: 0, gear: 'cap', model: 'char_carter' }, // personagem 3D
+    ch3_rebeca: { type: 'char', name: 'Rebeca', price: 2000, level: 1, tone: 1, gear: '', model: 'char_rebeca' }, // personagem 3D
+    ch3_winter: { type: 'char', name: 'Inverno', price: 2000, level: 1, tone: 0, gear: 'cap', model: 'char_winter' }, // personagem 3D
     ch_cowboy: { type: 'char', name: 'Cowboy', price: 1600, level: 1, tone: 0, gear: 'cowboy', outfit: 'cowboy', hair: [0.1, 0.08, 0.11] }, // visual completo: chapéu, lenço, jaqueta, jeans e botas
     sh_ang_azul: { type: 'shirt', name: 'Blusa Angelical Azul', price: 1300, level: 1, col: [40, 115, 240] },
     sh_ang_vermelha: { type: 'shirt', name: 'Blusa Angelical Vermelha', price: 1300, level: 1, col: [225, 40, 48] },
@@ -1307,8 +1309,8 @@
       const rr = Math.random();
       // bots: soldado 3D (às vezes de calça 3D), Cyberpunk, Carter, Cowboy e outras skins
       const p3 = () => (Math.random() < 0.4 ? (Math.random() < 0.5 ? 'pa3_camo' : 'pa3_cargo') : '');
-      const look = rr < 0.18 ? { c: 'ch_cowboy', s: '', p: '', w: {} } : rr < 0.33 ? { c: 'ch3_cyber', s: '', p: '', w: {} } : rr < 0.48 ? { c: 'ch3_carter', s: '', p: '', w: {} }
-        : rr < 0.56 ? { c: pick('char', 1) || 'ch_soldado', s: '', p: '', w: {} } : { c: 'ch_soldado', s: '', p: p3(), w: {} };
+      const look = rr < 0.18 ? { c: 'ch_cowboy', s: '', p: '', w: {} } : rr < 0.33 ? { c: 'ch3_cyber', s: '', p: '', w: {} } : rr < 0.48 ? { c: 'ch3_carter', s: '', p: '', w: {} } : rr < 0.56 ? { c: 'ch3_rebeca', s: '', p: '', w: {} } : rr < 0.62 ? { c: 'ch3_winter', s: '', p: '', w: {} }
+        : rr < 0.68 ? { c: pick('char', 1) || 'ch_soldado', s: '', p: '', w: {} } : { c: 'ch_soldado', s: '', p: p3(), w: {} };
       const ws = Object.keys(COSMETICS).filter((k) => COSMETICS[k].type === 'wskin' && COSMETICS[k].weapon === prim);
       if (ws.length && Math.random() < 0.35) look.w[prim] = ws[Math.floor(Math.random() * ws.length)];
       return this.addPlayer({ name, bot: true, team, uniform: uni, look, loadout: { primary: prim, secondary: Math.random() < 0.5 ? 'pistol' : 'deagle' }, level: 1 + Math.floor(Math.random() * 20) });
