@@ -3168,7 +3168,7 @@ const Assets = (() => {
   const pending = {};
   function cloth(name) {
     if (Models[name]) return Models[name];
-    if (!pending[name]) pending[name] = loadModel(name, name + '.vzm').catch((e) => console.warn('roupa 3D indisponível:', name, e.message));
+    if (!pending[name]) pending[name] = loadModel(name, name + '.vzm?v=2').catch((e) => console.warn('roupa 3D indisponível:', name, e.message));
     return null;
   }
   // pose por ossos em "espaço do personagem" (pés no chão, frente = -z).
