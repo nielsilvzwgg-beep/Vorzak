@@ -253,6 +253,27 @@ body.lshort #sttabs .btn{font-size:13px;padding:4px 8px}
 .lb-ic:active,.lb-side:active,.lb-room:active,.lb-bottom button:active,.lb-mode:active{background:rgba(255,201,60,.25)}
 .lb-left{position:absolute;left:calc(12px + var(--sal));top:calc(72px + var(--sat));display:flex;flex-direction:column;gap:10px}
 .lb-side{display:flex;align-items:center;gap:10px;min-width:170px;padding:10px 18px 10px 14px;background:linear-gradient(90deg,rgba(10,12,18,.88),rgba(10,12,18,.55));border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--y);color:var(--y)!important;font-size:22px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;position:relative;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.ffset.on{display:flex!important;padding:0!important;background:#14161b!important}
+.ffside{width:200px;flex:none;background:#0d0f12;display:flex;flex-direction:column;padding:calc(18px + var(--sat)) 0 12px calc(var(--sal) + 10px)}
+.ffside>button{background:none;border:0;color:#cfd3da;font:700 19px Rajdhani,sans-serif;text-transform:uppercase;text-align:left;padding:14px 18px;letter-spacing:.5px}
+.ffside>button.on{background:linear-gradient(90deg,#ffb800,#ffcf3c);color:#111;clip-path:polygon(0 0,100% 0,100% 70%,92% 100%,0 100%)}
+.ffsideb{margin-top:auto;padding:0 8px}.ffquit{width:100%;background:rgba(255,60,40,.15);border:1px solid rgba(255,90,60,.6);color:#fff;font:700 15px Rajdhani,sans-serif;padding:10px;text-transform:uppercase}
+.ffmain{flex:1;display:flex;flex-direction:column;min-width:0;padding:calc(8px + var(--sat)) calc(14px + var(--sar)) 10px 16px;position:relative}
+.fftop{display:flex;justify-content:flex-end;align-items:center;gap:14px;color:#ddd;font:700 17px Rajdhani,sans-serif;letter-spacing:1px}
+.ffx{width:42px;height:42px;background:rgba(255,255,255,.08);border:0;color:#fff;font-size:24px;margin:0;padding:0}
+.fftabs{display:flex;border-bottom:2px solid #ffb800;margin-top:6px}.fftabs button{flex:1;background:#1c1f25;border:0;color:#cfd3da;font:700 16px Rajdhani,sans-serif;text-transform:uppercase;padding:10px 4px}.fftabs button.on{background:#e9e9e9;color:#111}
+.fftabs.off{display:none}
+.ffbody{flex:1;overflow:auto;padding:8px 2px 16px}
+.ffpane{display:none}.ffpane.on{display:block}
+.ffpane h4{margin:12px 0 6px;font:700 18px Rajdhani,sans-serif;color:#fff;border-left:4px solid #ffb800;padding-left:8px;text-transform:uppercase}
+.ffrow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#1c1f25;padding:9px 12px;margin-bottom:6px;min-height:44px}
+.ffrow>span:first-child{font-size:17px;color:#e8e8e8}.ffrow small{display:block;color:var(--dim);font-size:12px}.ffrow b{color:#ffb800;margin-left:6px}
+.ffrow input[type=range]{width:45%;max-width:320px}
+.ffseg{display:flex;border:1px solid #888;flex:none}.ffseg button{background:#111;border:0;color:#fff;font:600 15px Rajdhani,sans-serif;padding:8px 14px;min-width:96px;margin:0}.ffseg button.on,.ffseg button.pri{background:#e9e9e9;color:#111}
+.ffbtn{background:#2a2e36;border:1px solid #555;color:#fff;font:700 14px Rajdhani,sans-serif;padding:8px 14px;text-transform:uppercase;margin:0;flex:none}
+.ffreset{width:100%;background:#1c1f25;border:1px solid #444;color:#fff;font:700 14px Rajdhani,sans-serif;padding:9px;margin-bottom:6px;text-transform:uppercase}
+body.setopen #hud,body.setopen #touch{display:none!important}
+body.lshort .ffside{width:150px}body.lshort .ffside>button{font-size:16px;padding:10px 12px}body.lshort .fftabs button{font-size:13px;padding:8px 2px}body.lshort .ffrow>span:first-child{font-size:15px}body.lshort .ffseg button{min-width:72px;padding:6px 8px}
 .lb-ic{position:relative}.lb-ic em{position:absolute;right:-5px;top:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;font:700 11px/17px Rajdhani,sans-serif;font-style:normal;display:none}.lb-ic em.on{display:block}
 .frtabs{display:flex;gap:6px;margin-bottom:8px}.frtabs button{flex:1;background:rgba(0,0,0,.35);border:1px solid var(--line);color:#fff;padding:10px;font:700 15px Rajdhani,sans-serif;text-transform:uppercase;position:relative}.frtabs button.on{background:var(--acc);border-color:var(--acc);color:#111}
 .frtabs em{font-style:normal;background:var(--red);color:#fff;border-radius:9px;padding:0 6px;font-size:12px;margin-left:4px;display:none}.frtabs em.on{display:inline}
@@ -507,65 +528,81 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
 </div>
 
 <!-- CONFIGURAÇÕES -->
-<div id="s-settings" class="scr full">
-  <button class="btn sm back" id="setback">Voltar</button>
-  <h2>Configurações</h2>
-  <div class="row" style="align-items:flex-start">
-  <div class="card" style="flex:1;min-width:280px">
-    <h3 style="margin-top:0">Gráficos</h3>
-    <label>Qualidade</label>
-    <div><button class="btn sm" data-q="low">Baixa</button><button class="btn sm" data-q="medium">Média</button><button class="btn sm" data-q="high">Alta</button></div>
-    <label><input type="checkbox" id="oshadow"> Sombras</label>
-    <label><input type="checkbox" id="oeffects"> Efeitos e partículas</label>
-    <label><input type="checkbox" id="otps"> Câmera em 3ª pessoa — ver o personagem inteiro (tecla V ou botão 👁 CÂM)</label>
-    <label><input type="checkbox" id="oreal"> Personagens 3D realistas (desligue se o celular travar)</label>
-    <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0. Casas "Casa Dúplex" por alecsvaldez, "Casas" por Allvis e "Tokyo Japanese House / Casa Japonesa [Low Poly]" por SitoNyaa (Sketchfab), licença CC BY 4.0 (portas retiradas e janelas abertas para o jogo). Arma "Maverick 88" por Alex_Sandro (Sketchfab), licença CC BY 4.0.</div>
-    <label>Resolução: <span id="oscalev"></span></label><input type="range" id="oscale" min="0.4" max="1" step="0.05">
-    <label>Campo de visão (FOV): <span id="ofovv"></span></label><input type="range" id="ofov" min="60" max="100" step="1">
-    <label><input type="checkbox" id="ofps"> Mostrar FPS</label>
+<div id="s-settings" class="scr full ffset">
+  <div class="ffside">
+    <button data-sc="partida" class="on">Na partida</button>
+    <button data-sc="grafico">Gráfico</button>
+    <button data-sc="som">Som</button>
+    <div class="ffsideb"><button class="ffreset" id="ffreset" title="Restaurar padrão">↺ Restaurar padrão</button><div><button id="quit" class="ffquit">⏻ Sair da partida</button></div></div>
   </div>
-  <div class="card" style="flex:1;min-width:280px">
-    <h3 style="margin-top:0">Controles e som</h3>
-    <label>Sensibilidade do mouse: <span id="osensv"></span></label><input type="range" id="osens" min="0.2" max="3" step="0.05">
-    <label>Sensibilidade do toque: <span id="otsensv"></span></label><input type="range" id="otsens" min="0.2" max="3" step="0.05">
-    <label>Volume: <span id="ovolv"></span></label><input type="range" id="ovol" min="0" max="1" step="0.05">
-    <label>Música do menu: <span id="omusv"></span></label><input type="range" id="omus" min="0" max="1" step="0.05">
-    <label>Tela cheia</label>
-    <div><button class="btn sm" data-fs="1">⛶ Entrar / sair da tela cheia</button></div>
-    <label><input type="checkbox" id="oautofs"> Tela cheia automática ao jogar (celular)</label>
-    <label>Teclado para digitar</label>
-    <div><button class="btn sm" data-vk="auto">Automático</button><button class="btn sm" data-vk="on">Sempre o do jogo</button><button class="btn sm" data-vk="off">Sempre o do celular</button></div>
-    <label>Orientação da tela</label>
-    <div><button class="btn sm" data-or="auto">Automática</button><button class="btn sm" data-or="landscape">Paisagem (deitado)</button><button class="btn sm" data-or="portrait">Retrato (em pé)</button></div>
-    <label><input type="checkbox" id="oassist"> Mira assistida (puxa a mira para o inimigo)</label>
-    <label>Força da mira assistida: <span id="oastrv"></span></label><input type="range" id="oastr" min="0.1" max="1" step="0.05">
-    <label><input type="checkbox" id="ohead"> Puxar pra cima = capa (mira gruda na cabeça)</label>
-    <label><input type="checkbox" id="otouch"> Controles de toque (Android)</label>
-    <button class="btn sm" id="oedit" style="margin-top:10px">Personalizar botões de toque</button>
-    <p style="color:var(--dim);font-size:15px">PC: WASD mover · Mouse mirar · Clique atirar · Botão direito mirar (ADS) · R recarregar · Espaço pular · C/Ctrl agachar · Shift correr · 1/2 ou roda trocar arma · H ou 4 kit médico · Tab placar · Enter chat · Esc pausa</p>
-  </div>
-  <div class="card" style="flex:1;min-width:280px">
-    <h3 style="margin-top:0">Servidor online</h3>
-    <div id="mpstatus" style="margin-bottom:8px">Desconectado</div>
-    <div class="row"><input type="text" id="mpurl" placeholder="wss://seu-servidor.com" style="flex:1;min-width:160px"><button class="btn sm" id="mpgo">Conectar</button></div>
-  </div>
+  <div class="ffmain">
+    <div class="fftop"><span>CONFIGURAÇÃO</span><button id="setback" class="ffx" title="Fechar">✕</button></div>
+    <div class="fftabs" data-of="partida"><button data-st="hud" class="on">HUD</button><button data-st="controles">Controles</button><button data-st="info">Informação</button><button data-st="sens">Sensibilidade</button><button data-st="vib">Vibração</button></div>
+    <div class="ffbody">
+      <div class="ffpane on" data-p="partida-hud">
+        <h4>Tela</h4>
+        <div class="ffrow"><span>Câmera em 3ª pessoa<small>ver o personagem inteiro · botão 👁 CÂM ou tecla V</small></span><span class="ffseg" data-chk="otps"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="otps" hidden></div>
+        <div class="ffrow"><span>Mostrar FPS</span><span class="ffseg" data-chk="ofps"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="ofps" hidden></div>
+        <div class="ffrow"><span>Controles de toque<small>botões na tela (Android)</small></span><span class="ffseg" data-chk="otouch"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="otouch" hidden></div>
+        <div class="ffrow"><span>Posição e tamanho dos botões</span><button class="ffbtn" id="oedit">Personalizar</button></div>
+      </div>
+      <div class="ffpane" data-p="partida-controles">
+        <h4>Tiros</h4>
+        <div class="ffrow"><span>Mira assistida<small>puxa a mira para o inimigo</small></span><span class="ffseg" data-chk="oassist"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="oassist" hidden></div>
+        <div class="ffrow"><span>Força da mira assistida <b id="oastrv"></b></span><input type="range" id="oastr" min="0.1" max="1" step="0.05"></div>
+        <div class="ffrow"><span>Puxar pra cima = capa<small>a mira gruda na cabeça</small></span><span class="ffseg" data-chk="ohead"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="ohead" hidden></div>
+        <h4>Tela</h4>
+        <div class="ffrow"><span>Orientação da tela</span><span class="ffseg"><button data-or="auto">Automática</button><button data-or="landscape">Deitado</button><button data-or="portrait">Em pé</button></span></div>
+        <div class="ffrow"><span>Girar tela</span><button class="ffbtn" data-rot="1">⟳ Girar</button></div>
+        <div class="ffrow"><span>Tela cheia</span><button class="ffbtn" data-fs="1">⛶ Entrar / sair</button></div>
+        <div class="ffrow"><span>Tela cheia automática ao jogar<small>celular</small></span><span class="ffseg" data-chk="oautofs"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="oautofs" hidden></div>
+        <div class="ffrow"><span>Teclado para digitar</span><span class="ffseg"><button data-vk="auto">Automático</button><button data-vk="on">Do jogo</button><button data-vk="off">Do celular</button></span></div>
+        <h4>Teclado e mouse (PC)</h4>
+        <p style="color:var(--dim);font-size:15px">PC: WASD mover · Mouse mirar · Clique atirar · Botão direito mirar (ADS) · R recarregar · Espaço pular · C/Ctrl agachar · Shift correr · 1/2 ou roda trocar arma · H ou 4 kit médico · Tab placar · Enter chat · Esc pausa</p>
+      </div>
+      <div class="ffpane" data-p="partida-info">
+        <div id="ffingame">
+          <h4>Partida</h4>
+          <div class="card" id="pinfo"></div>
+          <div class="ffrow"><span>Chamar amigos para esta sala</span><button class="ffbtn" id="pinvite">Convidar amigos</button></div>
+          <div class="ffrow" id="pteamrow"><span>Equipe</span><button class="ffbtn" id="pteam">Trocar de equipe</button></div>
+        </div>
+        <h4>Servidor online</h4>
+        <div id="mpstatus" style="margin-bottom:8px">Desconectado</div>
+        <div class="row"><input type="text" id="mpurl" placeholder="wss://seu-servidor.com" style="flex:1;min-width:160px"><button class="btn sm" id="mpgo">Conectar</button></div>
+        <h4>Créditos</h4>
+        <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0. Casas "Casa Dúplex" por alecsvaldez, "Casas" por Allvis e "Tokyo Japanese House / Casa Japonesa [Low Poly]" por SitoNyaa (Sketchfab), licença CC BY 4.0 (portas retiradas e janelas abertas para o jogo). Arma "Maverick 88" por Alex_Sandro (Sketchfab), licença CC BY 4.0.</div>
+      </div>
+      <div class="ffpane" data-p="partida-sens">
+        <h4>Sensibilidade</h4>
+        <div class="ffrow"><span>Toque (celular) <b id="otsensv"></b></span><input type="range" id="otsens" min="0.2" max="3" step="0.05"></div>
+        <div class="ffrow"><span>Mouse (PC) <b id="osensv"></b></span><input type="range" id="osens" min="0.2" max="3" step="0.05"></div>
+        <div class="ffrow"><span>Campo de visão (FOV) <b id="ofovv"></b></span><input type="range" id="ofov" min="60" max="100" step="1"></div>
+      </div>
+      <div class="ffpane" data-p="partida-vib">
+        <h4>Vibração</h4>
+        <div class="ffrow"><span>Vibrar ao levar dano<small>celular</small></span><span class="ffseg" data-chk="ovib"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="ovib" hidden></div>
+        <div class="ffrow"><span>Vibrar ao eliminar um inimigo<small>celular</small></span><span class="ffseg" data-chk="ovibk"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="ovibk" hidden></div>
+      </div>
+      <div class="ffpane" data-p="grafico">
+        <h4>Gráfico</h4>
+        <div class="ffrow"><span>Qualidade</span><span class="ffseg"><button data-q="low">Baixa</button><button data-q="medium">Média</button><button data-q="high">Alta</button></span></div>
+        <div class="ffrow"><span>Sombras</span><span class="ffseg" data-chk="oshadow"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="oshadow" hidden></div>
+        <div class="ffrow"><span>Efeitos e partículas</span><span class="ffseg" data-chk="oeffects"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="oeffects" hidden></div>
+        <div class="ffrow"><span>Personagens 3D realistas<small>desligue se o celular travar</small></span><span class="ffseg" data-chk="oreal"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="oreal" hidden></div>
+        <div class="ffrow"><span>Resolução <b id="oscalev"></b></span><input type="range" id="oscale" min="0.4" max="1" step="0.05"></div>
+      </div>
+      <div class="ffpane" data-p="som">
+        <h4>Som</h4>
+        <div class="ffrow"><span>Volume do jogo <b id="ovolv"></b></span><input type="range" id="ovol" min="0" max="1" step="0.05"></div>
+        <div class="ffrow"><span>Música do menu <b id="omusv"></b></span><input type="range" id="omus" min="0" max="1" step="0.05"></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- PAUSA -->
-<div id="s-pause" class="scr dim">
-  <div class="col">
-    <h2>Pausa</h2>
-    <button class="btn pri" id="resume">Continuar</button>
-    <button class="btn" id="pteam">Trocar de equipe</button>
-    <button class="btn" id="psettings">Configurações</button>
-    <button class="btn" data-fs="1">⛶ Tela cheia</button>
-    <button class="btn" data-rot="1">⟳ Girar tela</button>
-    <button class="btn" id="pinvite">Convidar amigos</button>
-    <button class="btn" id="quit">Sair da partida</button>
-    <div class="card" id="pinfo" style="margin-top:10px"></div>
-  </div>
-</div>
+<!-- PAUSA (no jogo a engrenagem abre direto a configuração) -->
+<div id="s-pause" class="scr dim"><div class="col"><button class="btn pri" id="resume">Continuar</button><button class="btn" id="psettings">Configurações</button></div></div>
 
 <!-- FIM DE PARTIDA -->
 <div id="s-end" class="scr full"><div style="max-width:760px;margin:0 auto" id="endbox"></div></div>
@@ -3666,7 +3703,9 @@ const Sfx = (() => {
   };
   const lowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 4) || (isTouch && Math.min(screen.width, screen.height) < 500);
   const defQ = isTouch ? (lowEnd ? 'low' : 'medium') : 'high';
-  const CFG = Object.assign({ quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, real: true, tps: true, btns: {} }, store.get('fps_settings', {}));
+  const CFG_DEF = { quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, real: true, tps: true, vib: true, vibk: true, btns: {} };
+  const CFG = Object.assign({}, CFG_DEF, store.get('fps_settings', {}));
+  const vibrate = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
   const saveSet = () => store.set('fps_settings', CFG);
   // animação de andar: pernas viram para o lado do movimento (o tronco continua mirando), de costas anda para trás
   function moveAnim(an, yaw, dt) {
@@ -3972,7 +4011,7 @@ const Sfx = (() => {
       if (dx * dx + dy * dy + dz * dz < 4) { this.visOff[0] += dx; this.visOff[1] += dy; this.visOff[2] += dz; } else this.visOff = [0, 0, 0];
       fw.shots = fw.shots.filter((q) => q > me.sa);
       if (me.rl > 0 && now() - fw.reloadStart > 0.4) { fw.reloadStart = now() - (W[me.w[me.cur]].reload - me.rl); fw.reloadW = me.w[me.cur]; }
-      if (me.hp < this.prevHp) { this.dmgT = 1; }
+      if (me.hp < this.prevHp) { this.dmgT = 1; if (CFG.vib) vibrate(35); }
       if (me.hp > this.prevHp) { this.healT = 1; }
       this.prevHp = me.hp;
     },
@@ -4004,7 +4043,7 @@ const Sfx = (() => {
           break;
         case 'kill': {
           this.addFeed(e);
-          if (e.k === me && e.v !== me) { hitMarker(true); Sfx.hit(true); center(`ELIMINOU <b style="color:var(--red)">${esc(this.name(e.v))}</b>${e.hs ? ' · HEADSHOT' : ''}`, 1.6); }
+          if (e.k === me && e.v !== me) { hitMarker(true); Sfx.hit(true); if (CFG.vibk) vibrate([30, 40, 30]); center(`ELIMINOU <b style="color:var(--red)">${esc(this.name(e.v))}</b>${e.hs ? ' · HEADSHOT' : ''}`, 1.6); }
           if (e.v === me) {
             this.deathInfo = { by: e.k, w: e.w, t: now() };
             $('death').style.display = 'block';
@@ -4026,7 +4065,7 @@ const Sfx = (() => {
         case 'spawn': break;
         case 'br':
           if (e.ph === 'lobby') { center('👥 LOBBY — todos juntos! Prepare-se', 2.5); Sfx.horn(); }
-          else if (e.ph === 'trem') { center('🚆 TODOS NO TREM! Pule onde quiser para pegar armas e kits', 3.5); Sfx.horn(); }
+          else if (e.ph === 'trem') Sfx.horn();
           else if (e.ph === 'livre') center('🚉 O trem chegou: todos desceram!', 2.5);
           break;
         case 'leap': if (e.id === me) { center('Boa sorte! Procure armas e kits médicos', 2); this.look.pitch = 0; } break;
@@ -4429,7 +4468,7 @@ const Sfx = (() => {
       const n = this.brPn || 1;
       if (ph === 'busca') { setT($('brt'), 'PROCURANDO JOGADORES'); setT($('brs'), n + (n === 1 ? ' jogador encontrado' : ' jogadores encontrados') + ' · até 30 · depois todos entram no trem'); }
       else if (ph === 'lobby') { setT($('brt'), 'LOBBY · A PARTIDA COMEÇA EM'); setT($('brs'), n + (n === 1 ? ' jogador' : ' jogadores') + ' · depois todos entram no trem'); }
-      else { setT($('brt'), 'NO TREM · PULE ONDE QUISER'); setT($('brs'), ''); }
+      else { setT($('brt'), 'TODOS NO TREM, PULE ONDE QUISER!'); setT($('brs'), ''); }
       setT($('brn'), ph === 'trem' ? sec + 's' : String(sec));
       const tot = ph === 'busca' ? 15 : ph === 'lobby' ? 20 : this.brDur || 50;
       $('brbar').style.width = Math.max(0, Math.min(100, (1 - sec / tot) * 100)) + '%';
@@ -4874,18 +4913,20 @@ const Sfx = (() => {
     if (v && Game.conn) Game.conn.send({ t: 'chat', m: v, team });
     closeChat();
   }
+  // no jogo, a engrenagem (ou Esc) abre a configuração estilo Free Fire, sem o HUD por trás
   function pause() {
     Game.paused = true; mouse.l = mouse.r = false;
-    $('pteam').style.display = !S.isFFA(Game.mode) ? '' : 'none';
-    $('pinvite').style.display = Game.conn && !Game.conn.offline ? '' : 'none';
+    $('pteamrow').style.display = !S.isFFA(Game.mode) ? '' : 'none';
+    $('pinvite').parentElement.style.display = Game.conn && !Game.conn.offline ? '' : 'none';
     $('pinfo').innerHTML = `<b>${esc(Game.room ? Game.room.name : '')}</b><br>${esc(S.MODE_NAMES[Game.mode])}${Game.room && Game.room.code ? `<br>ID da sala: <b style="font-size:22px;color:var(--acc)">${esc(Game.room.code)}</b>` : ''}`;
-    $('s-pause').classList.add('on');
+    settingsBack = 'pause'; hideScreens(); curScreen = 'settings'; $('s-settings').classList.add('on'); document.body.classList.add('setopen');
+    FFS.sc = 'partida'; FFS.st = 'hud'; renderSettings();
   }
-  function resume() { Game.paused = false; $('s-pause').classList.remove('on'); requestLock(); }
+  function resume() { Game.paused = false; hideScreens(); document.body.classList.remove('setopen'); curScreen = 'game'; requestLock(); }
   $('resume').onclick = resume;
-  $('quit').onclick = () => { Game.stop(); go('menu'); };
+  $('quit').onclick = () => { document.body.classList.remove('setopen'); Game.stop(); go('menu'); };
   $('pteam').onclick = () => { const t = Game.teamOf(Game.myId) === 0 ? 1 : 0; Game.conn.send({ t: 'team', team: t }); resume(); };
-  $('psettings').onclick = () => { $('s-pause').classList.remove('on'); settingsBack = 'pause'; go('settings'); };
+  $('psettings').onclick = () => pause();
   $('pinvite').onclick = () => {
     const code = Game.room && Game.room.code;
     const link = location.origin + location.pathname + '?sala=' + code;
@@ -5204,7 +5245,7 @@ const Sfx = (() => {
   let curScreen = 'menu', settingsBack = 'menu';
   function hideScreens() { document.querySelectorAll('.scr').forEach((s) => s.classList.remove('on')); }
   function go(name) {
-    Sfx.ui(); if (VK) VK.close();
+    Sfx.ui(); if (VK) VK.close(); document.body.classList.remove('setopen');
     if (name === 'settings' && !Game.active) settingsBack = 'menu';
     hideScreens(); curScreen = name;
     const el = $('s-' + (STORE_SCR.includes(name) ? 'shop' : name)); if (el) el.classList.add('on');
@@ -5221,7 +5262,7 @@ const Sfx = (() => {
     if (name === 'find') { $('fres').innerHTML = ''; autoConnect(); if (Net.ok) Net.send({ t: 'rooms' }); setTimeout(() => $('fid').focus(), 50); }
   }
   document.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => { Sfx.init(); go(b.dataset.go); }));
-  $('setback').onclick = () => { if (settingsBack === 'pause' && Game.active) { hideScreens(); pause(); } else go('menu'); };
+  $('setback').onclick = () => { if (Game.active) resume(); else go('menu'); };
 
   const STORE_SCR = ['shop', 'inv', 'cofre', 'armas'];
   // ================================================================ amigos e correio (precisam do servidor online)
@@ -5595,7 +5636,20 @@ const Sfx = (() => {
     if (Prof.online) { Prof.online.name = n; Net.send({ t: 'rename', name: n }); }
     toast('Nome salvo: ' + esc(n)); refreshMenu();
   };
+  // abas da configuração (Na partida: HUD/Controles/Informação/Sensibilidade/Vibração · Gráfico · Som)
+  const FFS = { sc: 'partida', st: 'hud' };
+  document.querySelectorAll('.ffside>[data-sc]').forEach((b) => (b.onclick = () => { Sfx.ui(); FFS.sc = b.dataset.sc; renderSettings(); }));
+  document.querySelectorAll('.fftabs [data-st]').forEach((b) => (b.onclick = () => { Sfx.ui(); FFS.st = b.dataset.st; renderSettings(); }));
+  document.querySelectorAll('[data-chk]').forEach((sg) => sg.querySelectorAll('button').forEach((b) => (b.onclick = () => { const c = $(sg.dataset.chk); c.checked = b.dataset.v === '1'; c.dispatchEvent(new Event('change')); })));
+  $('ffreset').onclick = () => { const btns = CFG.btns; Object.assign(CFG, CFG_DEF, { btns }); saveSet(); applyQuality(); setOrientation(CFG.orient); renderSettings(); if (Game.active) showTouch(CFG.touch); toast('Configurações restauradas para o padrão.'); };
   function renderSettings() {
+    const pane = FFS.sc === 'partida' ? 'partida-' + FFS.st : FFS.sc;
+    document.querySelectorAll('.ffside>[data-sc]').forEach((b) => b.classList.toggle('on', b.dataset.sc === FFS.sc));
+    document.querySelectorAll('.fftabs [data-st]').forEach((b) => b.classList.toggle('on', b.dataset.st === FFS.st));
+    document.querySelector('.fftabs').classList.toggle('off', FFS.sc !== 'partida');
+    document.querySelectorAll('.ffpane').forEach((p) => p.classList.toggle('on', p.dataset.p === pane));
+    $('quit').parentElement.style.display = Game.active ? '' : 'none'; $('ffingame').style.display = Game.active ? '' : 'none';
+    $('ovib').checked = CFG.vib !== false; $('ovibk').checked = CFG.vibk !== false;
     document.querySelectorAll('[data-q]').forEach((b) => b.classList.toggle('pri', b.dataset.q === CFG.quality));
     $('oshadow').checked = CFG.shadows; $('oeffects').checked = CFG.effects; $('ofps').checked = CFG.fps; $('otouch').checked = CFG.touch;
     $('oscale').value = CFG.scale; $('oscalev').textContent = Math.round(CFG.scale * 100) + '%';
@@ -5607,13 +5661,14 @@ const Sfx = (() => {
     $('oreal').checked = CFG.real !== false; $('otps').checked = CFG.tps !== false; $('oautofs').checked = CFG.autofs; $('oassist').checked = CFG.assist; $('ohead').checked = CFG.head; $('oastr').value = CFG.astr; $('oastrv').textContent = Math.round(CFG.astr * 100) + '%';
     $('ovol').value = CFG.vol; $('ovolv').textContent = Math.round(CFG.vol * 100) + '%';
     $('omus').value = CFG.music; $('omusv').textContent = CFG.music > 0 ? Math.round(CFG.music * 100) + '%' : 'desligada';
+    document.querySelectorAll('[data-chk]').forEach((sg) => { const v = $(sg.dataset.chk).checked; sg.querySelectorAll('button').forEach((b) => b.classList.toggle('on', (b.dataset.v === '1') === v)); });
   }
   document.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => {
     CFG.quality = b.dataset.q; const p = PRESETS[CFG.quality]; CFG.shadows = p.shadows > 0; CFG.scale = p.scale; CFG.effects = true;
     saveSet(); applyQuality(); renderSettings();
   }));
   const bindSet = (id, key, num) => ($(id).oninput = $(id).onchange = () => { CFG[key] = num ? +$(id).value : $(id).checked; saveSet(); applyQuality(); renderSettings(); if (key === 'touch' && Game.active) showTouch(CFG.touch); });
-  bindSet('oreal', 'real'); bindSet('otps', 'tps'); bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oastr', 'astr', 1);
+  bindSet('ovib', 'vib'); bindSet('ovibk', 'vibk'); bindSet('oreal', 'real'); bindSet('otps', 'tps'); bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oastr', 'astr', 1);
   bindSet('oshadow', 'shadows'); bindSet('oeffects', 'effects'); bindSet('ofps', 'fps'); bindSet('otouch', 'touch');
   bindSet('oscale', 'scale', 1); bindSet('ofov', 'fov', 1); bindSet('osens', 'sens', 1); bindSet('otsens', 'tsens', 1); bindSet('ovol', 'vol', 1); bindSet('omus', 'music', 1);
   $('oedit').onclick = openEditor;
