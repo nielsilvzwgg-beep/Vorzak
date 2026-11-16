@@ -656,7 +656,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         <div id="mpstatus" style="margin-bottom:8px">Desconectado</div>
         <div class="row"><input type="text" id="mpurl" placeholder="wss://seu-servidor.com" style="flex:1;min-width:160px"><button class="btn sm" id="mpgo">Conectar</button></div>
         <h4>Créditos</h4>
-        <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0. Casas "Casa Dúplex" por alecsvaldez, "Casas" por Allvis e "Tokyo Japanese House / Casa Japonesa [Low Poly]" por SitoNyaa (Sketchfab), licença CC BY 4.0 (portas retiradas e janelas abertas para o jogo). Arma "Maverick 88" por Alex_Sandro (Sketchfab), licença CC BY 4.0. Personagem "REBECA" por rato biônico games (Sketchfab), licença CC BY 4.0. Personagem "Winter Phone Check" por Grauwolf (Sketchfab), licença CC BY 4.0. Roupas "Blue Sailor Uniform 3d model free" por iGauravRajput e "tan pinstripe women suit" por GangsterKitty (Sketchfab), licença CC BY 4.0, ajustadas ao corpo da Rebeca. Carro "Mclaren F1" por LuizZed36 (Sketchfab), licença CC BY 4.0 (McLaren é marca dos seus donos; o jogo não tem ligação com a empresa).</div>
+        <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0. Casas "Casa Dúplex" por alecsvaldez, "Casas" por Allvis e "Tokyo Japanese House / Casa Japonesa [Low Poly]" por SitoNyaa (Sketchfab), licença CC BY 4.0 (portas retiradas e janelas abertas para o jogo). Arma "Maverick 88" por Alex_Sandro (Sketchfab), licença CC BY 4.0. Personagem "REBECA" por rato biônico games (Sketchfab), licença CC BY 4.0. Personagem "Winter Phone Check" por Grauwolf (Sketchfab), licença CC BY 4.0. Roupas "Blue Sailor Uniform 3d model free" por iGauravRajput e "tan pinstripe women suit" por GangsterKitty (Sketchfab), licença CC BY 4.0, ajustadas ao corpo da Rebeca. Carro "Mclaren F1" por LuizZed36 (Sketchfab), licença CC BY 4.0 (McLaren é marca dos seus donos; o jogo não tem ligação com a empresa). Árvore "Modelo 3D gratuito de baixa poligonagem de um carvalho" por dmann (simplificada para o jogo).</div>
       </div>
       <div class="ffpane" data-p="partida-sens">
         <h4>Sensibilidade</h4>
@@ -3139,11 +3139,13 @@ const Engine = (() => {
   // ------------------------------------------------------------ shaders
   const VS = `#version 300 es
   layout(location=0) in vec3 aPos; layout(location=1) in vec3 aNrm; layout(location=2) in vec2 aUv; layout(location=3) in vec3 aCol;
-  layout(location=4) in vec4 aJ; layout(location=5) in vec4 aW;
-  uniform mat4 uVP, uModel, uShVP; uniform mat4 uBones[24]; uniform int uSkin;
+  layout(location=4) in vec4 aJ; layout(location=5) in vec4 aW; layout(location=6) in vec4 aI; layout(location=7) in float aIs;
+  uniform mat4 uVP, uModel, uShVP; uniform mat4 uBones[24]; uniform int uSkin; uniform int uInst; uniform float uSkipR; uniform vec2 uEye;
   out vec3 vN; out vec2 vUv; out vec3 vCol; out vec3 vW; out vec4 vSh;
   void main(){ vec4 lp = vec4(aPos,1.0); vec3 ln = aNrm;
     if(uSkin==1){ mat4 sk = uBones[int(aJ.x)]*aW.x + uBones[int(aJ.y)]*aW.y + uBones[int(aJ.z)]*aW.z + uBones[int(aJ.w)]*aW.w; lp = sk*lp; ln = mat3(sk)*aNrm; }
+    if(uInst==1){ if(uSkipR > 0.0 && distance(aI.xz, uEye) < uSkipR){ gl_Position = vec4(0.0, 0.0, -2.0, 1.0); vN=vec3(0.0,1.0,0.0); vUv=vec2(0.0); vCol=vec3(1.0); vW=vec3(0.0); vSh=vec4(0.0); return; }
+      float c = cos(aI.w), s = sin(aI.w); lp.xyz = vec3(c*lp.x + s*lp.z, lp.y, -s*lp.x + c*lp.z)*aIs + aI.xyz; ln = vec3(c*ln.x + s*ln.z, ln.y, -s*ln.x + c*ln.z); }
     vec4 w = uModel*lp; vW=w.xyz; vN=mat3(uModel)*ln; vUv=aUv; vCol=aCol;
     vSh = uShVP*vec4(w.xyz + normalize(vN)*0.06, 1.0); gl_Position = uVP*w; }`;
   const FS = `#version 300 es
@@ -3151,7 +3153,7 @@ const Engine = (() => {
   in vec3 vN; in vec2 vUv; in vec3 vCol; in vec3 vW; in vec4 vSh;
   uniform sampler2D uTex; uniform sampler2DShadow uShadow;
   uniform int uShOn; uniform int uPCF; uniform float uTexel;
-  uniform vec3 uSun, uSunCol, uSky, uGnd, uFog, uCam; uniform float uFogD; uniform vec4 uTint; uniform float uEmis, uSpec; uniform highp int uSkin;
+  uniform vec3 uSun, uSunCol, uSky, uGnd, uFog, uCam; uniform float uFogD; uniform vec4 uTint; uniform float uEmis, uSpec; uniform highp int uSkin; uniform float uCut;
   out vec4 o;
   float sh(){ vec3 p = vSh.xyz/vSh.w*0.5+0.5; if(p.x<0.0||p.x>1.0||p.y<0.0||p.y>1.0||p.z>1.0) return 1.0;
     p.z -= 0.0008;
@@ -3159,6 +3161,7 @@ const Engine = (() => {
     return texture(uShadow, p); }
   void main(){
     vec4 t = texture(uTex, vUv);
+    if(uCut > 0.0 && t.a < uCut) discard; // folhas: recorte pela transparência
     vec3 base = pow(t.rgb*vCol*uTint.rgb, vec3(2.2));
     vec3 n = normalize(vN); if(!gl_FrontFacing && uSkin==0) n = -n;
     float nd = max(dot(n, uSun), 0.0);
@@ -3174,13 +3177,16 @@ const Engine = (() => {
     o = vec4(pow(clamp(col,0.0,1.0), vec3(1.0/2.2)), uTint.a);
   }`;
   const DVS = `#version 300 es
-  layout(location=0) in vec3 aPos; layout(location=4) in vec4 aJ; layout(location=5) in vec4 aW;
-  uniform mat4 uVP, uModel; uniform mat4 uBones[24]; uniform int uSkin;
-  void main(){ vec4 lp = vec4(aPos,1.0);
+  layout(location=0) in vec3 aPos; layout(location=2) in vec2 aUv; layout(location=4) in vec4 aJ; layout(location=5) in vec4 aW; layout(location=6) in vec4 aI; layout(location=7) in float aIs;
+  uniform mat4 uVP, uModel; uniform mat4 uBones[24]; uniform int uSkin; uniform int uInst; uniform float uSkipR; uniform vec2 uEye; out vec2 vUv;
+  void main(){ vec4 lp = vec4(aPos,1.0); vUv = aUv;
     if(uSkin==1) lp = (uBones[int(aJ.x)]*aW.x + uBones[int(aJ.y)]*aW.y + uBones[int(aJ.z)]*aW.z + uBones[int(aJ.w)]*aW.w)*lp;
+    if(uInst==1){ if(uSkipR > 0.0 && distance(aI.xz, uEye) < uSkipR){ gl_Position = vec4(0.0, 0.0, -2.0, 1.0); return; }
+      float c = cos(aI.w), s = sin(aI.w); lp.xyz = vec3(c*lp.x + s*lp.z, lp.y, -s*lp.x + c*lp.z)*aIs + aI.xyz; }
     gl_Position = uVP*uModel*lp; }`;
   const DFS = `#version 300 es
-  precision mediump float; out vec4 o; void main(){ o=vec4(1.0); }`;
+  precision mediump float; in vec2 vUv; uniform sampler2D uTex; uniform float uCut; out vec4 o;
+  void main(){ if(uCut > 0.0 && texture(uTex, vUv).a < uCut) discard; o=vec4(1.0); }`;
   const SKYVS = `#version 300 es
   out vec2 vP; void main(){ vec2 p = vec2((gl_VertexID<<1)&2, gl_VertexID&2)*2.0-1.0; vP=p; gl_Position=vec4(p,0.9999,1.0); }`;
   const SKYFS = `#version 300 es
@@ -3309,6 +3315,33 @@ const Engine = (() => {
       gl.bindVertexArray(null);
       return { vao, count: m.index.length, type: m.index instanceof Uint32Array ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT };
     }
+    // geometria compartilhada por vários objetos desenhados em lote (ex.: árvores)
+    instGeo(m) {
+      const gl = this.gl, mk = (data) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); return b; };
+      const g = { pos: mk(m.pos), nrm: mk(m.nrm), uv: mk(m.uv), col: mk(m.col), ib: gl.createBuffer(), type: m.index instanceof Uint32Array ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, bpi: m.index instanceof Uint32Array ? 4 : 2 };
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g.ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, m.index, gl.STATIC_DRAW); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+      return g;
+    }
+    // um lote: trecho de índices [início, quantidade] desenhado em várias posições (x, y, z, giro, escala)
+    instMesh(g, range, inst) {
+      const gl = this.gl, vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+      const at = (b, loc, size) => { gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0); };
+      at(g.pos, 0, 3); at(g.nrm, 1, 3); at(g.uv, 2, 2); at(g.col, 3, 3);
+      const ibuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, ibuf); gl.bufferData(gl.ARRAY_BUFFER, inst, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(6); gl.vertexAttribPointer(6, 4, gl.FLOAT, false, 20, 0); gl.vertexAttribDivisor(6, 1);
+      gl.enableVertexAttribArray(7); gl.vertexAttribPointer(7, 1, gl.FLOAT, false, 20, 16); gl.vertexAttribDivisor(7, 1);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g.ib);
+      gl.bindVertexArray(null);
+      return { vao, ibuf, count: range[1], type: g.type, off: range[0] * g.bpi, inst: inst.length / 5, isInst: true };
+    }
+    // lote que muda a cada quadro (ex.: árvores perto da câmera, versão detalhada)
+    instMeshDyn(g, range, maxN) {
+      const m = this.instMesh(g, range, new Float32Array(maxN * 5)); m.inst = 0; m.max = maxN; return m;
+    }
+    instUpdate(m, data, n) {
+      const gl = this.gl; gl.bindVertexArray(null);
+      gl.bindBuffer(gl.ARRAY_BUFFER, m.ibuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, data, 0, Math.min(n, m.max) * 5); m.inst = Math.min(n, m.max);
+    }
     resize() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2) * (this.q.scale || 1);
       const w = Math.max(1, Math.floor(this.cv.clientWidth * dpr)), h = Math.max(1, Math.floor(this.cv.clientHeight * dpr));
@@ -3326,10 +3359,15 @@ const Engine = (() => {
     drawList(prog, items, vp, depthOnly) {
       const gl = this.gl, u = prog.u;
       gl.uniformMatrix4fv(u.uVP, false, vp);
-      let skin = 0; gl.uniform1i(u.uSkin, 0);
+      let skin = 0, inst = 0, cut = 0, skip = 0; gl.uniform1i(u.uSkin, 0); gl.uniform1i(u.uInst, 0); gl.uniform1f(u.uCut, 0); gl.uniform1f(u.uSkipR, 0);
+      if (this.cam) gl.uniform2f(u.uEye, this.cam.x, this.cam.z);
       for (const it of items) {
-        if (it.visible === false) continue;
+        if (it.visible === false || (it.mesh.isInst && !it.mesh.inst)) continue;
+        const ws = it.skipR || 0; if (ws !== skip) { skip = ws; gl.uniform1f(u.uSkipR, ws); }
         if (depthOnly && it.noShadow) continue;
+        const wi = it.mesh.isInst ? 1 : 0; if (wi !== inst) { inst = wi; gl.uniform1i(u.uInst, wi); }
+        const wc = it.cut || 0; if (wc !== cut) { cut = wc; gl.uniform1f(u.uCut, wc); if (wc) gl.disable(gl.CULL_FACE); else if (!skin) gl.enable(gl.CULL_FACE); }
+        if (depthOnly && wc) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, it.tex || this.white); }
         gl.uniformMatrix4fv(u.uModel, false, it.model || this.ident);
         if (it.bones) { if (!skin) { gl.uniform1i(u.uSkin, 1); skin = 1; gl.disable(gl.CULL_FACE); } gl.uniformMatrix4fv(u['uBones[0]'], false, it.bones); }
         else if (skin) { gl.uniform1i(u.uSkin, 0); skin = 0; gl.enable(gl.CULL_FACE); }
@@ -3341,10 +3379,12 @@ const Engine = (() => {
           gl.uniform1f(u.uEmis, it.emis || 0); gl.uniform1f(u.uSpec, it.spec == null ? 0.15 : it.spec);
         }
         gl.bindVertexArray(it.mesh.vao);
-        gl.drawElements(gl.TRIANGLES, it.mesh.count, it.mesh.type, 0);
+        if (it.mesh.isInst) gl.drawElementsInstanced(gl.TRIANGLES, it.mesh.count, it.mesh.type, it.mesh.off, it.mesh.inst);
+        else gl.drawElements(gl.TRIANGLES, it.mesh.count, it.mesh.type, it.mesh.off || 0);
         this.stats.draws++;
       }
-      if (skin) gl.enable(gl.CULL_FACE);
+      if (skin || cut) gl.enable(gl.CULL_FACE);
+      if (inst) gl.uniform1i(u.uInst, 0); if (cut) gl.uniform1f(u.uCut, 0); if (skip) gl.uniform1f(u.uSkipR, 0);
     }
     // frame: {items, vm (viewmodel items), vmAdd (aditivos), particles: Float32Array count, lines}
     render(f) {
@@ -3367,6 +3407,7 @@ const Engine = (() => {
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.shFb);
         gl.viewport(0, 0, S, S); gl.clear(gl.DEPTH_BUFFER_BIT);
         gl.useProgram(this.dprog);
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.white); // o recorte das folhas lê a textura na unidade 0
         gl.cullFace(gl.FRONT);
         this.drawList(this.dprog, f.items, this.shVP, true);
         gl.cullFace(gl.BACK);
@@ -3465,12 +3506,13 @@ const Assets = (() => {
     const G = (t) => groups[t] || (groups[t] = new Geo());
     const scale = { brick: 0.5, concrete: 0.3, metal: 0.35, sandbag: 0.9, roof: 0.3, wood: 0.6, road: 0.15, gravel: 0.5, rail: 1 / 3, rock: 0.45, field: 0.1, tent: 0.6 };
     const perFace = { crate: 1, barrier: 1, pole: 1, hay: 1 };
-    const tr = G('plain'), rnd = Engine.rnd(42);
+    const tr = G('plain'), rnd = Engine.rnd(42), trees = [];
     for (const b of MAP.solids.concat(MAP.deco)) {
       const t = b[6], col = b[7] || [1, 1, 1];
       if (t === 'trunk' || t === 'prop') continue; // tronco: desenhado com a copa; prop: a casa 3D é desenhada à parte
-      if (t === 'tree') { // árvore: tronco + copa (esferas)
-        const cx = (b[0] + b[3]) / 2, cz = (b[2] + b[5]) / 2, r = (b[3] - b[0]) / 2, h = b[4];
+      if (t === 'tree') { // árvore: tronco + copa (esferas) — reserva até o modelo 3D carregar
+        const cx = (b[0] + b[3]) / 2, cz = (b[2] + b[5]) / 2, r = (b[3] - b[0]) / 2, h = b[4], tr = G('treeold');
+        trees.push([cx, cz, h]);
         tr.cylZ(0, 0, 0, h * 0.75, 0.28, { col: [0.32, 0.24, 0.16], seg: 6, m: M4.compose(M4.create(), cx, 0, cz, 0, -Math.PI / 2, 0) });
         for (let k = 0; k < 3; k++) tr.sphere(cx + (rnd() - 0.5) * r * 0.6, b[1] + (h - b[1]) * (0.45 + k * 0.2), cz + (rnd() - 0.5) * r * 0.6, r * (1 - k * 0.2), (h - b[1]) * 0.42, r * (1 - k * 0.2), { col, seg: 8, rings: 6, grad: 0.5 });
         continue;
@@ -3494,13 +3536,15 @@ const Assets = (() => {
     const nOut = MAP.sea ? 0 : MAP.sx > 60 ? 140 : 70;
     for (let i = 0; i < nOut; i++) {
       const a = rnd() * Math.PI * 2, d = 7 + rnd() * 60, ex = Math.cos(a), ez = Math.sin(a), k = 1 / Math.max(Math.abs(ex) / MAP.sx, Math.abs(ez) / MAP.sz);
-      const x = ex * (k + d), z = ez * (k + d), h = 5 + rnd() * 6;
+      const x = ex * (k + d), z = ez * (k + d), h = 5 + rnd() * 6, tr = G('treeold');
+      trees.push([x, z, h + 1.5]);
       tr.cylZ(0, 0, 0, h, 0.25 + rnd() * 0.15, { col: [0.32, 0.24, 0.16], seg: 6, m: M4.compose(M4.create(), x, 0, z, 0, -Math.PI / 2, 0) });
       const gc = [0.2 + rnd() * 0.1, 0.32 + rnd() * 0.12, 0.15];
       for (let k = 0; k < 3; k++) tr.sphere(x + (rnd() - 0.5) * 1.5, h * (0.7 + k * 0.15), z + (rnd() - 0.5) * 1.5, 2 + rnd() * 1.2, 1.6 + rnd(), 2 + rnd() * 1.2, { col: gc, seg: 8, rings: 6, grad: 0.5 });
     }
     const items = [];
-    for (const t in groups) items.push({ mesh: R.mesh(groups[t]), tex: tex[t === 'water' || t === 'ground' ? (t === 'ground' ? 'plain' : 'plain') : t] || tex.plain, spec: t === 'metal' ? 0.5 : t === 'water' ? 0.9 : t === 'asphalt' ? 0.05 : 0.12, noShadow: t === 'grass' || t === 'asphalt' || t === 'ground' || t === 'water' });
+    for (const t in groups) items.push({ mesh: R.mesh(groups[t]), tex: tex[t === 'water' || t === 'ground' || t === 'treeold' ? 'plain' : t] || tex.plain, spec: t === 'metal' ? 0.5 : t === 'water' ? 0.9 : t === 'asphalt' ? 0.05 : 0.12, noShadow: t === 'grass' || t === 'asphalt' || t === 'ground' || t === 'water', oldTree: t === 'treeold' });
+    items.trees = trees; // posições das árvores (para o modelo 3D em lote)
     return items;
   }
   // chão da Ilha: grama/floresta/pântano (textura de grama), neve e areia (lisas), praia na beira, água rasa e mar em volta
@@ -3987,6 +4031,22 @@ const Assets = (() => {
     })().catch((e) => console.warn('objeto 3D indisponível:', name, e.message));
     return null;
   }
+  // árvore 3D (carvalho): geometria única + 3 texturas (2 de folhas com transparência e a casca)
+  let Tree = null, treePending = null;
+  function tree() {
+    if (Tree) return Tree;
+    if (!treePending) treePending = (async () => {
+      const res = await fetch('tree_oak.vzm?v=1'); if (!res.ok) throw new Error(res.status);
+      const buf = await res.arrayBuffer(), dv = new DataView(buf), hl = dv.getUint32(4, true);
+      const hdr = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, hl))), base = 8 + hl;
+      const A = (k, T) => { const [o, n] = hdr.off[k]; return new T(buf, base + o, n / T.BYTES_PER_ELEMENT); };
+      const m = { pos: A('pos', Float32Array), nrm: A('nrm', Float32Array), uv: A('uv', Float32Array), col: A('col', Float32Array), index: A('index', hdr.big ? Uint32Array : Uint16Array) };
+      const texs = [];
+      for (let i = 0; i < 3; i++) { const [o, n] = hdr.off['tex' + i]; texs.push(R.texture(await createImageBitmap(new Blob([new Uint8Array(buf, base + o, n)], { type: hdr.mime[i] }), { premultiplyAlpha: 'none' }))); }
+      Tree = { geo: R.instGeo(m), texs, parts: hdr.parts, cut: hdr.cut, height: hdr.height };
+    })().catch((e) => console.warn('árvore 3D indisponível:', e.message));
+    return null;
+  }
   // casa enquanto o modelo 3D carrega: as próprias caixas de colisão em concreto
   const boxCache = {};
   function propBoxes(name, boxes) {
@@ -4185,7 +4245,7 @@ const Assets = (() => {
     return P.hip[f0] * (1 - k) + P.hip[f1] * k;
   }
 
-  return { init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, ammoBox, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP, subsetMesh, cloth, prop, simpleTrain, propBoxes, ANIMS, animApply };
+  return { tree, init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, ammoBox, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP, subsetMesh, cloth, prop, simpleTrain, propBoxes, ANIMS, animApply };
 })();
 
 </script>
@@ -4659,6 +4719,7 @@ const Voice = (() => {
   // personagem 3D realista: carrega em segundo plano; até chegar, usa o boneco antigo
   Assets.loadModel('soldier', 'soldier.vzm').catch((e) => console.warn('modelo 3D indisponível:', e.message));
   const MAPITEMS = Assets.buildMap(S.MAPS.base), MAPCACHE = { base: MAPITEMS };
+  const TREECH = {}; // regiões de árvores já montadas, por mapa
   const mapItems = (m) => MAPCACHE[m.id] || (MAPCACHE[m.id] = Assets.buildMap(m));
 
   // ================================================================ partículas e traçantes
@@ -5331,6 +5392,40 @@ const Voice = (() => {
       }
     },
 
+    // ------------------------------------------------ árvores 3D em lote (por região do mapa, perto = detalhada, longe = leve)
+    treeList(base) {
+      const T = Assets.tree(); if (!T || !base.trees || !base.trees.length) return null;
+      let ch = TREECH[this.map.id];
+      if (!ch) { // monta as regiões uma vez por mapa
+        const G = 48, cells = new Map();
+        base.trees.forEach(([x, z, h], i) => {
+          const k = Math.floor(x / G) + ',' + Math.floor(z / G); let c = cells.get(k); if (!c) cells.set(k, (c = { x: 0, z: 0, n: 0, d: [] }));
+          const sc = Math.max(0.5, Math.min(1.25, h / T.height * 1.05)), yaw = ((i * 2654435761) % 6283) / 1000;
+          c.d.push(x, 0, z, yaw, sc); c.x += x; c.z += z; c.n++;
+        });
+        ch = TREECH[this.map.id] = [...cells.values()].map((c) => {
+          const inst = new Float32Array(c.d), o = { x: c.x / c.n, z: c.z / c.n, d: inst, lo: [], xlo: [] };
+          for (const lod of ['lo', 'xlo']) for (let p = 0; p < 3; p++) { const r = T.parts[lod + ':' + p]; if (r && r[1]) o[lod].push({ mesh: R.instMesh(T.geo, r, inst), tex: T.texs[p], cut: T.cut[p] ? 0.42 : 0, spec: 0.04, noShadow: true, skipR: 0 }); }
+          return o;
+        });
+        // versão detalhada: só as árvores mais perto, escolhidas a cada quadro
+        ch.hi = []; for (let p = 0; p < 3; p++) { const r = T.parts['hi:' + p]; if (r && r[1]) ch.hi.push({ mesh: R.instMeshDyn(T.geo, r, 96), tex: T.texs[p], cut: T.cut[p] ? 0.42 : 0, spec: 0.04 }); }
+        ch.buf = new Float32Array(96 * 5);
+      }
+      // distâncias por qualidade gráfica: perto = detalhada, meio = leve, longe = bem simples (a névoa esconde o resto)
+      const ce = this.eye(), q = CFG.quality, L = q === 'low' ? [18, 48, 140] : q === 'high' ? [38, 95, 210] : [26, 62, 170];
+      const out = [], buf = ch.buf; let n = 0;
+      for (const c of ch) {
+        const d = Math.hypot(c.x - ce[0], c.z - ce[2]) - 24;
+        if (d > L[2]) continue;
+        if (d < L[0]) for (let i = 0; i < c.d.length && n < 96; i += 5) { if (Math.hypot(c.d[i] - ce[0], c.d[i + 2] - ce[2]) < L[0]) { buf.set(c.d.subarray(i, i + 5), n * 5); n++; } }
+        for (const it of d < L[1] ? c.lo : c.xlo) { it.skipR = d < L[0] ? L[0] : 0; out.push(it); }
+      }
+      // as mais perto primeiro não importa: o lote detalhado é um só
+      if (this._hiN !== n || n) { for (const it of ch.hi) R.instUpdate(it.mesh, buf, n); this._hiN = n; }
+      for (const it of ch.hi) out.push(it);
+      return out;
+    },
     // ------------------------------------------------ lojinha das arenas
     shopNear() { const L = this.local, sh = this.map && this.map.shops; if (!sh || !L.alive || L.car || !(L.money >= 0)) return false; for (const s of sh) if (Math.hypot(L.x - s[0], L.z - s[1]) < C.SHOP_DIST && L.y < 1.5) return true; return false; },
     shopHud() {
@@ -5421,7 +5516,8 @@ const Voice = (() => {
     },
     // ------------------------------------------------ renderização
     buildFrame() {
-      const items = mapItems(this.map || S.MAPS.base).slice(), L = this.local, fw = this.fw, t = now();
+      const base = mapItems(this.map || S.MAPS.base), L = this.local, fw = this.fw, t = now();
+      const tl = this.treeList(base), items = tl ? base.filter((it) => !it.oldTree).concat(tl) : base.slice();
       // trem
       if (this.train) {
         const T = this.map.train, x = this.trainNow(), P = Assets.prop('train'), car = P || Assets.simpleTrain(T.len, T.hw * 2, T.y1);
