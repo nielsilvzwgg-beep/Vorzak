@@ -239,7 +239,8 @@ class Room {
     this.max = S.isRounds(this.mode) ? 2 * +this.mode[1] : this.mode === 'aberto' ? S.clamp(o.max | 0 || 30, 2, 30) : S.clamp(o.max | 0 || 10, 2, 12); this.code = String(this.id); this.owner = o.owner || 0;
     this.sqs = this.mode === 'aberto' ? ([1, 2, 4].includes(o.sqs) ? o.sqs : 1) : 1; // mapa aberto: solo (1), duo (2) ou squad (4)
     this.squads = new Map(); this.nextSq = 1; // equipes da sala: id -> { n, open }
-    this.sim = new S.GameSim({ mode: this.mode, ranked: this.ranked, br: this.mode === 'aberto', brBusca: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0, brLobby: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0 }); // mapa aberto online: procurar jogadores -> lobby -> trem
+    this.mapId = this.mode === 'aberto' ? (S.OPEN_MAPS.includes(o.map) ? o.map : 'aberto') : 'base'; // mapa aberto: Cidade ou Ilha
+    this.sim = new S.GameSim({ mode: this.mode, map: this.mapId, ranked: this.ranked, br: this.mode === 'aberto', brBusca: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0, brLobby: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0 }); // mapa aberto online: procurar jogadores -> lobby -> trem
     this.sim.onMatchEnd = (results, win) => this.onMatchEnd(results, win);
     this.members = new Map(); // pid -> client
     // sala criada por um jogador: começa numa sala de espera; só o criador inicia a partida
@@ -299,7 +300,7 @@ class Room {
     while (bots.length > want) { const b = bots.pop(); this.sim.removePlayer(b.id); }
     for (let i = bots.length; i < want; i++) this.sim.addBot();
   }
-  info() { const tc = [0, 0]; if (this.waiting) { for (const w of this.wait.values()) tc[w.team]++; } else for (const p of this.sim.players.values()) if (p.team === 0 || p.team === 1) tc[p.team]++; return { sqs: this.sqs, waiting: this.waiting, msLeft: this.waiting ? Math.max(0, this.expiresAt - Date.now()) : 0, id: this.id, name: this.name, mode: this.mode, ranked: this.ranked, n: this.waiting ? this.wait.size : this.members.size, max: this.max, priv: this.priv, teams: S.isFFA(this.mode) ? null : tc }; }
+  info() { const tc = [0, 0]; if (this.waiting) { for (const w of this.wait.values()) tc[w.team]++; } else for (const p of this.sim.players.values()) if (p.team === 0 || p.team === 1) tc[p.team]++; return { map: this.mapId, sqs: this.sqs, waiting: this.waiting, msLeft: this.waiting ? Math.max(0, this.expiresAt - Date.now()) : 0, id: this.id, name: this.name, mode: this.mode, ranked: this.ranked, n: this.waiting ? this.wait.size : this.members.size, max: this.max, priv: this.priv, teams: S.isFFA(this.mode) ? null : tc }; }
   // equipe para quem entra sozinho no duo/squad: completa uma equipe aberta (formada por jogadores sozinhos)
   openSquad() {
     if (this.sqs <= 1) return 0;
@@ -318,7 +319,7 @@ class Room {
     c.sq = sq || 0;
     const pl = this.sim.addPlayer({ sq, team, name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p) });
     c.room = this; c.pid = pl.id; this.members.set(pl.id, c);
-    c.send({ t: 'joined', pid: pl.id, room: { id: this.id, name: this.name, mode: this.mode, code: this.code, priv: this.priv, ranked: this.ranked } });
+    c.send({ t: 'joined', pid: pl.id, room: { id: this.id, name: this.name, mode: this.mode, map: this.mapId, code: this.code, priv: this.priv, ranked: this.ranked } });
     pushVG([...this.members.values()]); if (c.party) pushVG(c.party.members);
     this.system(`${p.name} entrou na sala`);
     this.fillBots();
@@ -411,14 +412,15 @@ function partyLeave(c) {
 function quickOpen(c, m) {
   const pt = c.party && c.party.members.length > 1 ? c.party : null;
   const size = pt ? pt.size : [1, 2, 4].includes(m.sq) ? m.sq : c.party ? c.party.size : 1;
+  const mapId = S.OPEN_MAPS.includes(m.map) ? m.map : 'aberto';
   if (pt && pt.leader !== c.uid) return c.send({ t: 'err', m: 'Só o líder do grupo pode buscar partida.' });
   const group = pt ? pt.members.slice() : [c];
   const busy = group.find((o) => o !== c && o.room);
   if (busy) return c.send({ t: 'err', m: busy.profile.name + ' ainda está em uma partida. Espere ele voltar ao menu.' });
   const brOk = (r) => !r.sim.br || r.sim.ph === 'busca' || (r.sim.ph === 'lobby' && r.sim.phEnd - r.sim.time > 3);
   let best = null;
-  for (const r of rooms.values()) if (!r.priv && r.mode === 'aberto' && r.sqs === size && !r.waiting && r.members.size + group.length <= r.max && brOk(r) && (!best || r.members.size > best.members.size)) best = r;
-  if (!best) best = new Room({ name: 'Mapa aberto ' + (size === 4 ? 'Squad' : size === 2 ? 'Duo' : 'Solo') + ' #' + nextRoomId, mode: 'aberto', max: 30, sqs: size });
+  for (const r of rooms.values()) if (!r.priv && r.mode === 'aberto' && r.mapId === mapId && r.sqs === size && !r.waiting && r.members.size + group.length <= r.max && brOk(r) && (!best || r.members.size > best.members.size)) best = r;
+  if (!best) best = new Room({ name: (mapId === 'ilha' ? 'Ilha ' : 'Cidade ') + (size === 4 ? 'Squad' : size === 2 ? 'Duo' : 'Solo') + ' #' + nextRoomId, mode: 'aberto', map: mapId, max: 30, sqs: size });
   const sq = size > 1 ? (pt ? best.newSquad() : best.openSquad()) : 0;
   for (const o of group) { if (o.wroom) o.wroom.wleave(o, true); best.join(o, undefined, sq); }
   if (pt) pushParty(pt);
@@ -526,7 +528,7 @@ function handle(c, m) {
     case 'mdel': { c.profile.mail = c.profile.mail.filter((x) => !(m.all ? x.read : x.id === m.id)); saveProfiles(); return pushProfile(c); }
     case 'find': { const r = rooms.get(parseInt(m.id, 10)); return c.send({ t: 'found', id: parseInt(m.id, 10) || 0, room: r ? r.info() : null }); }
     case 'create': {
-      const r = new Room({ name: m.name, mode: m.mode, priv: !!m.priv, max: m.max, owner: c.uid, custom: true });
+      const r = new Room({ name: m.name, mode: m.mode, map: m.map, priv: !!m.priv, max: m.max, owner: c.uid, custom: true });
       return r.join(c);
     }
     case 'join': {

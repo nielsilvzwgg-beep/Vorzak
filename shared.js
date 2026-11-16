@@ -257,6 +257,11 @@
   }
   const PROP_BOXES = {};
   for (const k in HOUSES) PROP_BOXES[k] = houseBoxes(HOUSES[k]);
+  // vaga livre para um carro (nenhuma caixa sólida até 3,4 m)
+  function carFree(solids, x, z) {
+    for (const b of solids) if (b[1] < 1.6 && x + 3.4 > b[0] && x - 3.4 < b[3] && z + 3.4 > b[2] && z - 3.4 < b[5]) return false;
+    return true;
+  }
   const MAP_OPEN = (function () {
     const { solids, deco, add, bx, wall, door, win, house } = builder();
     let seed = 20261115;
@@ -544,10 +549,276 @@
       }
     }
     const train = { z: 0, x0: -146, x1: 209.5, speed: 7, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
-    return { id: 'aberto', solids, deco, spawns, medkits, weapons, ammo, props, sx: SX, sz: SZ, train };
+    // carros (McLaren) para dirigir: nas ruas, longe da linha do trem
+    const cars = [];
+    for (const [x0, z0, yaw] of [[-45, 95, 0], [45, -95, 3.14], [-130, -88, 0], [130, 88, 3.14], [-90, 40, 1.57], [90, -40, -1.57], [-200, 128, 1.57], [200, -128, -1.57], [-260, 20, 0], [260, -20, 3.14]]) {
+      for (let g = 0; g < 60; g++) { const x = x0 + (g ? rr(-4, 4) : 0), z = z0 + (g ? rr(-12, 12) : 0); if (Math.abs(z) > 9 && carFree(solids, x, z)) { cars.push([Math.round(x * 10) / 10, Math.round(z * 10) / 10, yaw]); break; } }
+    }
+    return { id: 'aberto', name: 'Cidade', solids, deco, spawns, medkits, weapons, ammo, props, sx: SX, sz: SZ, train, cars };
   })();
-  const MAPS = { base: MAP_BASE, aberto: MAP_OPEN };
-  const mapFor = (mode) => (mode === 'aberto' ? MAP_OPEN : MAP_BASE);
+  // ================================================================ MAPA "ILHA" (inspirado na imagem enviada)
+  // Ilha cercada de mar, com neve e montanhas a oeste, floresta ao norte, pântano a nordeste, campos no centro
+  // (castelo), deserto a sudeste, lagos e ilhotas. Água rasa: dá para atravessar devagar; carro não entra.
+  const ISLAND_ZONES = [ // 32 x 24 (norte em cima = -z). ~ mar, l lago, g grama, f floresta, w pântano, s neve, d deserto
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~',
+    '~~~~~~~~~~ffffffffffff~~~~~~~~~~',
+    '~~~~~~~fffffffffffffffff~~~~~~~~',
+    '~~~~~ffffffffffffffffffff~~~~~~~',
+    '~~~~~fffffffffffffffffffffwww~~~',
+    '~~~~ffffflfffffffffffff~~wwwwww~',
+    '~~~~~fffffffffffffff~~~~~wwwwww~',
+    '~~~~gggggffffffffff~~~~~wwwwwww~',
+    '~~sssggggggflllfff~~~~~~~wwwww~~',
+    '~ssssgggggfflllfgg~~~~~~~~~~~~~~',
+    '~sssssgggggggggggggg~ggggg~~~~~~',
+    '~sssssggggggggggdddddddddd~gg~~~',
+    '~ssssssgggggggggdddddddddd~~gg~~',
+    '~sssssssggggggggddddddldddd~~~~~',
+    '~ssssssggggggggdddddddlddd~~~~~~',
+    '~~sssssgggggggddddddddddddd~~~~~',
+    '~~ssssssggggggdddddddddddd~~gg~~',
+    '~~ssssssgggggggdddddddddd~~~~~~~',
+    '~~sssssssggggggggdddddd~~~~~~~~~',
+    '~~~ssssssgggggggggggggg~~~~~~~~~',
+    '~~~~sssss~~~ggggggggggg~~~~~~~~~',
+    '~~~~~~~~~~~~~~~ggggggg~~~~~~~~~~',
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~',
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~',
+  ];
+  const ZONE_ID = { '~': 0, l: 1, g: 2, f: 3, w: 4, s: 5, d: 6 }; // 0/1 = água
+  const MAP_ISLAND = (function () {
+    const { solids, deco, add, bx, wall, door, win, house } = builder();
+    const SX = 260, SZ = 200, ZG = 2; // grade de zonas a cada 2 m
+    let seed = 7342211;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const rr = (a, b) => a + rnd() * (b - a);
+    // ruído suave (litoral recortado)
+    const hsh = (i, j) => { let h = (i * 374761393 + j * 668265263) ^ 0x5bd1e995; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+    const vn = (x, y) => { const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy); return (hsh(i, j) * (1 - u) + hsh(i + 1, j) * u) * (1 - v) + (hsh(i, j + 1) * (1 - u) + hsh(i + 1, j + 1) * u) * v; };
+    const RAILZ = -8, RX0 = -250, RX1 = 142;
+    const NW = Math.round(2 * SX / ZG), NH = Math.round(2 * SZ / ZG), zone = new Uint8Array(NW * NH);
+    for (let j = 0; j < NH; j++) for (let i = 0; i < NW; i++) {
+      const x = -SX + (i + 0.5) * ZG, z = -SZ + (j + 0.5) * ZG;
+      const nu = (vn(x / 23, z / 23) - 0.5) * 1.5 + (vn(x / 9 + 50, z / 9) - 0.5) * 0.5, nv = (vn(x / 23 + 91, z / 23 + 17) - 0.5) * 1.5 + (vn(x / 9, z / 9 + 70) - 0.5) * 0.5;
+      const u = Math.max(0, Math.min(31.99, (x + SX) / (2 * SX) * 32 + nu)), v = Math.max(0, Math.min(23.99, (z + SZ) / (2 * SZ) * 24 + nv));
+      let id = ZONE_ID[ISLAND_ZONES[Math.floor(v)][Math.floor(u)]];
+      if (Math.abs(z - RAILZ) < 9 && x > RX0 - 6 && x < RX1 + 6 && id <= 1) id = x < -150 ? 5 : x < -20 ? 2 : 6; // a linha do trem sempre em terra
+      zone[j * NW + i] = id;
+    }
+    const zoneAt = (x, z) => { const i = Math.floor((x + SX) / ZG), j = Math.floor((z + SZ) / ZG); return i < 0 || j < 0 || i >= NW || j >= NH ? 0 : zone[j * NW + i]; };
+    const land = (x, z, r = 0) => zoneAt(x, z) > 1 && (!r || (zoneAt(x - r, z - r) > 1 && zoneAt(x + r, z - r) > 1 && zoneAt(x - r, z + r) > 1 && zoneAt(x + r, z + r) > 1));
+    const blocked = [];
+    const keepOut = (x0, z0, x1, z1) => blocked.push([x0, z0, x1, z1]);
+    function freeAt(x, z, r) {
+      if (Math.abs(x) > SX - 4 || Math.abs(z) > SZ - 4 || !land(x, z, r)) return false;
+      for (const b of blocked) if (x + r > b[0] && x - r < b[2] && z + r > b[1] && z - r < b[3]) return false;
+      for (const b of solids) if (b[1] < 2 && x + r > b[0] && x - r < b[3] && z + r > b[2] && z - r < b[5]) return false;
+      return true;
+    }
+    // borda do mundo (no mar)
+    bx(0, -SZ, 2 * SX + 2, 1, 6, 'concrete'); bx(0, SZ, 2 * SX + 2, 1, 6, 'concrete');
+    bx(-SX, 0, 1, 2 * SZ, 6, 'concrete'); bx(SX, 0, 1, 2 * SZ, 6, 'concrete');
+
+    // ---- peças em coordenadas locais, giradas de 90 em 90° (q) e levadas para (cx, cz)
+    function placer(cx, cz, q) {
+      const T = (x, z) => { for (let k = 0; k < q; k++) { const t = x; x = z; z = -t; } return [cx + x, cz + z]; };
+      const box = (x0, y0, z0, x1, y1, z1, t, solid = true, col = null) => { const a = T(x0, z0), b = T(x1, z1); return add(a[0], y0, a[1], b[0], y1, b[1], t, solid, col); };
+      return { T, box };
+    }
+    const itemsM = [], itemsW = [];
+    // casa de 2 andares: porta da frente aberta, janelas sem vidro, escada interna, sacada e laje
+    function house2(cx, cz, q, t, col) {
+      const { T, box } = placer(cx, cz, q), W = 5, D = 4, th = 0.25, H1 = 3.2, SL = 0.25, H2 = 2.9, F2 = H1 + SL;
+      const wl = (along, c, a0, a1, h, ops, y0) => { // parede local
+        ops = ops.slice().sort((p, r) => p.a - r.a); let cur = a0;
+        const seg = (s0, s1, yA, yB) => { if (s1 - s0 < 0.01 || yB - yA < 0.01) return; if (along === 'x') box(s0, y0 + yA, c - th / 2, s1, y0 + yB, c + th / 2, t, true, col); else box(c - th / 2, y0 + yA, s0, c + th / 2, y0 + yB, s1, t, true, col); };
+        for (const o of ops) { const o0 = o.a - o.w / 2, o1 = o.a + o.w / 2; seg(cur, o0, 0, h); seg(o0, o1, 0, o.y0); seg(o0, o1, o.y1, h); cur = o1; }
+        seg(cur, a1, 0, h);
+      };
+      // térreo
+      wl('x', -D + th / 2, -W, W, H1, [door(0, 1.7, 2.4), win(3.4, 1.4), win(-3.4, 1.4)], 0);
+      wl('x', D - th / 2, -W, W, H1, [win(-2, 1.4), door(3.6, 1.3, 2.3)], 0);
+      wl('z', -W + th / 2, -D + th, D - th, H1, [win(-1.2, 1.4)], 0);
+      wl('z', W - th / 2, -D + th, D - th, H1, [door(0, 1.5, 2.4)], 0);
+      // escada (11 degraus, junto da parede do fundo) e laje com o vão da escada
+      const n = 11, rise = F2 / n, run = 0.5, sx0 = -3.9, sz0 = 2.55, sz1 = D - th;
+      for (let i = 0; i < n; i++) box(sx0 + i * run, 0, sz0, sx0 + (i + 1) * run, rise * (i + 1), sz1, 'wood');
+      const hx1 = sx0 + n * run;
+      box(-W, H1, -D, W, F2, sz0, t === 'wood' ? 'wood' : 'concrete');
+      box(hx1, H1, sz0, W, F2, D, t === 'wood' ? 'wood' : 'concrete');
+      box(-W, H1, sz0, sx0, F2, D, t === 'wood' ? 'wood' : 'concrete');
+      box(sx0, F2, sz0 - 0.1, hx1 - 1.0, F2 + 0.95, sz0, 'pole', true, [0.3, 0.3, 0.32]); // guarda-corpo do vão
+      // andar de cima: janela grande e porta da sacada
+      wl('x', -D + th / 2, -W, W, H2, [door(0, 1.5, 2.3), win(-3.2, 1.4), win(3.2, 1.4)], F2);
+      wl('x', D - th / 2, -W, W, H2, [win(1.5, 1.6)], F2);
+      wl('z', -W + th / 2, -D + th, D - th, H2, [win(-0.8, 1.6)], F2);
+      wl('z', W - th / 2, -D + th, D - th, H2, [win(0, 1.6)], F2);
+      box(-W - 0.35, F2 + H2, -D - 0.35, W + 0.35, F2 + H2 + 0.3, D + 0.35, 'roof');
+      // sacada na frente
+      box(-2.4, H1, -D - 1.6, 2.4, F2, -D, 'concrete');
+      box(-2.4, F2, -D - 1.6, 2.4, F2 + 0.95, -D - 1.48, 'pole', true, [0.3, 0.3, 0.32]);
+      box(-2.4, F2, -D - 1.6, -2.28, F2 + 0.95, -D, 'pole', true, [0.3, 0.3, 0.32]);
+      box(2.28, F2, -D - 1.6, 2.4, F2 + 0.95, -D, 'pole', true, [0.3, 0.3, 0.32]);
+      for (const x of [-2.2, 2.2]) box(x - 0.14, 0, -D - 1.5, x + 0.14, H1, -D - 1.22, 'concrete');
+      // kits e armas: térreo, andar de cima e sacada
+      for (const [lx, ly, lz, w] of [[3, 0, -1.5, 0], [-2.5, F2, -0.8, 1], [1.2, F2, 0.8, 0], [0, H1 + SL, -D - 0.8, 1]]) { const p = T(lx, lz); (w ? itemsW : itemsM).push([Math.round(p[0] * 10) / 10, ly, Math.round(p[1] * 10) / 10]); }
+      const a = T(-W - 2, -D - 3), b = T(W + 2, D + 2); keepOut(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1]));
+    }
+    // casa térrea de adobe (deserto): telhado plano com escada externa e mureta — dá para subir no teto
+    function adobe(cx, cz, q) {
+      const { T, box } = placer(cx, cz, q), W = 4, D = 3.5, th = 0.35, H = 3.0, col = [0.86, 0.72, 0.52];
+      const wl = (along, c, a0, a1, ops) => { ops = ops.slice().sort((p, r) => p.a - r.a); let cur = a0; const seg = (s0, s1, yA, yB) => { if (s1 - s0 < 0.01 || yB - yA < 0.01) return; if (along === 'x') box(s0, yA, c - th / 2, s1, yB, c + th / 2, 'plaster', true, col); else box(c - th / 2, yA, s0, c + th / 2, yB, s1, 'plaster', true, col); }; for (const o of ops) { const o0 = o.a - o.w / 2, o1 = o.a + o.w / 2; seg(cur, o0, 0, H); seg(o0, o1, 0, o.y0); seg(o0, o1, o.y1, H); cur = o1; } seg(cur, a1, 0, H); };
+      wl('x', -D + th / 2, -W, W, [door(-1, 1.5, 2.3), win(2, 1.2)]);
+      wl('x', D - th / 2, -W, W, [win(-1.5, 1.2), win(1.8, 1.2)]);
+      wl('z', -W + th / 2, -D + th, D - th, [door(0.3, 1.3, 2.3)]);
+      wl('z', W - th / 2, -D + th, D - th, [win(0, 1.2)]);
+      box(-W - 0.1, H, -D - 0.1, W + 0.1, H + 0.3, D + 0.1, 'plaster', true, [0.8, 0.66, 0.46]);
+      for (const [x0, z0, x1, z1] of [[-W - 0.1, -D - 0.1, W + 0.1, -D + 0.15], [-W - 0.1, D - 0.15, W + 0.1, D + 0.1], [-W - 0.1, -D - 0.1, -W + 0.15, D + 0.1]]) box(x0, H + 0.3, z0, x1, H + 0.95, z1, 'plaster', true, col);
+      const n = 8, rise = (H + 0.3) / n; // escada externa encostada na parede leste, chegando ao teto
+      for (let i = 0; i < n; i++) box(W + 0.1, 0, D - 0.4 - (i + 1) * 0.55, W + 1.2, rise * (i + 1), D - 0.4 - i * 0.55, 'plaster', true, [0.78, 0.64, 0.44]);
+      for (const [lx, ly, lz, w] of [[2, 0, 1.5, 0], [-2, H + 0.3, 0, 1]]) { const p = T(lx, lz); (w ? itemsW : itemsM).push([Math.round(p[0] * 10) / 10, ly, Math.round(p[1] * 10) / 10]); }
+      const a = T(-W - 2, -D - 2), b = T(W + 3, D + 2); keepOut(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1]));
+    }
+    // cabana de madeira (neve, floresta e pântano)
+    function cabin(cx, cz, q) {
+      const { T } = placer(cx, cz, q), side = q % 2 ? 1 : -1;
+      house(cx, cz, 8, 7, 3.0, side, 'wood');
+      const p = T(1.5, 1); itemsM.push([Math.round(p[0] * 10) / 10, 0, Math.round(p[1] * 10) / 10]);
+      const p2 = T(-2, -1); itemsW.push([Math.round(p2[0] * 10) / 10, 0, Math.round(p2[1] * 10) / 10]);
+      keepOut(cx - 6, cz - 6, cx + 6, cz + 6);
+    }
+    const fits = (cx, cz, r) => freeAt(cx, cz, r);
+
+    // ---- ferrovia (oeste -> leste, z = -8) com depósito e estação
+    add(RX0, 0, RAILZ - 2.6, RX1 + 4, 0.04, RAILZ + 2.6, 'gravel', false);
+    add(RX0, 0.04, RAILZ - 1.5, RX1 + 4, 0.06, RAILZ + 1.5, 'rail', false);
+    keepOut(RX0 - 4, RAILZ - 6, RX1 + 8, RAILZ + 6);
+    add(RX1 + 3.5, 0, RAILZ - 1.7, RX1 + 6, 1.5, RAILZ + 1.7, 'metal', true, [0.75, 0.15, 0.08]); // para-choque
+    for (const s of [-1, 1]) { // plataforma da estação final
+      const za = RAILZ + (s > 0 ? 2.35 : -7.6), zb = RAILZ + (s > 0 ? 7.6 : -2.35);
+      add(RX1 - 40, 0, za, RX1 + 2, 1.0, zb, 'concrete'); add(RX1 - 41, 0, za, RX1 - 40, 0.5, zb, 'concrete');
+      add(RX1 - 38, 4.6, s > 0 ? RAILZ + 1.9 : RAILZ - 8.2, RX1, 4.85, s > 0 ? RAILZ + 8.2 : RAILZ - 1.9, 'roof');
+      for (let x = RX1 - 35; x < RX1; x += 10) add(x - 0.15, 1.0, RAILZ + s * 6.4 - 0.15, x + 0.15, 4.6, RAILZ + s * 6.4 + 0.15, 'pole', true, [0.25, 0.27, 0.3]);
+    }
+    keepOut(RX1 - 44, RAILZ - 11, RX1 + 8, RAILZ + 11);
+    for (let x = RX0 + 20; x < RX1 - 40; x += 25) for (const s of [-1, 1]) add(x - 0.12, 0, RAILZ + s * 3.4 - 0.12, x + 0.12, 6.2, RAILZ + s * 3.4 + 0.12, 'pole', true, [0.3, 0.3, 0.32]);
+
+    // ---- estradas de terra batida (decoração) ligando as vilas
+    const road = (x0, z0, x1, z1) => { add(x0, 0, z0, x1, 0.02, z1, 'road', false); keepOut(x0 - 1, z0 - 1, x1 + 1, z1 + 1); };
+    road(-200, 21, 120, 29); road(-4, -150, 4, 120); road(-150, 50, -142, 140); road(70, 29, 78, 110);
+
+    // ---- castelo no centro (muralha com passarela, torres, portões e torre central)
+    {
+      const cx = -42, cz = 64, S2 = 22, Hm = 6, th = 2.2, stone = [0.42, 0.42, 0.46];
+      for (const s of [-1, 1]) {
+        // muralhas norte/sul com portão no meio; leste/oeste inteiras com portinhola
+        for (const [a0, a1] of [[-S2, -3.5], [3.5, S2]]) { add(cx + a0, 0, cz + s * S2 - th / 2, cx + a1, Hm, cz + s * S2 + th / 2, 'stone', true, stone); add(cx - S2 - th / 2 + (s > 0 ? 2 * S2 : 0), 0, cz + a0, cx - S2 + th / 2 + (s > 0 ? 2 * S2 : 0), Hm, cz + a1, 'stone', true, stone); }
+        add(cx - 3.5, 4.2, cz + s * S2 - th / 2, cx + 3.5, Hm, cz + s * S2 + th / 2, 'stone', true, stone); // arco do portão
+        add(cx - S2 - th / 2 + (s > 0 ? 2 * S2 : 0), 3.0, cz - 3.5, cx - S2 + th / 2 + (s > 0 ? 2 * S2 : 0), Hm, cz + 3.5, 'stone', true, stone);
+        // ameias
+        for (let a = -S2; a < S2; a += 2) { add(cx + a, Hm, cz + s * (S2 + th / 2) - 0.3, cx + a + 1, Hm + 0.9, cz + s * (S2 + th / 2), 'stone', true, stone); add(cx + s * (S2 + th / 2) - 0.3, Hm, cz + a, cx + s * (S2 + th / 2), Hm + 0.9, cz + a + 1, 'stone', true, stone); }
+      }
+      // torres nos cantos
+      for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const tx = cx + sx * S2, tz = cz + sz * S2; add(tx - 3, 0, tz - 3, tx + 3, Hm + 3, tz + 3, 'stone', true, [0.36, 0.36, 0.4]); add(tx - 3.3, Hm + 3, tz - 3.3, tx + 3.3, Hm + 3.4, tz + 3.3, 'roof'); }
+      // escadas até a passarela da muralha (lado de dentro, norte e sul)
+      for (const s of [-1, 1]) { const n = 12, rise = Hm / n, zi = cz + s * (S2 - th / 2), za = s < 0 ? zi : zi - 1.4, zb = s < 0 ? zi + 1.4 : zi; for (let i = 0; i < n; i++) { const x0 = cx + 6 + i * 0.6; add(x0, 0, za, x0 + 0.6, rise * (i + 1), zb, 'stone', true, stone); } }
+      // torre central (2 andares, como as casas)
+      house2(cx, cz, 0, 'stone', [0.5, 0.48, 0.5]);
+      // caixotes no pátio
+      for (const [x, z, n] of [[-12, -10, 2], [12, -12, 1], [-14, 12, 1], [13, 10, 2], [0, -14, 1]]) for (let k = 0; k < n; k++) bx(cx + x, cz + z, 1.3, 1.3, 1.3, 'crate', k * 1.3);
+      itemsW.push([cx - 8, 0, cz - 8], [cx + 8, Hm, cz - S2 + 0.2]); itemsM.push([cx + 8, 0, cz + 8], [cx - 8, Hm, cz + S2 - 0.2]);
+      keepOut(cx - S2 - 6, cz - S2 - 6, cx + S2 + 6, cz + S2 + 6);
+    }
+
+    // ---- vilas
+    const tryPlace = (cx0, cz0, rad, n, fn, r) => {
+      let placed = 0;
+      for (let g = 0; g < 400 && placed < n; g++) {
+        const x = Math.round(cx0 + rr(-rad, rad)), z = Math.round(cz0 + rr(-rad, rad)), q = Math.floor(rnd() * 4);
+        if (!fits(x, z, r)) continue;
+        fn(x, z, q); placed++;
+      }
+    };
+    const t2 = () => (rnd() < 0.5 ? 'brick' : 'concrete');
+    tryPlace(-100, 52, 30, 6, (x, z, q) => house2(x, z, q, t2()), 9);     // vila do campo (oeste do castelo)
+    tryPlace(30, 78, 34, 7, (x, z, q) => house2(x, z, q, t2()), 9);       // vila do sul
+    tryPlace(10, 26, 28, 5, (x, z, q) => house2(x, z, q, t2()), 9);       // perto da estrada central
+    tryPlace(-70, -55, 30, 5, (x, z, q) => house2(x, z, q, 'wood'), 9);   // borda da floresta
+    tryPlace(85, 45, 30, 8, (x, z, q) => adobe(x, z, q), 7);              // vila do deserto
+    tryPlace(110, -2, 22, 4, (x, z, q) => adobe(x, z, q), 7);
+    tryPlace(-205, 30, 30, 6, (x, z, q) => cabin(x, z, q), 7);            // cabanas na neve
+    tryPlace(-180, 110, 30, 5, (x, z, q) => cabin(x, z, q), 7);
+    tryPlace(-40, -125, 45, 6, (x, z, q) => cabin(x, z, q), 7);           // cabanas na floresta
+    tryPlace(190, -100, 30, 5, (x, z, q) => cabin(x, z, q), 7);           // pântano
+    tryPlace(0, 140, 30, 4, (x, z, q) => house2(x, z, q, t2()), 9);
+
+    // ---- montanhas (neve): pirâmides de rocha com pico branco — servem de cobertura grande
+    let mts = 0, guard = 0;
+    while (mts < 16 && guard++ < 3000) {
+      const x = rr(-250, -120), z = rr(-120, 190), w = rr(14, 26);
+      if (zoneAt(x, z) !== 5 || !fits(x, z, w / 2)) continue;
+      const H = rr(8, 15), steps = 5;
+      for (let k = 0; k < steps; k++) { const f = 1 - k / steps, hh = H / steps; bx(x, z, w * f, w * f * rr(0.8, 1), hh, 'rock', k * hh, k >= steps - 2 ? [0.92, 0.94, 0.97] : [0.46, 0.46, 0.5]); }
+      keepOut(x - w / 2 - 2, z - w / 2 - 2, x + w / 2 + 2, z + w / 2 + 2); mts++;
+    }
+    // ---- dunas (deserto): degraus baixos, dá para subir
+    let dn = 0; guard = 0;
+    while (dn < 26 && guard++ < 3000) {
+      const x = rr(0, 160), z = rr(0, 130), w = rr(8, 16);
+      if (zoneAt(x, z) !== 6 || !fits(x, z, w / 2)) continue;
+      for (let k = 0; k < 3; k++) { const f = 1 - k * 0.3; add(x - w * f / 2, k * 0.42, z - w * f * 0.35, x + w * f / 2, (k + 1) * 0.42, z + w * f * 0.35, 'sand', true, [0.86, 0.74, 0.5]); }
+      keepOut(x - w / 2 - 1, z - w / 2 - 1, x + w / 2 + 1, z + w / 2 + 1); dn++;
+    }
+    // ---- pedras e cactos
+    let rocks = 0; guard = 0;
+    while (rocks < 70 && guard++ < 5000) {
+      const x = rr(-SX + 6, SX - 6), z = rr(-SZ + 6, SZ - 6), w = rr(1.4, 3.2), d = rr(1.2, 3.0), h = rr(0.7, 1.7), zn = zoneAt(x, z);
+      if (!fits(x, z, Math.max(w, d))) continue;
+      bx(x, z, w, d, h, 'rock', 0, zn === 5 ? [0.62, 0.63, 0.66] : zn === 6 ? [0.66, 0.52, 0.36] : [0.45, 0.44, 0.42]); rocks++;
+    }
+    for (let k = 0, g = 0; k < 40 && g < 3000; g++) { const x = rr(0, 170), z = rr(-10, 140); if (zoneAt(x, z) !== 6 || !fits(x, z, 1)) continue; add(x - 0.25, 0, z - 0.25, x + 0.25, rr(1.6, 2.6), z + 0.25, 'cactus', true, [0.25, 0.48, 0.24]); k++; }
+    // ---- árvores: floresta densa ao norte, pinheiros na neve, árvores secas no pântano, algumas no campo
+    let trees = 0; guard = 0;
+    while (trees < 700 && guard++ < 30000) {
+      const x = rr(-SX + 4, SX - 4), z = rr(-SZ + 4, SZ - 4), zn = zoneAt(x, z);
+      const p = zn === 3 ? 1 : zn === 4 ? 0.7 : zn === 5 ? 0.25 : zn === 2 ? 0.08 : 0;
+      if (rnd() > p || !fits(x, z, 2.0)) continue;
+      const h = rr(5, 10), r = zn === 5 ? rr(1.3, 1.9) : rr(1.8, 3.0);
+      add(x - 0.28, 0, z - 0.28, x + 0.28, zn === 4 ? h * 0.8 : h * 0.55, z + 0.28, 'trunk', true, zn === 4 ? [0.22, 0.2, 0.18] : null);
+      const col = zn === 5 ? [0.13, 0.27, 0.2] : zn === 4 ? [0.25, 0.27, 0.12] : zn === 3 ? [0.14 + rnd() * 0.06, 0.3 + rnd() * 0.1, 0.12] : [0.2 + rnd() * 0.08, 0.36 + rnd() * 0.1, 0.15];
+      if (zn === 4) add(x - r * 0.6, h * 0.6, z - r * 0.6, x + r * 0.6, h, z + r * 0.6, 'tree', false, col); // árvore seca: copa rala
+      else add(x - r, h * 0.45, z - r, x + r, h, z + r, 'tree', false, col);
+      trees++;
+    }
+
+    // ---- nascimento, kits, armas e munição (só em terra firme)
+    const ffa = [];
+    for (let gz = -SZ + 12; gz <= SZ - 12; gz += 22) for (let gx = -SX + 12; gx <= SX - 12; gx += 22) {
+      for (let t = 0; t < 12; t++) { const x = gx + rr(-8, 8), z = gz + rr(-8, 8); if (Math.abs(z - RAILZ) < 7 || !freeAt(x, z, 1.6)) continue; ffa.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, Math.atan2(x, z)]); break; }
+    }
+    const spawns = { 0: ffa, 1: ffa, x1: { 0: ffa, 1: ffa }, ffa };
+    const medkits = [];
+    for (let g = 0; g < 900 && medkits.length < 26; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z - RAILZ) > 7 && freeAt(x, z, 1)) medkits.push([Math.round(x), 0, Math.round(z)]); }
+    const WL = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'deagle', 'ak47', 'm4a1', 'smg', 'pistol', 'maverick', 'maverick'];
+    const weapons = [];
+    for (let g = 0; g < 900 && weapons.length < 26; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z - RAILZ) > 7 && freeAt(x, z, 1)) weapons.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, WL[Math.floor(rnd() * WL.length)]]); }
+    for (const m of itemsM) medkits.push(m);
+    itemsW.forEach(([x, y, z], k) => weapons.push([x, y, z, ['maverick', 'ak47', 'm4a1', 'doze', 'smg', 'deagle', 'sniper', 'maverick'][(k * 5 + 3) % 8]]));
+    const ammoFree = (x, y, z) => { if (Math.abs(x) > SX - 2 || Math.abs(z) > SZ - 2) return false; for (const b of solids) if (x + 0.3 > b[0] && x - 0.3 < b[3] && z + 0.3 > b[2] && z - 0.3 < b[5] && y + 0.05 < b[4] && y + 0.45 > b[1]) return false; return true; };
+    const ammo = [];
+    for (const [x, y, z] of weapons) for (const [dx, dz] of [[1.0, 0], [-1.0, 0], [0, 1.0], [0, -1.0], [0.8, 0.8], [-0.8, -0.8]]) if (ammoFree(x + dx, y, z + dz)) { ammo.push([Math.round((x + dx) * 10) / 10, y, Math.round((z + dz) * 10) / 10]); break; }
+    // ---- carros (McLaren) espalhados em terra, longe de paredes
+    const cars = [];
+    for (const [x0, z0] of [[-60, 25], [20, 25], [-130, 25], [90, 30], [0, 100], [-100, 70], [60, 80], [-180, 40]]) {
+      for (let g = 0; g < 300; g++) { const x = x0 + rr(-12, 12), z = z0 + rr(-8, 8); if (carFree(solids, x, z) && land(x, z, 4) && Math.abs(z - RAILZ) > 8) { cars.push([Math.round(x * 10) / 10, Math.round(z * 10) / 10, Math.round(rr(0, 6.28) * 100) / 100]); break; } }
+    }
+    const train = { z: RAILZ, x0: -175, x1: RX1 - 2, speed: 7, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
+    return { id: 'ilha', name: 'Ilha', solids, deco, spawns, medkits, weapons, ammo, props: [], sx: SX, sz: SZ, train, cars, zone, zoneW: NW, zoneH: NH, zoneG: ZG, sea: true };
+  })();
+
+  const MAPS = { base: MAP_BASE, aberto: MAP_OPEN, ilha: MAP_ISLAND };
+  const OPEN_MAPS = ['aberto', 'ilha']; // mapas do modo Mapa aberto (o jogador escolhe)
+  const mapFor = (mode, id) => (mode === 'aberto' ? (id === 'ilha' ? MAP_ISLAND : MAP_OPEN) : MAP_BASE);
   const isFFA = (mode) => mode === 'ffa' || mode === 'aberto';
   // grade espacial para colisão rápida (mapas grandes)
   function indexMap(m) {
@@ -574,12 +845,65 @@
 
   // ---------------------------------------------------------------- física
   // mapa em uso (o servidor roda várias salas: cada partida chama useMap antes de simular)
-  let MAP = indexMap(MAP_BASE), SOL = MAP.solids, CELLS = MAP.cells, DYN = [];
-  function useMap(m, dyn) {
+  let MAP = indexMap(MAP_BASE), SOL = MAP.solids, CELLS = MAP.cells, DYN = [], CARL = [];
+  function useMap(m, dyn, cars) {
     if (MAP !== m) { MAP = indexMap(m); SOL = m.solids; CELLS = m.cells; NAV = m.nav || null; }
-    DYN = dyn || [];
+    DYN = dyn || []; CARL = cars || [];
   }
-  function collides(x, y, z, r, h) {
+  // água (mar e lagos do mapa Ilha): anda devagar; carro não entra
+  function waterAt(x, z) {
+    const m = MAP; if (!m.zone) return false;
+    const i = Math.floor((x + m.sx) / m.zoneG), j = Math.floor((z + m.sz) / m.zoneG);
+    return i < 0 || j < 0 || i >= m.zoneW || j >= m.zoneH ? true : m.zone[j * m.zoneW + i] <= 1;
+  }
+  // ---------------------------------------------------------------- carros (McLaren: motorista no centro, passageiro ao lado)
+  const CAR = { MAXV: 31, REV: 9, ACC: 10.5, BRK: 26, ROLL: 3.2, WB: 2.36, STEER: 0.62, R: 0.9, H: 1.1, OFF: [-1.45, 0, 1.45], SEATS: [[0, -0.05], [-0.62, 0.3]] };
+  const carFwd = (yaw) => [-Math.sin(yaw), -Math.cos(yaw)];
+  function seatPos(c, seat) { // posição do assento no mundo
+    const [lx, lz] = CAR.SEATS[seat], f = carFwd(c.yaw), r = [Math.cos(c.yaw), -Math.sin(c.yaw)];
+    return [c.x + r[0] * lx - f[0] * lz, c.z + r[1] * lx - f[1] * lz];
+  }
+  function carBlocked(c, x, z, yaw) {
+    const f = carFwd(yaw);
+    for (const o of CAR.OFF) {
+      const px = x + f[0] * o, pz = z + f[1] * o;
+      if (Math.abs(px) > MAP.sx - 1.5 || Math.abs(pz) > MAP.sz - 1.5 || waterAt(px, pz)) return true;
+      if (collides(px, 0.36, pz, CAR.R - 0.05, 0.75, true)) return true;
+      for (const o2 of CARL) {
+        if (o2 === c || o2.id === c.id || Math.abs(o2.x - x) > 6 || Math.abs(o2.z - z) > 6) continue;
+        const g = carFwd(o2.yaw);
+        for (const k of CAR.OFF) { const dx = o2.x + g[0] * k - px, dz = o2.z + g[1] * k - pz; if (dx * dx + dz * dz < (CAR.R * 2) * (CAR.R * 2)) return true; }
+      }
+    }
+    return false;
+  }
+  // um passo do carro (determinístico: o celular de quem dirige prevê, o servidor confirma)
+  function carStep(c, f, s, dt) {
+    f = clamp(num(f), -1, 1); s = clamp(num(s), -1, 1);
+    if (f > 0.05) { if (c.v < -0.4) c.v = Math.min(0, c.v + CAR.BRK * f * dt); else c.v += CAR.ACC * f * dt * (1 - Math.max(0, c.v) / CAR.MAXV * 0.6); }
+    else if (f < -0.05) { if (c.v > 0.4) c.v = Math.max(0, c.v + CAR.BRK * f * dt); else c.v += CAR.ACC * 0.7 * f * dt; }
+    else { const d = CAR.ROLL * dt; c.v = Math.abs(c.v) <= d ? 0 : c.v - Math.sign(c.v) * d; }
+    c.v = clamp(c.v, -CAR.REV, CAR.MAXV);
+    const tgt = s * CAR.STEER / (1 + Math.abs(c.v) / 13);
+    c.st += (tgt - c.st) * Math.min(1, dt * 8);
+    const ny = c.yaw - (c.v / CAR.WB) * Math.tan(c.st) * dt, fw = carFwd(ny);
+    const nx = c.x + fw[0] * c.v * dt, nz = c.z + fw[1] * c.v * dt;
+    if (carBlocked(c, nx, nz, ny)) {
+      c.v = Math.abs(c.v) > 6 ? -c.v * 0.25 : 0;
+      if (!carBlocked(c, c.x, c.z, ny)) c.yaw = ny;
+      c.bump = (c.bump || 0) + 1;
+      return;
+    }
+    c.x = nx; c.z = nz; c.yaw = ny;
+  }
+  // caixas do carro para quem anda a pé (e para as balas): 3 blocos ao longo do carro
+  const CARBOX = [];
+  function carBoxes() {
+    let n = 0;
+    for (const c of CARL) { const f = carFwd(c.yaw); for (const o of CAR.OFF) { const b = CARBOX[n] || (CARBOX[n] = [0, 0.15, 0, 0, CAR.H, 0, 'car', null]); const x = c.x + f[0] * o, z = c.z + f[1] * o; b[0] = x - CAR.R * 0.85; b[2] = z - CAR.R * 0.85; b[3] = x + CAR.R * 0.85; b[5] = z + CAR.R * 0.85; b.car = c.id; n++; } }
+    CARBOX.length = n; return CARBOX;
+  }
+  function collides(x, y, z, r, h, noCars) {
     if (y < -0.001) return GROUND;
     const G = MAP.G, c0 = Math.floor((x - r) / G), c1 = Math.floor((x + r) / G), d0 = Math.floor((z - r) / G), d1 = Math.floor((z + r) / G);
     for (let cx = c0; cx <= c1; cx++) for (let cz = d0; cz <= d1; cz++) {
@@ -593,6 +917,7 @@
       const b = DYN[i];
       if (x + r > b[0] && x - r < b[3] && y + h > b[1] && y < b[4] && z + r > b[2] && z - r < b[5]) return b;
     }
+    if (!noCars && CARL.length) for (const b of carBoxes()) if (x + r > b[0] && x - r < b[3] && y + h > b[1] && y < b[4] && z + r > b[2] && z - r < b[5]) return b;
     return null;
   }
   const GROUND = [-1e9, -1, -1e9, 1e9, 0, 1e9, 'ground'];
@@ -615,6 +940,11 @@
     const b = inp.b | 0;
     p.ads = !!(b & BTN.ADS);
     if (!p.alive) return;
+    if (p.car) { // dentro do carro: motorista dirige (frente/trás = acelerar/freio, lados = volante); passageiro só acompanha
+      if (p.seat === 0) carStep(p.car, inp.f, inp.s, dt);
+      const sp = seatPos(p.car, p.seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = true; p.sprint = false;
+      return;
+    }
     if (b & BTN.CROUCH) p.crouch = true;
     else if (p.crouch && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
     const h = p.crouch ? C.HC : C.H;
@@ -627,6 +957,7 @@
     speed *= w.speed;
     if (p.ads) speed *= 0.65;
     if (p.medUntil) speed *= 0.6;
+    if (p.y < 0.4 && waterAt(p.x, p.z)) { speed *= 0.5; p.sprint = false; } // água rasa
     const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
     const wx = (-sy * f + cy * s) * speed, wz = (-cy * f - sy * s) * speed;
     const k = p.onGround ? Math.min(1, dt * 14) : Math.min(1, dt * 2.5);
@@ -679,6 +1010,7 @@
       const t = rayBox(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]);
       if (t < best) best = t;
     }
+    if (CARL.length) for (const b of carBoxes()) { if (ox > b[0] && ox < b[3] && oz > b[2] && oz < b[5] && oy > b[1] && oy < b[4]) continue; const t = rayBox(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]); if (t < best) best = t; }
     return best;
   }
   function aimDir(yaw, pitch) {
@@ -703,7 +1035,7 @@
     const free = new Uint8Array(N2);
     const px = (i) => -SXn + i * step, pz = (j) => -SZn + j * step;
     const saveDyn = DYN; DYN = [];
-    for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) free[i * nj + j] = collides(px(i), 0.05, pz(j), C.R + 0.05, C.H - 0.1) ? 0 : 1;
+    for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) free[i * nj + j] = collides(px(i), 0.05, pz(j), C.R + 0.05, C.H - 0.1, true) || waterAt(px(i), pz(j)) ? 0 : 1; // bots não entram no mar
     const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
     const edges = new Uint8Array(N2); // bitmask
     for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) {
@@ -909,7 +1241,8 @@
   class GameSim {
     constructor(o = {}) {
       this.mode = isFFA(o.mode) || isRounds(o.mode) ? o.mode : 'tdm';
-      this.map = indexMap(mapFor(this.mode)); this.dyn = []; this.trainX = this.map.train ? this.map.train.x0 : 0; this.trainSt = 0;
+      this.map = indexMap(mapFor(this.mode, o.map)); this.mapId = this.map.id; this.dyn = [];
+      this.cars = (this.map.cars || []).map(([x, z, yaw], id) => ({ id, x, z, yaw, v: 0, st: 0, seats: [0, 0], home: [x, z, yaw], idle: 0 })); this.trainX = this.map.train ? this.map.train.x0 : 0; this.trainSt = 0;
       this.rounds = isRounds(this.mode); this.teamSize = this.rounds ? +this.mode[1] : 0;
       this.training = !!o.training;
       this.ranked = !!o.ranked;
@@ -988,7 +1321,7 @@
     }
     teamCount(t) { let n = 0; for (const p of this.players.values()) if (p.team === t) n++; return n; }
     addPlayer(info = {}) {
-      useMap(this.map, this.dyn);
+      useMap(this.map, this.dyn, this.cars);
       const id = this.nextId++;
       const lo = info.loadout || {};
       const team = isFFA(this.mode) ? (this.mode === 'aberto' && info.sq ? 100000 + (info.sq | 0) : id) : (info.team === 0 || info.team === 1 ? info.team : (this.teamCount(0) <= this.teamCount(1) ? 0 : 1));
@@ -1011,7 +1344,60 @@
       this.rosterDirty = true;
       return p;
     }
-    removePlayer(id) { this.players.delete(id); this.rosterDirty = true; }
+    removePlayer(id) { const p = this.players.get(id); if (p && p.car) this.leaveCar(p, true); this.players.delete(id); this.rosterDirty = true; }
+    // ---- carros: entrar (motorista ou passageiro) e sair
+    enterCar(p, id, seat) {
+      const c = this.cars[id | 0]; seat = seat ? 1 : 0;
+      if (!c || !p.alive || p.car || p.train || p.medUntil || c.seats[seat]) return;
+      if (Math.hypot(p.x - c.x, p.z - c.z) > 4.2 || p.y > 1.6) return;
+      c.seats[seat] = p.id; p.car = c; p.seat = seat; p.reloadUntil = seat === 0 ? 0 : p.reloadUntil; p.ads = false;
+      const sp = seatPos(c, seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.crouch = true;
+      this.events.push({ e: 'car', id: p.id, c: c.id, s: seat, in: 1 });
+    }
+    leaveCar(p, force) {
+      const c = p.car; if (!c) return;
+      if (c.seats[p.seat] === p.id) c.seats[p.seat] = 0;
+      p.car = null; p.crouch = false;
+      if (!force) { // sai pela lateral (ou pela frente/trás) em um lugar livre
+        const f = carFwd(c.yaw), r = [Math.cos(c.yaw), -Math.sin(c.yaw)], side = p.seat === 1 ? -1 : 1;
+        for (const [a, b] of [[side * 1.9, 0], [-side * 1.9, 0], [0, 3.3], [0, -3.3], [side * 2.4, 1.5], [-side * 2.4, -1.5]]) {
+          const x = c.x + r[0] * a + f[0] * b, z = c.z + r[1] * a + f[1] * b;
+          if (!collides(x, 0.05, z, C.R, C.H) && !waterAt(x, z)) { p.x = x; p.z = z; p.y = 0.02; break; }
+        }
+      }
+      p.vx = p.vz = 0; p.vy = 0; p.onGround = false;
+      this.events.push({ e: 'car', id: p.id, c: c.id, s: p.seat, in: 0 });
+    }
+    // atropelamento: carro rápido derruba quem estiver na frente (exceto a própria equipe)
+    carTick(dt) {
+      for (const c of this.cars) {
+        let d = this.players.get(c.seats[0]);
+        if (c.seats[0] && (!d || !d.alive || d.car !== c)) { c.seats[0] = 0; d = null; }
+        const ps = this.players.get(c.seats[1]); if (c.seats[1] && (!ps || !ps.alive || ps.car !== c)) c.seats[1] = 0;
+        if (!c.seats[0]) d = null;
+        if (!d) { // sem motorista: o carro vai parando sozinho
+          if (Math.abs(c.v) > 0.05) carStep(c, 0, 0, dt);
+          // abandonado e longe de todos por muito tempo: volta para a vaga
+          c.idle = c.seats[1] ? 0 : c.idle + dt;
+          if (c.idle > 240) { const near = [...this.players.values()].some((q) => q.alive && Math.hypot(q.x - c.x, q.z - c.z) < 60); if (!near && !carBlocked(c, c.home[0], c.home[1], c.home[2])) { c.x = c.home[0]; c.z = c.home[1]; c.yaw = c.home[2]; c.v = 0; } c.idle = 0; }
+          continue;
+        }
+        c.idle = 0;
+        if (Math.abs(c.v) < 6) continue;
+        const f = carFwd(c.yaw);
+        for (const p of this.players.values()) {
+          if (!p.alive || p.car || p.y > 1.3 || p.team === d.team || this.time < (p.carHitAt || 0)) continue;
+          let hit = false;
+          for (const o of CAR.OFF) { const dx = p.x - (c.x + f[0] * o), dz = p.z - (c.z + f[1] * o); if (dx * dx + dz * dz < (CAR.R + C.R + 0.1) ** 2) hit = true; }
+          if (!hit) continue;
+          p.carHitAt = this.time + 0.8;
+          const dmg = Math.round(clamp(Math.abs(c.v) * 4.5, 25, 100));
+          p.vx = f[0] * Math.sign(c.v) * 9; p.vz = f[1] * Math.sign(c.v) * 9; p.vy = 4; p.onGround = false;
+          c.v *= 0.8;
+          if (this.time >= p.spawnProt) this.damage(p, d, dmg, false, 'car');
+        }
+      }
+    }
     setTeam(id, team) {
       const p = this.players.get(id);
       if (!p || isFFA(this.mode) || (team !== 0 && team !== 1) || p.team === team) return;
@@ -1052,7 +1438,7 @@
       this.events.push({ e: 'spawn', id: p.id });
     }
     handleInputs(id, list) {
-      useMap(this.map, this.dyn);
+      useMap(this.map, this.dyn, this.cars);
       const p = this.players.get(id);
       if (!p || !Array.isArray(list)) return;
       for (const it of list.slice(0, 20)) {
@@ -1067,19 +1453,21 @@
       }
     }
     handleAction(id, a) {
-      useMap(this.map, this.dyn);
+      useMap(this.map, this.dyn, this.cars);
       const p = this.players.get(id);
       if (!p || !a || this.state !== 'playing') return;
       if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'trem') this.leap(p); if (this.ph !== 'trem' || p.train) return; }
       switch (a.a) {
-        case 'shoot': return this.shoot(p, a);
+        case 'shoot': if (p.car && p.seat === 0) return; return this.shoot(p, a); // motorista não atira
         case 'reload': return this.reload(p);
         case 'switch': {
           const s = a.s === 1 ? 1 : 0;
           if (s !== p.cur && p.alive && !p.medUntil) { p.cur = s; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH; }
           return;
         }
-        case 'grab': return this.grab(p, a);
+        case 'grab': if (p.car) return; return this.grab(p, a);
+        case 'car': return this.enterCar(p, a.id, a.seat);
+        case 'carx': return this.leaveCar(p);
         case 'med':
           if (p.alive && p.medkits > 0 && p.hp < C.MAXHP && !p.medUntil) { p.medUntil = this.time + C.MEDTIME; p.reloadUntil = 0; this.events.push({ e: 'medstart', id: p.id }); }
           return;
@@ -1172,6 +1560,7 @@
       if (v.hp <= 0) this.kill(v, att, wid, head);
     }
     kill(v, k, wid, head) {
+      if (v.car) this.leaveCar(v, true);
       v.alive = false; v.deaths++; v.respawnAt = this.time + C.RESPAWN; v.streak = 0; v.reloadUntil = 0; v.medUntil = 0;
       this.events.push({ e: 'kill', k: k.id, v: v.id, w: wid, hs: head ? 1 : 0 });
       if (this.rounds) return this.roundKill(v, k);
@@ -1251,7 +1640,8 @@
     }
     restart() {
       this.state = 'playing'; this.matchTime = 0; this.trainSt = 0; this.score = [0, 0]; this.firstBlood = false; this.round = 1; this.roundEndAt = 0; this.roundWinners = [];
-      for (const p of this.players.values()) { p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; if (!this.br) this.spawn(p); }
+      for (const p of this.players.values()) { if (p.car) this.leaveCar(p, true); p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; if (!this.br) this.spawn(p); }
+      for (const c of this.cars) { c.x = c.home[0]; c.z = c.home[1]; c.yaw = c.home[2]; c.v = 0; c.st = 0; c.seats = [0, 0]; }
       if (this.br) this.brReset();
       for (const m of this.medkits) m.active = true;
       for (const w of this.wpicks) w.active = true; this.drops = []; for (const a of this.ammos) a.active = true;
@@ -1281,12 +1671,13 @@
       return best.m;
     }
     tick(dt) {
-      useMap(this.map, this.dyn);
+      useMap(this.map, this.dyn, this.cars);
       this.time += dt;
       if (this.state === 'ended') { if (this.time >= this.endAt) this.restart(); return; }
       if (this.br) this.brTick();
       if (!this.br || this.ph === 'livre') this.matchTime += dt;
       if (this.map.train) this.trainTick();
+      if (this.cars.length) this.carTick(dt);
       if (this.timeLimit && this.matchTime >= this.timeLimit) { this.endMatch(); return; }
       if (this.roundEndAt && this.time >= this.roundEndAt) this.nextRound();
       for (const p of this.players.values()) {
@@ -1294,6 +1685,7 @@
         p.bloom = Math.max(0, p.bloom - dt * 0.12);
         if (!p.alive) { if (this.time >= p.respawnAt) this.spawn(p); continue; }
         if (p.train) { p.x = this.trainX - p.train.off; p.z = this.map.train.z + p.train.dz; p.y = this.map.train.y0 + 0.02; p.vx = p.vy = p.vz = 0; continue; }
+        if (p.car && p.seat === 1) { const sp = seatPos(p.car, 1); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; }
         if (p.reloadUntil && this.time >= p.reloadUntil) {
           p.reloadUntil = 0;
           const w = weaponOf(p), am = p.ammo[w.id];
@@ -1334,7 +1726,7 @@
     }
     // ---------------- IA dos bots
     addBot(team) {
-      useMap(this.map, this.dyn);
+      useMap(this.map, this.dyn, this.cars);
       const used = new Set([...this.players.values()].map((p) => p.name));
       const name = BOT_NAMES.find((n) => !used.has(n)) || 'Bot' + this.nextId;
       const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper', 'maverick'][Math.floor(Math.random() * 8)];
@@ -1445,12 +1837,13 @@
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
       }
       const mk = maskOf(this.medkits);
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
       if (this.map.train) s.tr = r2(this.trainX);
+      if (this.cars.length) s.cr = this.cars.map((c) => [r2(c.x), r2(c.z), r3(c.yaw), r2(c.v), c.seats[0], c.seats[1], r3(c.st)]);
       if (this.br) { s.ph = this.ph; s.pe = this.ph === 'livre' ? 0 : Math.max(0, Math.ceil(this.phEnd - this.time)); s.pn = this.players.size; }
       if (this.wpicks.length) s.wk = maskOf(this.wpicks);
       if (this.ammos.length) s.ak = maskOf(this.ammos);
@@ -1465,6 +1858,7 @@
         rl: p.reloadUntil ? r2(p.reloadUntil - this.time) : 0, mu: p.medUntil ? r2(p.medUntil - this.time) : 0, mk: p.medkits,
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
         tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
+        car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
       };
     }
   }
@@ -1474,7 +1868,7 @@
 
   return {
     isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
-    clamp, collides, applyInput, raycastWorld, rayPlayer, aimDir, weaponOf,
+    clamp, collides, applyInput, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, OPEN_MAPS, raycastWorld, rayPlayer, aimDir, weaponOf,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,
   };
