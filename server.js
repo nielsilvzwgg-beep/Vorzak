@@ -61,7 +61,7 @@ function syncNews(p) { for (const n of NEWS) if (!p.news.includes(n.id)) { p.new
 function pubOf(pid) {
   const p = profByPid(pid); if (!p) return null;
   const c = clientByPid(pid);
-  return { id: pid, name: p.name, level: p.level, char: S.lookOf(p).c, online: c ? 1 : 0, playing: c && (c.room || c.wroom) ? 1 : 0, uid: c ? c.uid : 0 };
+  return { id: pid, name: p.name, real: p.account && p.account.realName ? p.account.realName : '', level: p.level, char: S.lookOf(p).c, online: c ? 1 : 0, playing: c && (c.room || c.wroom) ? 1 : 0, uid: c ? c.uid : 0 };
 }
 function socialOf(p) {
   return { t: 'social', me: p.pid, friends: p.friends.map(pubOf).filter(Boolean), inc: p.fin.map(pubOf).filter(Boolean), out: p.fout.map(pubOf).filter(Boolean) };
@@ -69,8 +69,27 @@ function socialOf(p) {
 function pushSocial(c) { if (c && c.alive && c.hello) c.send(socialOf(c.profile)); }
 function pushProfile(c) { if (c && c.alive && c.hello) c.send({ t: 'profile', profile: c.profile }); }
 function friendsOnlineChanged(p) { for (const f of p.friends) { const fc = clientByPid(f); if (fc) pushSocial(fc); } }
+// ------------------------------------------------------------ cópia de segurança das contas
+// No Render grátis o disco é apagado a cada atualização/reinício: o servidor manda para o aparelho uma cópia do perfil
+// assinada (HMAC). Se o perfil sumir do servidor, o aparelho devolve a cópia e o servidor confere a assinatura e restaura.
+// Defina SAVE_SECRET nas variáveis do Render para uma chave só sua.
+const SAVE_SECRET = process.env.SAVE_SECRET || 'vorzak-save-v1-' + (process.env.RENDER_SERVICE_ID || 'local');
+function makeSave(tok, p) {
+  const d = JSON.stringify({ tok, p, ts: Date.now() });
+  return { d, s: crypto.createHmac('sha256', SAVE_SECRET).update(d).digest('hex') };
+}
+function readSave(sv) {
+  try {
+    if (!sv || typeof sv.d !== 'string' || typeof sv.s !== 'string' || sv.d.length > 200000) return null;
+    const s = crypto.createHmac('sha256', SAVE_SECRET).update(sv.d).digest('hex');
+    if (s.length !== sv.s.length || !crypto.timingSafeEqual(Buffer.from(s), Buffer.from(sv.s))) return null;
+    const o = JSON.parse(sv.d);
+    return o && typeof o.tok === 'string' && /^[a-f0-9]{32}$/.test(o.tok) && o.p && typeof o.p === 'object' ? o : null;
+  } catch (e) { return null; }
+}
 let saveTimer = null;
 function saveProfiles() {
+  for (const c of clients.values()) if (c.hello && c.profile) c.profile.savedAt = Date.now();
   if (saveTimer) return;
   saveTimer = setTimeout(() => {
     saveTimer = null;
@@ -159,7 +178,11 @@ class Client {
     socket.on('close', () => this.onClose());
     socket.on('error', () => this.onClose());
   }
-  send(obj) { this.sendRaw(typeof obj === 'string' ? obj : JSON.stringify(obj)); }
+  send(obj) {
+    // todo perfil enviado leva junto uma cópia assinada: o aparelho guarda e devolve se o servidor reiniciar e perder os dados
+    if (obj && typeof obj === 'object' && (obj.t === 'profile' || obj.t === 'welcome') && this.token && this.profile) obj.save = makeSave(this.token, this.profile);
+    this.sendRaw(typeof obj === 'string' ? obj : JSON.stringify(obj));
+  }
   sendRaw(str) { if (!this.socket.destroyed && this.socket.writableLength < 512 * 1024) this.socket.write(encodeFrame(str)); }
   close() { try { this.socket.end(encodeFrame('', 8)); } catch (e) {} this.socket.destroy(); }
   onData(d) {
@@ -349,12 +372,17 @@ function handle(c, m) {
     const finish = (tok, acct) => {
       if (!c.alive) return;
       let fresh = false;
+      // perfil sumiu do servidor (reinício): restaura a cópia assinada que o aparelho guardou
+      const sv = readSave(m.save);
+      if (sv && (!profiles[sv.tok] || (profiles[sv.tok].savedAt || 0) < (sv.p.savedAt || 0)) && (!tok || tok === sv.tok || !profiles[tok])) {
+        profiles[sv.tok] = sv.p; tok = sv.tok; console.log('perfil restaurado da cópia do aparelho:', sv.p.name);
+      }
       if (!tok || !profiles[tok]) { tok = crypto.randomBytes(16).toString('hex'); profiles[tok] = S.newProfile(m.name); fresh = true; }
       c.token = tok; c.profile = S.fixProfile(profiles[tok]); profiles[tok] = c.profile; c.hello = true;
       ensurePid(tok, c.profile);
       if (fresh) addMail(c.profile, 'Bem-vindo ao VORZAK!', 'Seu ID de jogador é ' + c.profile.pid + '. Passe para seus amigos para eles te adicionarem. Bom jogo!');
       syncNews(c.profile);
-      if (acct) { accounts[acct.key] = tok; c.profile.account = { provider: acct.provider, email: acct.email || '' }; }
+      if (acct) { accounts[acct.key] = tok; c.profile.account = { provider: acct.provider, email: acct.email || '', realName: S.sanitizeChat(acct.name || '').slice(0, 40) }; }
       if (m.name && (m.setName || !acct)) c.profile.name = S.sanitizeName(m.name);
       saveProfiles();
       c.send({ t: 'welcome', uid: c.uid, token: tok, profile: c.profile, account: c.profile.account || null });
@@ -386,7 +414,7 @@ function handle(c, m) {
       const q = String(m.q || '').trim().toLowerCase().slice(0, 20), me = c.profile, out = [];
       if (q.length >= 2) {
         if (/^\d{8}$/.test(q)) { if (q !== me.pid && pidIndex.has(q)) out.push(q); }
-        else for (const [pid] of pidIndex) { if (pid === me.pid) continue; const p = profByPid(pid); if (p && p.name.toLowerCase().includes(q)) out.push(pid); if (out.length >= 20) break; }
+        else for (const [pid] of pidIndex) { if (pid === me.pid) continue; const p = profByPid(pid); if (p && (p.name.toLowerCase().includes(q) || (p.account && p.account.realName && p.account.realName.toLowerCase().includes(q)))) out.push(pid); if (out.length >= 20) break; }
       }
       const list = out.map(pubOf).filter(Boolean).map((x) => Object.assign(x, { friend: me.friends.includes(x.id) ? 1 : 0, sent: me.fout.includes(x.id) ? 1 : 0, got: me.fin.includes(x.id) ? 1 : 0 }));
       return c.send({ t: 'fresults', q, list });

@@ -16,7 +16,7 @@
     DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
     MEDKITS_START: 2, MEDKITS_MAX: 3, SWITCH: 0.45, INTERP: 0.1,
-    SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, BR_BUSCA: 15, BR_LOBBY: 20,
+    SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, AMMO_BOX: 30, AMMO_RESPAWN: 25, BR_BUSCA: 15, BR_LOBBY: 20,
   };
   const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8 };
 
@@ -59,6 +59,8 @@
     ch3_carter: { type: 'char', name: 'Carter', price: 2000, level: 1, tone: 0, gear: 'cap', model: 'char_carter' }, // personagem 3D
     ch3_rebeca: { type: 'char', name: 'Rebeca', price: 2000, level: 1, tone: 1, gear: '', model: 'char_rebeca' }, // personagem 3D
     ch3_winter: { type: 'char', name: 'Inverno', price: 2000, level: 1, tone: 0, gear: 'cap', model: 'char_winter' }, // personagem 3D
+    ch3_rebeca_mar: { type: 'char', name: 'Rebeca Marinheira', price: 2000, level: 1, tone: 1, gear: '', model: 'char_rebeca', outfit: 'outfit_sailor' }, // skin da Rebeca
+    ch3_rebeca_ter: { type: 'char', name: 'Rebeca de Terno', price: 2000, level: 1, tone: 1, gear: '', model: 'char_rebeca', outfit: 'outfit_suit' }, // skin da Rebeca
     ch_cowboy: { type: 'char', name: 'Cowboy', price: 1600, level: 1, tone: 0, gear: 'cowboy', outfit: 'cowboy', hair: [0.1, 0.08, 0.11] }, // visual completo: chapéu, lenço, jaqueta, jeans e botas
     sh_ang_azul: { type: 'shirt', name: 'Blusa Angelical Azul', price: 1300, level: 1, col: [40, 115, 240] },
     sh_ang_vermelha: { type: 'shirt', name: 'Blusa Angelical Vermelha', price: 1300, level: 1, col: [225, 40, 48] },
@@ -529,8 +531,20 @@
     for (let g = 0; g < 600 && weapons.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) weapons.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, WL[Math.floor(rnd() * WL.length)]]); }
     for (const m of houseM) medkits.push(m);
     houseW.forEach(([x, y, z], k) => weapons.push([x, y, z, ['maverick', 'ak47', 'm4a1', 'doze', 'smg', 'deagle', 'sniper', 'maverick'][(k * 5 + 3) % 8]]));
+    // caixa de munição (+30) ao lado de cada arma do chão
+    const ammoFree = (x, y, z) => {
+      if (Math.abs(x) > SX - 2 || Math.abs(z) > SZ - 2) return false;
+      for (const b of solids) if (x + 0.3 > b[0] && x - 0.3 < b[3] && z + 0.3 > b[2] && z - 0.3 < b[5] && y + 0.05 < b[4] && y + 0.45 > b[1]) return false;
+      return true;
+    };
+    const ammo = [];
+    for (const [x, y, z] of weapons) {
+      for (const [dx, dz] of [[1.0, 0], [-1.0, 0], [0, 1.0], [0, -1.0], [0.8, 0.8], [-0.8, -0.8]]) {
+        if (ammoFree(x + dx, y, z + dz)) { ammo.push([Math.round((x + dx) * 10) / 10, y, Math.round((z + dz) * 10) / 10]); break; }
+      }
+    }
     const train = { z: 0, x0: -146, x1: 209.5, speed: 7, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
-    return { id: 'aberto', solids, deco, spawns, medkits, weapons, props, sx: SX, sz: SZ, train };
+    return { id: 'aberto', solids, deco, spawns, medkits, weapons, ammo, props, sx: SX, sz: SZ, train };
   })();
   const MAPS = { base: MAP_BASE, aberto: MAP_OPEN };
   const mapFor = (mode) => (mode === 'aberto' ? MAP_OPEN : MAP_BASE);
@@ -913,6 +927,7 @@
       this.medkits = this.map.medkits.map(([x, y, z]) => ({ x, y, z, active: true, t: 0 }));
       // armas no chão: as do mapa voltam depois de um tempo; as largadas somem
       this.wpicks = (this.map.weapons || []).map(([x, y, z, w]) => ({ x, y, z, w, active: true, t: 0 })); this.drops = []; this.dropSeq = 0;
+      this.ammos = (this.map.ammo || []).map(([x, y, z]) => ({ x, y, z, active: true, t: 0 }));
       this.onMatchEnd = null;
       // início estilo battle royale (mapa aberto online): procurar jogadores -> lobby -> trem -> pular
       this.br = !!o.br && !!this.map.train; this.brT = [o.brBusca || C.BR_BUSCA, o.brLobby || C.BR_LOBBY];
@@ -1196,7 +1211,7 @@
       this.roundEndAt = 0; this.round++;
       for (const p of this.players.values()) this.spawn(p);
       for (const m of this.medkits) m.active = true;
-      for (const w of this.wpicks) w.active = true; this.drops = [];
+      for (const w of this.wpicks) w.active = true; this.drops = []; for (const a of this.ammos) a.active = true;
       this.events.push({ e: 'roundstart', round: this.round });
     }
     award(p, amt, why) { p.xp += amt; this.events.push({ e: 'xp', id: p.id, amt, why }); }
@@ -1228,7 +1243,7 @@
       for (const p of this.players.values()) { p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; if (!this.br) this.spawn(p); }
       if (this.br) this.brReset();
       for (const m of this.medkits) m.active = true;
-      for (const w of this.wpicks) w.active = true; this.drops = [];
+      for (const w of this.wpicks) w.active = true; this.drops = []; for (const a of this.ammos) a.active = true;
       this.events.push({ e: 'start' });
     }
     // trem: anda pelo trilho conforme o tempo da partida e empurra quem estiver na frente para o lado
@@ -1279,6 +1294,16 @@
           this.events.push({ e: 'med', id: p.id });
         }
         if (p.bot) this.botThink(p, dt);
+        // munição: passa por cima e ganha +30 balas (arma na mão; se estiver cheia, a outra)
+        for (const a of this.ammos) {
+          if (!a.active || Math.abs(p.y - a.y) > 1.2 || Math.hypot(p.x - a.x, p.z - a.z) > 1.1) continue;
+          const order = [p.cur, 1 - p.cur].map((i) => p.weapons[i]).filter(Boolean);
+          const wid = order.find((id) => p.ammo[id] && p.ammo[id].res < WEAPONS[id].reserve * 2);
+          if (!wid) continue;
+          p.ammo[wid].res = Math.min(WEAPONS[wid].reserve * 2, p.ammo[wid].res + C.AMMO_BOX);
+          a.active = false; a.t = this.time + C.AMMO_RESPAWN;
+          this.events.push({ e: 'ammo', id: p.id, w: wid });
+        }
         for (const m of this.medkits) {
           if (m.active && p.medkits < C.MEDKITS_MAX && Math.abs(p.y - m.y) < 1.2 && Math.hypot(p.x - m.x, p.z - m.z) < 1.1) {
             m.active = false; m.t = this.time + C.MEDKIT_RESPAWN; p.medkits++; p.stats.picks++;
@@ -1289,6 +1314,7 @@
       }
       for (const m of this.medkits) if (!m.active && this.time >= m.t) m.active = true;
       for (const o of this.wpicks) if (!o.active && this.time >= o.t) o.active = true;
+      for (const a of this.ammos) if (!a.active && this.time >= a.t) a.active = true;
       if (this.drops.length) this.drops = this.drops.filter((d) => this.time < d.until);
       const snap = new Map();
       for (const p of this.players.values()) if (p.alive) snap.set(p.id, [p.x, p.y, p.z, p.crouch]);
@@ -1416,6 +1442,7 @@
       if (this.map.train) s.tr = r2(this.trainX);
       if (this.br) { s.ph = this.ph; s.pe = this.ph === 'livre' ? 0 : Math.max(0, Math.ceil(this.phEnd - this.time)); s.pn = this.players.size; }
       if (this.wpicks.length) s.wk = maskOf(this.wpicks);
+      if (this.ammos.length) s.ak = maskOf(this.ammos);
       if (this.drops.length) s.dw = this.drops.map((d) => [d.id, r2(d.x), r2(d.y), r2(d.z), WEAPON_LIST.indexOf(d.w)]);
       return s;
     }
