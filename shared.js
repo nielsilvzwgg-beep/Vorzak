@@ -121,6 +121,8 @@
       }
       seg(cur, a1, 0, h);
     }
+    // rampa lisa (no lugar de escada): sobe de y0 até y1 na direção dir ('+x', '-x', '+z' ou '-z')
+    function ramp(x0, z0, x1, z1, y1, dir, mat, col = null, y0 = 0) { const b = [Math.min(x0, x1), y0, Math.min(z0, z1), Math.max(x0, x1), y1, Math.max(z0, z1), 'ramp', col, dir, mat]; solids.push(b); return b; }
     const door = (a, w = 1.6, y1 = 2.3) => ({ a, w, y0: 0, y1 });
     const win = (a, w = 1.4) => ({ a, w, y0: 1.0, y1: 2.0 });
     function house(cx, cz, w, d, h, doorSide, t) {
@@ -131,10 +133,10 @@
       wall('z', x1 - th / 2, z0 + th, z1 - th, th, h, t, [door(cz)]);
       add(x0 - 0.2, h, z0 - 0.2, x1 + 0.2, h + 0.25, z1 + 0.2, 'roof');
     }
-    return { solids, deco, add, bx, wall, door, win, house };
+    return { solids, deco, add, bx, wall, door, win, house, ramp };
   }
   const MAP_BASE = (function () {
-    const { solids, deco, add, bx, wall, door, win, house } = builder();
+    const { solids, deco, add, bx, wall, door, win, house, ramp } = builder();
     const S = 45; // meia largura
     // perímetro
     bx(0, -S, 2 * S + 2, 1, 5, 'concrete'); bx(0, S, 2 * S + 2, 1, 5, 'concrete');
@@ -163,7 +165,7 @@
       add(x0, 4.7, z0 + 0.2, x0 + 0.2, 5.6, z1 - 0.2, 'concrete');
       add(x1 - 0.2, 4.7, z0 + 0.2, x1, 5.6, 24, 'concrete');
       add(x1 - 0.2, 4.7, 25.6, x1, 5.6, z1 - 0.2, 'concrete');
-      for (let i = 0; i < 9; i++) { const z = 24 - 0.6 * (9 - i); add(8, 0, z, 9.6, 0.47 * (i + 1), z + 0.6, 'concrete'); }
+      ramp(8, 18.6, 9.6, 24, 4.7, '+z', 'concrete'); // rampa até o telhado
       add(8, 0, 24, 9.6, 4.7, 25.6, 'concrete');
       bx(-5, 26, 1.2, 1.2, 1.2, 'crate'); bx(-5, 26, 1.2, 1.2, 1.2, 'crate', 1.2); bx(-3.6, 26.2, 1.2, 1.2, 1.2, 'crate');
       bx(4, 22, 3, 1.2, 1.0, 'metal', 0, [0.35, 0.37, 0.4]);
@@ -259,13 +261,21 @@
   }
   const PROP_BOXES = {};
   for (const k in HOUSES) PROP_BOXES[k] = houseBoxes(HOUSES[k]);
+  // casa japonesa: os degraus da entrada viram rampas (lateral e varanda)
+  const PROP_RAMPS = { house_jp: [[3.86, 0, -2.64, 6.4, 1.27, -0.64, '-x', 'wood'], [-3.2, 0, -5.43, -0.2, 1.27, -4.41, '+x', 'wood'], [-0.2, 0, -5.43, 0.63, 1.27, -4.41, 'box', 'wood']] };
+  {
+    const isStep = (b) => (b[0] === 3.9 && b[3] === 4.64 && b[4] === 1) || (b[0] === 4.64 && b[3] === 5.1 && b[4] === 0.5) || (b[0] === -2.15 && b[3] === -1.2 && b[4] === 0.4) || (b[0] === -1.2 && b[3] === 0.63 && b[4] === 0.8);
+    if (PROP_BOXES.house_jp) PROP_BOXES.house_jp = PROP_BOXES.house_jp.filter((b) => !isStep(b));
+  }
+  const DIRS = ['+x', '-z', '-x', '+z']; // girar 90° (yaw +): +x -> -z -> -x -> +z
+  const rotDir = (d, q) => DIRS[(DIRS.indexOf(d) + q) % 4];
   // vaga livre para um carro (nenhuma caixa sólida até 3,4 m)
   function carFree(solids, x, z) {
     for (const b of solids) if (b[1] < 1.6 && x + 3.4 > b[0] && x - 3.4 < b[3] && z + 3.4 > b[2] && z - 3.4 < b[5]) return false;
     return true;
   }
   const MAP_OPEN = (function () {
-    const { solids, deco, add, bx, wall, door, win, house } = builder();
+    const { solids, deco, add, bx, wall, door, win, house, ramp } = builder();
     let seed = 20261115;
     const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
     const rr = (a, b) => a + rnd() * (b - a);
@@ -319,6 +329,12 @@
         for (let k = 0; k < q; k++) { const nx0 = z0, nx1 = z1, nz0 = -x1, nz1 = -x0; x0 = nx0; x1 = nx1; z0 = nz0; z1 = nz1; } // gira 90° (yaw +)
         add(x + x0, Math.max(0, y0), z + z0, x + x1, y1, z + z1, b[6] || 'prop', b[7] !== 0, b[8] || null);
       }
+      for (const r of PROP_RAMPS[name] || []) { // rampas da casa (giradas junto)
+        let [x0, y0, z0, x1, y1, z1, d, mat] = r;
+        for (let k = 0; k < q; k++) { const nx0 = z0, nx1 = z1, nz0 = -x1, nz1 = -x0; x0 = nx0; x1 = nx1; z0 = nz0; z1 = nz1; }
+        if (d === 'box') add(x + x0, y0, z + z0, x + x1, y1, z + z1, mat); // patamar da rampa
+        else ramp(x + x0, z + z0, x + x1, z + z1, y1, rotDir(d, q), mat, null, y0);
+      }
       // kit médico e arma dentro da casa (no chão), alternando
       ((HOUSES[name] && HOUSES[name].items) || []).forEach(([lx, ly, lz], k) => {
         for (let r = 0; r < q; r++) { const t = lx; lx = lz; lz = -t; }
@@ -367,7 +383,7 @@
       for (const s of [-1, 1]) {
         const za = s > 0 ? 2.35 : -7.6, zb = s > 0 ? 7.6 : -2.35;
         add(xa, 0, za, xb, 1.0, zb, 'concrete');
-        add(xa - 1.0, 0, za, xa, 0.5, zb, 'concrete'); // degrau
+        ramp(xa - 2.0, za, xa, zb, 1.0, '+x', 'concrete'); // rampa da plataforma
         for (let x = xa + 5; x < xb - 1; x += 10) add(x - 0.15, 1.0, s * 6.4 - 0.15, x + 0.15, 4.8, s * 6.4 + 0.15, 'pole', true, [0.25, 0.27, 0.3]);
         add(xa + 2, 4.8, s > 0 ? 1.9 : -8.2, xb - 1, 5.05, s > 0 ? 8.2 : -1.9, 'roof');
         for (let x = xa + 9; x < xb - 4; x += 13) add(x - 1.1, 1.0, s * 5.2 - 0.3, x + 1.1, 1.45, s * 5.2 + 0.3, 'wood');
@@ -384,7 +400,7 @@
         add(x0 + 4, 0, 13.5, x0 + 8, 1.1, 14.5, 'wood'); add(x1 - 8, 0, 13.5, x1 - 4, 1.1, 14.5, 'wood');
         // ligação plataforma -> prédio
         add(168, 0, 7.6, 172, 1.0, 9.4, 'concrete'); add(184, 0, 7.6, 188, 1.0, 9.4, 'concrete');
-        add(168, 0, 9.4, 172, 0.5, 10.4, 'concrete'); add(184, 0, 9.4, 188, 0.5, 10.4, 'concrete');
+        ramp(168, 9.4, 172, 10.9, 1.0, '-z', 'concrete'); ramp(184, 9.4, 188, 10.9, 1.0, '-z', 'concrete'); // rampas plataforma -> prédio
       }
       add(212, 0, -1.7, 214.5, 1.5, 1.7, 'metal', true, [0.75, 0.15, 0.08]); // para-choque
       keepOut(xa - 3, -10, xb + 6, 23);
@@ -398,10 +414,7 @@
       add(hw - 0.12, H, -half, hw, H + 1.05, half, 'pole', true, [0.32, 0.34, 0.36]);
       for (const s of [-1, 1]) {
         add(-hw, 0, s * 4 - 0.35, hw, H - 0.35, s * 4 + 0.35, 'concrete'); // pilar
-        for (let i = 1; i <= n; i++) {
-          const za = s * (half + (n - i) * run), zb = s * (half + (n - i + 1) * run);
-          add(-hw, 0, Math.min(za, zb), hw, rise * i, Math.max(za, zb), 'concrete');
-        }
+        ramp(-hw, s * half, hw, s * (half + n * run), H, s > 0 ? '-z' : '+z', 'concrete'); // rampa até a passarela
       }
       keepOut(-4, -half - n * run - 3, 4, half + n * run + 3);
     }
@@ -473,7 +486,7 @@
         add(cx - 2, y + 0.25, cz + 1.9, cx + 2, y + 1.2, cz + 2, 'metal', true, c);
         add(cx + 1.9, y + 0.25, cz - 1.9, cx + 2, y + 1.2, cz + 1.9, 'metal', true, c);
         add(cx - 2.2, y + 2.6, cz - 2.2, cx + 2.2, y + 2.8, cz + 2.2, 'roof');
-        for (let i = 0; i < 9; i++) { const x = cx - 2 - 0.6 * (9 - i); add(x, 0, cz - 0.8, x + 0.6, (y / 9) * (i + 1), cz + 0.8, 'wood'); }
+        ramp(cx - 7.4, cz - 0.8, cx - 2, cz + 0.8, y + 0.25, '+x', 'wood'); // rampa até a torre
       };
       tower(22, -66); tower(70, -92);
       for (const [x, z] of [[30, -86], [40, -86], [50, -86], [58, -70]]) { bx(x, z, 5, 4, 2.4, 'tent', 0, [0.33, 0.37, 0.24]); }
@@ -590,7 +603,7 @@
   ];
   const ZONE_ID = { '~': 0, l: 1, g: 2, f: 3, w: 4, s: 5, d: 6 }; // 0/1 = água
   const MAP_ISLAND = (function () {
-    const { solids, deco, add, bx, wall, door, win, house } = builder();
+    const { solids, deco, add, bx, wall, door, win, house, ramp } = builder();
     const SX = 260, SZ = 200, ZG = 2; // grade de zonas a cada 2 m
     let seed = 7342211;
     const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -626,12 +639,13 @@
     function placer(cx, cz, q) {
       const T = (x, z) => { for (let k = 0; k < q; k++) { const t = x; x = z; z = -t; } return [cx + x, cz + z]; };
       const box = (x0, y0, z0, x1, y1, z1, t, solid = true, col = null) => { const a = T(x0, z0), b = T(x1, z1); return add(a[0], y0, a[1], b[0], y1, b[1], t, solid, col); };
-      return { T, box };
+      const rmp = (x0, z0, x1, z1, y1, d, mat, col = null) => { const a = T(x0, z0), b = T(x1, z1); return ramp(a[0], a[1], b[0], b[1], y1, rotDir(d, q), mat, col); };
+      return { T, box, rmp };
     }
     const itemsM = [], itemsW = [];
     // casa de 2 andares: porta da frente aberta, janelas sem vidro, escada interna, sacada e laje
     function house2(cx, cz, q, t, col) {
-      const { T, box } = placer(cx, cz, q), W = 5, D = 4, th = 0.25, H1 = 3.2, SL = 0.25, H2 = 2.9, F2 = H1 + SL;
+      const { T, box, rmp } = placer(cx, cz, q), W = 5, D = 4, th = 0.25, H1 = 3.2, SL = 0.25, H2 = 2.9, F2 = H1 + SL;
       const wl = (along, c, a0, a1, h, ops, y0) => { // parede local
         ops = ops.slice().sort((p, r) => p.a - r.a); let cur = a0;
         const seg = (s0, s1, yA, yB) => { if (s1 - s0 < 0.01 || yB - yA < 0.01) return; if (along === 'x') box(s0, y0 + yA, c - th / 2, s1, y0 + yB, c + th / 2, t, true, col); else box(c - th / 2, y0 + yA, s0, c + th / 2, y0 + yB, s1, t, true, col); };
@@ -645,7 +659,7 @@
       wl('z', W - th / 2, -D + th, D - th, H1, [door(0, 1.5, 2.4)], 0);
       // escada (11 degraus, junto da parede do fundo) e laje com o vão da escada
       const n = 11, rise = F2 / n, run = 0.5, sx0 = -3.9, sz0 = 2.55, sz1 = D - th;
-      for (let i = 0; i < n; i++) box(sx0 + i * run, 0, sz0, sx0 + (i + 1) * run, rise * (i + 1), sz1, 'wood');
+      rmp(sx0, sz0, sx0 + n * run, sz1, F2, '+x', 'wood'); // rampa até o 2º andar
       const hx1 = sx0 + n * run;
       box(-W, H1, -D, W, F2, sz0, t === 'wood' ? 'wood' : 'concrete');
       box(hx1, H1, sz0, W, F2, D, t === 'wood' ? 'wood' : 'concrete');
@@ -669,7 +683,7 @@
     }
     // casa térrea de adobe (deserto): telhado plano com escada externa e mureta — dá para subir no teto
     function adobe(cx, cz, q) {
-      const { T, box } = placer(cx, cz, q), W = 4, D = 3.5, th = 0.35, H = 3.0, col = [0.86, 0.72, 0.52];
+      const { T, box, rmp } = placer(cx, cz, q), W = 4, D = 3.5, th = 0.35, H = 3.0, col = [0.86, 0.72, 0.52];
       const wl = (along, c, a0, a1, ops) => { ops = ops.slice().sort((p, r) => p.a - r.a); let cur = a0; const seg = (s0, s1, yA, yB) => { if (s1 - s0 < 0.01 || yB - yA < 0.01) return; if (along === 'x') box(s0, yA, c - th / 2, s1, yB, c + th / 2, 'plaster', true, col); else box(c - th / 2, yA, s0, c + th / 2, yB, s1, 'plaster', true, col); }; for (const o of ops) { const o0 = o.a - o.w / 2, o1 = o.a + o.w / 2; seg(cur, o0, 0, H); seg(o0, o1, 0, o.y0); seg(o0, o1, o.y1, H); cur = o1; } seg(cur, a1, 0, H); };
       wl('x', -D + th / 2, -W, W, [door(-1, 1.5, 2.3), win(2, 1.2)]);
       wl('x', D - th / 2, -W, W, [win(-1.5, 1.2), win(1.8, 1.2)]);
@@ -678,7 +692,7 @@
       box(-W - 0.1, H, -D - 0.1, W + 0.1, H + 0.3, D + 0.1, 'plaster', true, [0.8, 0.66, 0.46]);
       for (const [x0, z0, x1, z1] of [[-W - 0.1, -D - 0.1, W + 0.1, -D + 0.15], [-W - 0.1, D - 0.15, W + 0.1, D + 0.1], [-W - 0.1, -D - 0.1, -W + 0.15, D + 0.1]]) box(x0, H + 0.3, z0, x1, H + 0.95, z1, 'plaster', true, col);
       const n = 8, rise = (H + 0.3) / n; // escada externa encostada na parede leste, chegando ao teto
-      for (let i = 0; i < n; i++) box(W + 0.1, 0, D - 0.4 - (i + 1) * 0.55, W + 1.2, rise * (i + 1), D - 0.4 - i * 0.55, 'plaster', true, [0.78, 0.64, 0.44]);
+      rmp(W + 0.1, D - 0.4 - n * 0.55, W + 1.2, D - 0.4, H + 0.3, '-z', 'plaster', [0.78, 0.64, 0.44]); // rampa até o teto
       for (const [lx, ly, lz, w] of [[2, 0, 1.5, 0], [-2, H + 0.3, 0, 1]]) { const p = T(lx, lz); (w ? itemsW : itemsM).push([Math.round(p[0] * 10) / 10, ly, Math.round(p[1] * 10) / 10]); }
       const a = T(-W - 2, -D - 2), b = T(W + 3, D + 2); keepOut(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1]));
     }
@@ -724,7 +738,7 @@
       // torres nos cantos
       for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const tx = cx + sx * S2, tz = cz + sz * S2; add(tx - 3, 0, tz - 3, tx + 3, Hm + 3, tz + 3, 'stone', true, [0.36, 0.36, 0.4]); add(tx - 3.3, Hm + 3, tz - 3.3, tx + 3.3, Hm + 3.4, tz + 3.3, 'roof'); }
       // escadas até a passarela da muralha (lado de dentro, norte e sul)
-      for (const s of [-1, 1]) { const n = 12, rise = Hm / n, zi = cz + s * (S2 - th / 2), za = s < 0 ? zi : zi - 1.4, zb = s < 0 ? zi + 1.4 : zi; for (let i = 0; i < n; i++) { const x0 = cx + 6 + i * 0.6; add(x0, 0, za, x0 + 0.6, rise * (i + 1), zb, 'stone', true, stone); } }
+      for (const s of [-1, 1]) { const n = 12, zi = cz + s * (S2 - th / 2), za = s < 0 ? zi : zi - 1.4, zb = s < 0 ? zi + 1.4 : zi; ramp(cx + 6, za, cx + 6 + n * 0.6, zb, Hm, '+x', 'stone', stone); } // rampas até a muralha
       // torre central (2 andares, como as casas)
       house2(cx, cz, 0, 'stone', [0.5, 0.48, 0.5]);
       // caixotes no pátio
@@ -830,6 +844,7 @@
     const cut = (b, solid) => {
       if (b[6] === 'tree' || b[6] === 'trunk') { if (!inside((b[0] + b[3]) / 2, (b[2] + b[5]) / 2)) return; }
       if (b[3] <= x0 || b[0] >= x1 || b[5] <= z0 || b[2] >= z1) return;
+      if (b[6] === 'ramp') { if (b[0] >= x0 && b[3] <= x1 && b[2] >= z0 && b[5] <= z1) solids.push([b[0] - cx, b[1], b[2] - cz, b[3] - cx, b[4], b[5] - cz, 'ramp', b[7], b[8], b[9]]); return; }
       const nb = [Math.max(b[0], x0) - cx, b[1], Math.max(b[2], z0) - cz, Math.min(b[3], x1) - cx, b[4], Math.min(b[5], z1) - cz, b[6], b[7]];
       if (nb[3] - nb[0] < 0.05 || nb[5] - nb[2] < 0.05) return;
       (solid ? solids : deco).push(nb);
@@ -986,6 +1001,14 @@
     for (const c of CARL) { const T = ctype(c), f = carFwd(c.yaw); for (const o of T.OFF) { const b = CARBOX[n] || (CARBOX[n] = [0, 0.15, 0, 0, 1, 0, 'car', null]); const x = c.x + f[0] * o, z = c.z + f[1] * o; b[0] = x - T.R * 0.85; b[2] = z - T.R * 0.85; b[3] = x + T.R * 0.85; b[4] = T.H; b[5] = z + T.R * 0.85; b.car = c.id; n++; } }
     CARBOX.length = n; return CARBOX;
   }
+  // altura do chão da rampa em (x, z): sobe de forma contínua (lisa) ao longo da direção
+  function rampTop(b, x, z, r = 0) { // r: o jogador apoia na parte mais alta da rampa sob o pé
+    const d = b[8]; let t;
+    if (d === '+x') t = (x + r - b[0]) / (b[3] - b[0]); else if (d === '-x') t = (b[3] - x + r) / (b[3] - b[0]);
+    else if (d === '+z') t = (z + r - b[2]) / (b[5] - b[2]); else t = (b[5] - z + r) / (b[5] - b[2]);
+    return b[1] + (b[4] - b[1]) * Math.max(0, Math.min(1, t));
+  }
+  const RHIT = [0, 0, 0, 0, 0, 0, 'ramp'];
   function collides(x, y, z, r, h, noCars) {
     if (y < -0.001) return GROUND;
     const G = MAP.G, c0 = Math.floor((x - r) / G), c1 = Math.floor((x + r) / G), d0 = Math.floor((z - r) / G), d1 = Math.floor((z + r) / G);
@@ -993,7 +1016,11 @@
       const a = CELLS.get((cx + 4096) * 8192 + (cz + 4096)); if (!a) continue;
       for (let i = 0; i < a.length; i++) {
         const b = a[i];
-        if (x + r > b[0] && x - r < b[3] && y + h > b[1] && y < b[4] && z + r > b[2] && z - r < b[5]) return b;
+        if (x + r > b[0] && x - r < b[3] && y + h > b[1] && y < b[4] && z + r > b[2] && z - r < b[5]) {
+          if (b[6] !== 'ramp') return b;
+          const top = rampTop(b, x, z, r); // rampa: só bate abaixo da superfície inclinada
+          if (y < top - 0.001) { RHIT[0] = b[0]; RHIT[1] = b[1]; RHIT[2] = b[2]; RHIT[3] = b[3]; RHIT[4] = top; RHIT[5] = b[5]; return RHIT; }
+        }
       }
     }
     for (let i = 0; i < DYN.length; i++) {
@@ -1016,6 +1043,18 @@
   function weaponOf(p) { return WEAPONS[p.weapons ? p.weapons[p.cur] : 'smg'] || WEAPONS.smg; }
 
   // Aplica um comando de movimento (determinístico: cliente prevê, servidor confirma)
+  // sobe degrau/rampa: aceita a maior altura entre as caixas tocadas (rampa encostada em laje, etc.)
+  function stepTo(p, x, z, hit, h) {
+    let y = hit[4];
+    for (let k = 0; k < 4; k++) {
+      if (y - p.y > C.STEP) return -1;
+      const o = collides(x, y + 0.001, z, C.R, h);
+      if (!o) return y + 0.001;
+      if (o[1] > y + 0.05) return -1; // algo acima (parede/teto), não é chão
+      y = o[4];
+    }
+    return -1;
+  }
   function applyInput(p, inp) {
     const dt = clamp(num(inp.dt, 0), 0, 0.05);
     p.yaw = num(inp.yaw, p.yaw);
@@ -1052,22 +1091,32 @@
     // eixo X
     let nx = p.x + p.vx * dt, hit = collides(nx, p.y, p.z, C.R, h);
     if (hit) {
-      if (p.onGround && hit[4] - p.y <= C.STEP && !collides(nx, hit[4] + 0.001, p.z, C.R, h)) p.y = hit[4] + 0.001, p.x = nx;
+      const sy2 = p.onGround ? stepTo(p, nx, p.z, hit, h) : -1;
+      if (sy2 >= 0) p.y = sy2, p.x = nx;
       else p.vx = 0;
     } else p.x = nx;
     // eixo Z
     let nz = p.z + p.vz * dt; hit = collides(p.x, p.y, nz, C.R, h);
     if (hit) {
-      if (p.onGround && hit[4] - p.y <= C.STEP && !collides(p.x, hit[4] + 0.001, nz, C.R, h)) p.y = hit[4] + 0.001, p.z = nz;
+      const sy2 = p.onGround ? stepTo(p, p.x, nz, hit, h) : -1;
+      if (sy2 >= 0) p.y = sy2, p.z = nz;
       else p.vz = 0;
     } else p.z = nz;
     // eixo Y
+    const wasG = p.onGround;
     const ny = p.y + p.vy * dt; hit = collides(p.x, ny, p.z, C.R, h);
     if (hit) {
       if (p.vy <= 0) { p.y = Math.max(hit[4], 0) + (hit === GROUND ? 0 : 0.001); p.onGround = true; }
       else p.y = hit[1] - h - 0.001;
       p.vy = 0;
-    } else { p.y = ny; p.onGround = false; }
+    } else {
+      p.y = ny; p.onGround = false;
+      if (wasG && p.vy <= 0 && p.y > 0.001) { // descendo rampa: continua colado no chão (sem "cair" aos pulinhos)
+        const g = collides(p.x, p.y - 0.45, p.z, C.R, 0.4);
+        if (g && g[4] <= p.y + 0.001) { p.y = Math.max(g[4], 0) + (g === GROUND ? 0 : 0.001); p.onGround = true; p.vy = 0; }
+        else if (p.y - 0.45 <= 0) { p.y = 0; p.onGround = true; p.vy = 0; }
+      }
+    }
   }
 
   // ---------------------------------------------------------------- raycast
@@ -1081,12 +1130,26 @@
     else { let a = (z0 - oz) / dz, b = (z1 - oz) / dz; if (a > b) { const t = a; a = b; b = t; } tmin = Math.max(tmin, a); tmax = Math.min(tmax, b); if (tmin > tmax) return Infinity; }
     return tmin;
   }
+  // tiro contra rampa: entra na caixa; se já está abaixo da superfície, bate ali; senão acha onde cruza a rampa
+  function rayRamp(b, ox, oy, oz, dx, dy, dz) {
+    let t0 = 0, t1 = Infinity;
+    const ax = [[ox, dx, b[0], b[3]], [oy, dy, b[1], b[4]], [oz, dz, b[2], b[5]]];
+    for (const [o, d, lo, hi] of ax) {
+      if (Math.abs(d) < 1e-9) { if (o < lo || o > hi) return Infinity; continue; }
+      let a = (lo - o) / d, c = (hi - o) / d; if (a > c) { const k = a; a = c; c = k; }
+      t0 = Math.max(t0, a); t1 = Math.min(t1, c); if (t0 > t1) return Infinity;
+    }
+    const f = (t) => oy + dy * t - rampTop(b, ox + dx * t, oz + dz * t);
+    const f0 = f(t0); if (f0 <= 0.001) return t0;
+    const f1 = f(t1); if (f1 > 0) return Infinity;
+    return t0 + (t1 - t0) * f0 / (f0 - f1);
+  }
   function raycastWorld(ox, oy, oz, dx, dy, dz, maxT = 300) {
     let best = maxT;
     if (dy < 0) { const t = -oy / dy; if (t < best) best = t; }
     for (let i = 0; i < SOL.length; i++) {
       const b = SOL[i];
-      const t = rayBox(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]);
+      const t = b[6] === 'ramp' ? rayRamp(b, ox, oy, oz, dx, dy, dz) : rayBox(ox, oy, oz, dx, dy, dz, b[0], b[1], b[2], b[3], b[4], b[5]);
       if (t < best) best = t;
     }
     for (let i = 0; i < DYN.length; i++) {
