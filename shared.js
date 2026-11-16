@@ -229,7 +229,7 @@
     let seed = 20261115;
     const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
     const rr = (a, b) => a + rnd() * (b - a);
-    const SX = 160, SZ = 110;
+    const SX = 220, SZ = 150;
     const GREY = [0.36, 0.37, 0.4];
     // livre para colocar algo (sem caixa sólida perto, fora da linha e das ruas principais)
     const blocked = [];
@@ -250,8 +250,8 @@
     add(-SX + 0.5, 0.04, -1.5, SX - 0.5, 0.06, 1.5, 'rail', false);
     keepOut(-SX, -5, SX, 5);
     // postes da rede aérea ao longo da linha
-    for (let x = -150; x <= 150; x += 25) for (const s of [-1, 1]) {
-      if (x > 88 && x < 152) continue; // estação tem cobertura
+    for (let x = -210; x <= 210; x += 25) for (const s of [-1, 1]) {
+      if (x > 148 && x < 212) continue; // estação tem cobertura
       add(x - 0.12, 0, s * 3.4 - 0.12, x + 0.12, 6.2, s * 3.4 + 0.12, 'pole', true, [0.3, 0.3, 0.32]);
       add(x - 0.06, 5.9, s > 0 ? 1.2 : -3.4, x + 0.06, 6.0, s > 0 ? 3.4 : -1.2, 'pole', false, [0.3, 0.3, 0.32]);
     }
@@ -261,8 +261,12 @@
     add(41, 0, -SZ + 0.5, 49, 0.02, SZ - 0.5, 'road', false); keepOut(40, -SZ, 50, SZ);
     add(-SX + 0.5, 0, 36, SX - 0.5, 0.021, 44, 'road', false); keepOut(-SX, 35, SX, 45);
     add(-SX + 0.5, 0, -49, SX - 0.5, 0.021, -41, 'road', false); keepOut(-SX, -50, SX, -40);
+    add(-134, 0, -SZ + 0.5, -126, 0.019, SZ - 0.5, 'road', false); keepOut(-135, -SZ, -125, SZ);
+    add(126, 0, -SZ + 0.5, 134, 0.019, SZ - 0.5, 'road', false); keepOut(125, -SZ, 135, SZ);
+    add(-SX + 0.5, 0, 124, SX - 0.5, 0.022, 132, 'road', false); keepOut(-SX, 123, SX, 133);
+    add(-SX + 0.5, 0, -132, SX - 0.5, 0.022, -124, 'road', false); keepOut(-SX, -133, SX, -123);
     // cancelas das passagens de nível
-    for (const cx of [-45, 45]) for (const s of [-1, 1]) {
+    for (const cx of [-130, -45, 45, 130]) for (const s of [-1, 1]) {
       const gx = cx + s * 4.6;
       add(gx - 0.15, 0, s * 4.2 - 0.15, gx + 0.15, 1.2, s * 4.2 + 0.15, 'barrier');
       add(Math.min(gx, gx - s * 3.6), 1.05, s * 4.2 - 0.06, Math.max(gx, gx - s * 3.6), 1.15, s * 4.2 + 0.06, 'barrier', false);
@@ -270,20 +274,20 @@
 
     // depósito de trens (oeste): o trem começa aqui dentro
     {
-      const x0 = -155, x1 = -84, h = 7.5, th = 0.4;
-      wall('x', -5.6, x0, x1, th, h, 'brick', [door(-142, 2.4, 2.6), win(-130, 2.2), win(-118, 2.2), door(-106, 2.4, 2.6), win(-94, 2.2)]);
-      wall('x', 5.6, x0, x1, th, h, 'brick', [win(-142, 2.2), door(-130, 2.4, 2.6), win(-118, 2.2), win(-106, 2.2), door(-94, 2.4, 2.6)]);
+      const x0 = -215, x1 = -144, h = 7.5, th = 0.4;
+      wall('x', -5.6, x0, x1, th, h, 'brick', [door(-202, 2.4, 2.6), win(-190, 2.2), win(-178, 2.2), door(-166, 2.4, 2.6), win(-154, 2.2)]);
+      wall('x', 5.6, x0, x1, th, h, 'brick', [win(-202, 2.2), door(-190, 2.4, 2.6), win(-178, 2.2), win(-166, 2.2), door(-154, 2.4, 2.6)]);
       wall('z', x0, -5.4, 5.4, th, h, 'brick', [win(-3.5, 2), win(3.5, 2)]);
       add(x1 - 0.5, 5.4, -5.8, x1, h, 5.8, 'brick'); // viga da porta grande (leste fica aberto)
       add(x0 - 0.3, h, -6.2, x1 + 0.3, h + 0.35, 6.2, 'roof');
-      for (const s of [-1, 1]) for (let x = -150; x < -88; x += 12) bx(x, s * 4.2, 1.2, 1.2, 1.2, 'crate');
-      bx(-150, -4.2, 1.2, 1.2, 1.2, 'crate', 1.2);
+      for (const s of [-1, 1]) for (let x = -210; x < -148; x += 12) bx(x, s * 4.2, 1.2, 1.2, 1.2, 'crate');
+      bx(-210, -4.2, 1.2, 1.2, 1.2, 'crate', 1.2);
       keepOut(x0 - 2, -9, x1 + 2, 9);
     }
 
     // estação final (leste): plataformas dos dois lados, cobertura, prédio e para-choque
     {
-      const xa = 90, xb = 151;
+      const xa = 150, xb = 211;
       for (const s of [-1, 1]) {
         const za = s > 0 ? 2.35 : -7.6, zb = s > 0 ? 7.6 : -2.35;
         add(xa, 0, za, xb, 1.0, zb, 'concrete');
@@ -295,18 +299,18 @@
       }
       // prédio da estação (norte), com portas para a plataforma e para a rua
       {
-        const x0 = 104, x1 = 132, z0 = 9.5, z1 = 21, h = 5.2, th = 0.3;
-        wall('x', z0 + th / 2, x0, x1, th, h, 'brick', [door(110, 2.2, 2.6), win(118, 2.4), door(126, 2.2, 2.6)]);
-        wall('x', z1 - th / 2, x0, x1, th, h, 'brick', [win(110, 2.4), door(118, 2.4, 2.6), win(126, 2.4)]);
+        const x0 = 164, x1 = 192, z0 = 9.5, z1 = 21, h = 5.2, th = 0.3;
+        wall('x', z0 + th / 2, x0, x1, th, h, 'brick', [door(170, 2.2, 2.6), win(178, 2.4), door(186, 2.2, 2.6)]);
+        wall('x', z1 - th / 2, x0, x1, th, h, 'brick', [win(170, 2.4), door(178, 2.4, 2.6), win(186, 2.4)]);
         wall('z', x0 + th / 2, z0 + th, z1 - th, th, h, 'brick', [win(15, 2)]);
         wall('z', x1 - th / 2, z0 + th, z1 - th, th, h, 'brick', [door(15, 2.2, 2.6)]);
         add(x0 - 0.3, h, z0 - 0.3, x1 + 0.3, h + 0.3, z1 + 0.3, 'roof');
         add(x0 + 4, 0, 13.5, x0 + 8, 1.1, 14.5, 'wood'); add(x1 - 8, 0, 13.5, x1 - 4, 1.1, 14.5, 'wood');
         // ligação plataforma -> prédio
-        add(108, 0, 7.6, 112, 1.0, 9.4, 'concrete'); add(124, 0, 7.6, 128, 1.0, 9.4, 'concrete');
-        add(108, 0, 9.4, 112, 0.5, 10.4, 'concrete'); add(124, 0, 9.4, 128, 0.5, 10.4, 'concrete');
+        add(168, 0, 7.6, 172, 1.0, 9.4, 'concrete'); add(184, 0, 7.6, 188, 1.0, 9.4, 'concrete');
+        add(168, 0, 9.4, 172, 0.5, 10.4, 'concrete'); add(184, 0, 9.4, 188, 0.5, 10.4, 'concrete');
       }
-      add(152, 0, -1.7, 154.5, 1.5, 1.7, 'metal', true, [0.75, 0.15, 0.08]); // para-choque
+      add(212, 0, -1.7, 214.5, 1.5, 1.7, 'metal', true, [0.75, 0.15, 0.08]); // para-choque
       keepOut(xa - 3, -10, xb + 6, 23);
     }
 
@@ -328,8 +332,13 @@
 
     // cidade (norte): casas dos dois lados da rua z = 40, prédios e praça
     const houseAt = (cx, cz, door, t) => { house(cx, cz, 10, 8, 3.4, door, t); keepOut(cx - 6.5, cz - 5.5, cx + 6.5, cz + 5.5); };
-    for (const cx of [-140, -124, -108, -92, -76, -24, 14, 28, 62, 78, 94, 136]) houseAt(cx, 29, 1, rnd() < 0.5 ? 'brick' : 'concrete');
-    for (const cx of [-140, -124, -92, -76, -24, -10, 14, 28, 62, 78, 94, 110, 126, 142]) houseAt(cx, 51, -1, rnd() < 0.6 ? 'brick' : 'concrete');
+    for (const cx of [-204, -188, -172, -156, -140, -108, -92, -76, -24, 14, 28, 62, 78, 94, 110, 148, 204]) houseAt(cx, 29, 1, rnd() < 0.5 ? 'brick' : 'concrete');
+    for (const cx of [-204, -188, -172, -156, -140, -108, -92, -76, -24, -10, 14, 28, 62, 78, 94, 110, 148, 164, 180, 196]) houseAt(cx, 51, -1, rnd() < 0.6 ? 'brick' : 'concrete');
+    // bairros novos (ruas z = 128 e z = -128)
+    for (const zz of [116, -116]) for (let cx = -204; cx <= 204; cx += 16) { if (Math.abs(cx + 130) < 9 || Math.abs(cx + 45) < 9 || Math.abs(cx - 45) < 9 || Math.abs(cx - 130) < 9 || (zz < 0 && cx > 86 && cx < 156)) continue; houseAt(cx, zz, zz > 0 ? 1 : -1, rnd() < 0.5 ? 'brick' : 'concrete'); }
+    for (const zz of [140, -140]) for (let cx = -196; cx <= 196; cx += 16) { if (Math.abs(cx + 130) < 9 || Math.abs(cx + 45) < 9 || Math.abs(cx - 45) < 9 || Math.abs(cx - 130) < 9) continue; if (rnd() < 0.2) continue; houseAt(cx, zz, zz > 0 ? -1 : 1, rnd() < 0.5 ? 'brick' : 'concrete'); }
+    // casas soltas nas laterais (oeste e leste)
+    for (const [cx, cz] of [[-200, -20], [-184, -24], [-196, -70], [-178, -88], [-200, 80], [-180, 92], [-160, 76], [176, -20], [196, -24], [180, -70], [200, -88], [166, 80], [186, 92], [204, 74]]) houseAt(cx, cz, rnd() < 0.5 ? 1 : -1, rnd() < 0.5 ? 'brick' : 'concrete');
     // prédios fechados (cobertura grande)
     for (const [cx, cz, w, d, h] of [[-118, 72, 14, 10, 9], [-66, 78, 10, 14, 12], [8, 80, 16, 10, 8], [102, 76, 12, 12, 10]]) { bx(cx, cz, w, d, h, 'concrete'); add(cx - w / 2 - 0.2, h, cz - d / 2 - 0.2, cx + w / 2 + 0.2, h + 0.3, cz + d / 2 + 0.2, 'roof'); keepOut(cx - w / 2 - 2, cz - d / 2 - 2, cx + w / 2 + 2, cz + d / 2 + 2); }
     // praça com chafariz
@@ -417,7 +426,7 @@
 
     // pedras e árvores espalhadas (sem bloquear ruas/linha/construções)
     let rocks = 0, guard = 0;
-    while (rocks < 34 && guard++ < 2000) {
+    while (rocks < 50 && guard++ < 3000) {
       const x = rr(-SX + 6, SX - 6), z = rr(-SZ + 6, SZ - 6), w = rr(1.4, 3.4), d = rr(1.2, 3.0), h = rr(0.7, 1.8);
       if (!freeAt(x, z, Math.max(w, d))) continue;
       bx(x, z, w, d, h, 'rock', 0, [0.45 + rnd() * 0.1, 0.44 + rnd() * 0.08, 0.42]);
@@ -425,7 +434,7 @@
       rocks++;
     }
     let trees = 0; guard = 0;
-    while (trees < 130 && guard++ < 4000) {
+    while (trees < 210 && guard++ < 6000) {
       const x = rr(-SX + 4, SX - 4), z = rr(-SZ + 4, SZ - 4);
       if (!freeAt(x, z, 2.2)) continue;
       const h = rr(5, 9), r = rr(1.8, 3.0);
@@ -445,9 +454,14 @@
       }
     }
     const spawns = { 0: ffa, 1: ffa, x1: { 0: ffa, 1: ffa }, ffa };
-    const medkits = [[-120, 0, -24], [-100, 0, -31], [-51, 0, -72], [40, 0, -80], [60, 0, -64], [110, 0, -75], [128, 0, -92], [-60, 0, 60], [-20, 0, 66], [8, 0, 66], [60, 0, 92], [96, 0, 62], [-132, 0, 80], [-104, 0, 8], [-60, 0, -8], [20, 0, 12], [70, 0, -10], [118, 1.0, 5], [118, 1.0, -5], [0, 6.2, 0], [-140, 0, -60], [140, 0, 66]];
-    const train = { z: 0, x0: -86, x1: 149.5, speed: 5, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
-    return { id: 'aberto', solids, deco, spawns, medkits, sx: SX, sz: SZ, train };
+    const medkits = [[-120, 0, -24], [-100, 0, -31], [-51, 0, -72], [40, 0, -80], [60, 0, -64], [110, 0, -75], [128, 0, -92], [-60, 0, 60], [-20, 0, 66], [8, 0, 66], [60, 0, 92], [96, 0, 62], [-132, 0, 80], [-104, 0, 8], [-60, 0, -8], [20, 0, 12], [70, 0, -10], [178, 1.0, 5], [178, 1.0, -5], [0, 6.2, 0], [-140, 0, -60]];
+    for (let g = 0; g < 400 && medkits.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) medkits.push([Math.round(x), 0, Math.round(z)]); }
+    // armas no chão para pegar (trocam a arma do mesmo tipo)
+    const WL = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'deagle', 'ak47', 'm4a1', 'smg', 'pistol'];
+    const weapons = [[0, 6.2, -4, 'sniper'], [0, 6.2, 4, 'sniper'], [-180, 0, 3.5, 'ak47'], [-170, 0, -3.5, 'm4a1'], [176, 1.0, 4, 'doze'], [182, 1.0, -4, 'm4a1'], [-112, 0, -24, 'doze'], [46, 0, -66, 'ak47'], [-20, 0, 76, 'deagle'], [60, 0, 88, 'smg']];
+    for (let g = 0; g < 600 && weapons.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) weapons.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, WL[Math.floor(rnd() * WL.length)]]); }
+    const train = { z: 0, x0: -146, x1: 209.5, speed: 5, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
+    return { id: 'aberto', solids, deco, spawns, medkits, weapons, sx: SX, sz: SZ, train };
   })();
   const MAPS = { base: MAP_BASE, aberto: MAP_OPEN };
   const mapFor = (mode) => (mode === 'aberto' ? MAP_OPEN : MAP_BASE);
@@ -820,6 +834,8 @@
       this.firstBlood = false;
       this.rosterDirty = true;
       this.medkits = this.map.medkits.map(([x, y, z]) => ({ x, y, z, active: true, t: 0 }));
+      // armas no chão: as do mapa voltam depois de um tempo; as largadas somem
+      this.wpicks = (this.map.weapons || []).map(([x, y, z, w]) => ({ x, y, z, w, active: true, t: 0 })); this.drops = []; this.dropSeq = 0;
       this.onMatchEnd = null;
     }
     teamCount(t) { let n = 0; for (const p of this.players.values()) if (p.team === t) n++; return n; }
@@ -838,6 +854,7 @@
         cur: 0, ammo: {}, lastShot: -9, bloom: 0, reloadUntil: 0, medUntil: 0, switchUntil: 0, medkits: 0, spawnProt: 0,
         ack: 0, shotAck: 0, budget: 0.2, ping: 0, lastInput: 0, ai: null,
       };
+      p.baseW = p.weapons.slice(); // armas do equipamento (voltam ao renascer)
       this.players.set(id, p);
       this.spawn(p);
       this.rosterDirty = true;
@@ -865,6 +882,7 @@
       }
       p.x = best[0] + (Math.random() - 0.5); p.y = best[1]; p.z = best[2] + (Math.random() - 0.5); p.yaw = best[3]; p.pitch = 0;
       p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      if (p.baseW) p.weapons = p.baseW.slice();
       p.hp = C.MAXHP; p.alive = true; p.streak = 0; p.cur = 0; p.bloom = 0;
       p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0;
       p.medkits = C.MEDKITS_START + (p.upgrades.includes('medbag') ? 1 : 0);
@@ -899,10 +917,29 @@
           if (s !== p.cur && p.alive && !p.medUntil) { p.cur = s; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH; }
           return;
         }
+        case 'grab': return this.grab(p, a);
         case 'med':
           if (p.alive && p.medkits > 0 && p.hp < C.MAXHP && !p.medUntil) { p.medUntil = this.time + C.MEDTIME; p.reloadUntil = 0; this.events.push({ e: 'medstart', id: p.id }); }
           return;
       }
+    }
+    // pegar arma do chão: troca a arma do mesmo tipo (principal ou pistola), já equipa com munição cheia e larga a antiga
+    grab(p, a) {
+      if (!p.alive || p.medUntil) return;
+      let best = null, bd = 2.2;
+      const near = (o) => { const d = Math.hypot(p.x - o.x, p.z - o.z); if (Math.abs(p.y - o.y) < 1.6 && d < bd) { bd = d; best = o; } };
+      for (const o of this.wpicks) if (o.active) near(o);
+      for (const o of this.drops) near(o);
+      if (!best || !WEAPONS[best.w]) return;
+      const w = WEAPONS[best.w], slot = w.slot, old = p.weapons[slot];
+      if (old === best.w) { p.ammo[w.id] = { mag: w.mag, res: w.reserve }; }
+      else {
+        p.weapons = p.weapons.slice(); p.weapons[slot] = w.id; p.ammo[w.id] = { mag: w.mag, res: w.reserve };
+        if (old && WEAPONS[old]) { if (this.drops.length >= 24) this.drops.shift(); this.drops.push({ id: ++this.dropSeq, x: p.x, y: p.y, z: p.z, w: old, until: this.time + 40 }); }
+      }
+      p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
+      if (best.until) this.drops.splice(this.drops.indexOf(best), 1); else { best.active = false; best.t = this.time + 30; }
+      this.events.push({ e: 'grab', id: p.id, w: w.id });
     }
     reload(p) {
       const w = weaponOf(p), am = p.ammo[w.id];
@@ -1008,6 +1045,7 @@
       this.roundEndAt = 0; this.round++;
       for (const p of this.players.values()) this.spawn(p);
       for (const m of this.medkits) m.active = true;
+      for (const w of this.wpicks) w.active = true; this.drops = [];
       this.events.push({ e: 'roundstart', round: this.round });
     }
     award(p, amt, why) { p.xp += amt; this.events.push({ e: 'xp', id: p.id, amt, why }); }
@@ -1038,6 +1076,7 @@
       this.state = 'playing'; this.matchTime = 0; this.trainSt = 0; this.score = [0, 0]; this.firstBlood = false; this.round = 1; this.roundEndAt = 0; this.roundWinners = [];
       for (const p of this.players.values()) { p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; this.spawn(p); }
       for (const m of this.medkits) m.active = true;
+      for (const w of this.wpicks) w.active = true; this.drops = [];
       this.events.push({ e: 'start' });
     }
     // trem: anda pelo trilho conforme o tempo da partida e empurra quem estiver na frente para o lado
@@ -1094,6 +1133,8 @@
         }
       }
       for (const m of this.medkits) if (!m.active && this.time >= m.t) m.active = true;
+      for (const o of this.wpicks) if (!o.active && this.time >= o.t) o.active = true;
+      if (this.drops.length) this.drops = this.drops.filter((d) => this.time < d.until);
       const snap = new Map();
       for (const p of this.players.values()) if (p.alive) snap.set(p.id, [p.x, p.y, p.z, p.crouch]);
       this.history.push({ t: this.time, m: snap });
@@ -1218,6 +1259,8 @@
       let mk = 0; this.medkits.forEach((m, i) => { if (m.active) mk |= 1 << i; });
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
       if (this.map.train) s.tr = r2(this.trainX);
+      if (this.wpicks.length) { let wk = 0; this.wpicks.forEach((o, i) => { if (o.active) wk |= 1 << i; }); s.wk = wk; }
+      if (this.drops.length) s.dw = this.drops.map((d) => [d.id, r2(d.x), r2(d.y), r2(d.z), WEAPON_LIST.indexOf(d.w)]);
       return s;
     }
     snapMe(p) {
