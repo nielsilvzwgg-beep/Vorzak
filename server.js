@@ -229,10 +229,10 @@ class Room {
     this.fillBots();
     broadcastRooms();
   }
-  // mapa aberto: completa com bots até 12 jogadores (saem quando entra gente de verdade)
+  // mapa aberto online: só jogadores de verdade (tira qualquer bot que tenha sobrado)
   fillBots() {
     if (this.mode !== 'aberto' || this.waiting) return;
-    const want = Math.max(0, 12 - this.members.size);
+    const want = 0;
     let bots = [...this.sim.players.values()].filter((p) => p.bot);
     while (bots.length > want) { const b = bots.pop(); this.sim.removePlayer(b.id); }
     for (let i = bots.length; i < want; i++) this.sim.addBot();

@@ -29,11 +29,12 @@
     deagle: { id: 'deagle', name: 'Desert Eagle', slot: 1, dmg: 56, pellets: 1, rpm: 200, mag: 7, reserve: 35, reload: 1.9, spread: 0.022, adsSpread: 0.006, moveMul: 1.8, bloom: 0.02, bloomMax: 0.06, recoil: 0.06, recoilYaw: 0.015, range: 45, auto: false, head: 2.1, price: 1200, level: 2, zoom: 1.2, speed: 0.97, snd: { f: 700, d: 0.3, v: 1.0, b: 60 }, sightY: 0.085 },
     ak47: { id: 'ak47', name: 'AK-47', slot: 0, dmg: 31, pellets: 1, rpm: 600, mag: 30, reserve: 120, reload: 2.5, spread: 0.024, adsSpread: 0.007, moveMul: 1.8, bloom: 0.006, bloomMax: 0.05, recoil: 0.021, recoilYaw: 0.009, range: 55, auto: true, head: 2.0, price: 2700, level: 2, zoom: 1.3, speed: 0.9, snd: { f: 900, d: 0.22, v: 1.0, b: 70 }, sightY: 0.075 },
     m4a1: { id: 'm4a1', name: 'M4A1', slot: 0, dmg: 27, pellets: 1, rpm: 760, mag: 30, reserve: 120, reload: 2.2, spread: 0.018, adsSpread: 0.005, moveMul: 1.7, bloom: 0.005, bloomMax: 0.04, recoil: 0.015, recoilYaw: 0.006, range: 60, auto: true, head: 2.0, price: 3100, level: 4, zoom: 1.35, speed: 0.92, snd: { f: 1150, d: 0.18, v: 0.9, b: 80 }, sightY: 0.095 },
-    doze: { id: 'doze', name: 'Doze Nova (cal. 12)', slot: 0, dmg: 15, pellets: 8, rpm: 68, mag: 8, reserve: 32, reload: 3.0, spread: 0.075, adsSpread: 0.06, moveMul: 1.2, bloom: 0, bloomMax: 0, recoil: 0.07, recoilYaw: 0.02, range: 12, auto: false, head: 1.5, price: 2000, level: 3, zoom: 1.1, speed: 0.9, snd: { f: 480, d: 0.38, v: 1.1, b: 50 }, sightY: 0.07 },
+    doze: { id: 'doze', pump: true, name: 'Doze Nova (cal. 12)', slot: 0, dmg: 15, pellets: 8, rpm: 68, mag: 8, reserve: 32, reload: 3.0, spread: 0.075, adsSpread: 0.06, moveMul: 1.2, bloom: 0, bloomMax: 0, recoil: 0.07, recoilYaw: 0.02, range: 12, auto: false, head: 1.5, price: 2000, level: 3, zoom: 1.1, speed: 0.9, snd: { f: 480, d: 0.38, v: 1.1, b: 50 }, sightY: 0.07 },
+    maverick: { id: 'maverick', name: 'Maverick 88 (cal. 12)', slot: 0, dmg: 16, pellets: 8, rpm: 75, mag: 6, reserve: 30, reload: 2.6, spread: 0.06, adsSpread: 0.045, moveMul: 1.2, bloom: 0, bloomMax: 0, recoil: 0.065, recoilYaw: 0.02, range: 16, auto: false, head: 1.5, price: 2400, level: 3, zoom: 1.12, speed: 0.92, snd: { f: 430, d: 0.4, v: 1.15, b: 48 }, sightY: 0.08, pump: true },
     smg: { id: 'smg', name: 'Submetralhadora MP5', slot: 0, dmg: 21, pellets: 1, rpm: 850, mag: 30, reserve: 150, reload: 2.0, spread: 0.022, adsSpread: 0.011, moveMul: 1.3, bloom: 0.004, bloomMax: 0.035, recoil: 0.011, recoilYaw: 0.006, range: 25, auto: true, head: 1.8, price: 0, level: 1, zoom: 1.2, speed: 1.0, snd: { f: 1700, d: 0.12, v: 0.7, b: 100 }, sightY: 0.08 },
     sniper: { id: 'sniper', name: 'Sniper AWM .338', slot: 0, dmg: 115, pellets: 1, rpm: 42, mag: 5, reserve: 25, reload: 3.4, spread: 0.09, adsSpread: 0.0008, moveMul: 2.0, bloom: 0, bloomMax: 0, recoil: 0.1, recoilYaw: 0.01, range: 200, auto: false, head: 2.5, price: 4500, level: 5, zoom: 4.5, scope: true, speed: 0.82, snd: { f: 380, d: 0.6, v: 1.25, b: 45 }, sightY: 0.1 },
   };
-  const WEAPON_LIST = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'pistol', 'deagle'];
+  const WEAPON_LIST = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'pistol', 'deagle', 'maverick'];
 
   const UNIFORMS = {
     woodland: { id: 'woodland', name: 'Floresta', price: 0, level: 1, c: ['#4b5a32', '#2f3a22', '#6b6a45', '#1f221a'] },
@@ -224,12 +225,40 @@
   })();
   // ---------------------------------------------------------------- mapa aberto (até 30 jogadores) com ferrovia
   // trem sai do depósito (oeste) quando a partida começa, atravessa o mapa e para na estação (leste)
+  // caixas de colisão das casas 3D (geradas pelo tools/prop2vzm.py; coordenadas locais em metros)
+  // casas por dentro (models/houses.json): cômodos com paredes internas, portas sem porta e janelas abertas
+  const HOUSES = {"house_duplex":{"t":0.3,"inset":0.04,"tex":"concrete","col":[0.95,0.93,0.88],"cut":true,"depth":0.32,"rooms":[{"r":[-4.0,-3.7,4.0,5.35],"y":0,"h":2.6,"top":5.1,"open":[{"s":"n","a":0,"w":2.5,"y0":0,"y1":2.2},{"s":"n","a":-2.6,"w":2.0,"y0":0.75,"y1":2.1},{"s":"n","a":2.6,"w":2.0,"y0":0.75,"y1":2.1},{"s":"s","a":0,"w":1.8,"y0":0,"y1":2.15},{"s":"s","a":-2.45,"w":2.0,"y0":0.75,"y1":2.1},{"s":"s","a":2.5,"w":2.0,"y0":0.75,"y1":2.1},{"s":"w","a":0.8,"w":1.8,"y0":0.9,"y1":2.0},{"s":"e","a":0.8,"w":1.8,"y0":0.9,"y1":2.0}]}],"items":[[-2.3,0,3.6],[2.3,0,-2.2]]},"house_casas":{"t":0.18,"inset":0.03,"tex":"concrete","col":[0.86,0.8,0.7],"cut":true,"depth":0.3,"rooms":[{"r":[-2.9,7.3,2.6,10.3],"y":0,"h":2.6,"top":3.5,"open":[{"s":"e","a":8.8,"w":1.15,"y0":0,"y1":2.15},{"s":"n","a":-2.1,"w":0.8,"y0":0.7,"y1":1.6},{"s":"n","a":-0.9,"w":0.8,"y0":0.7,"y1":1.6},{"s":"s","a":-1.35,"w":1.4,"y0":0,"y1":2.15}]},{"r":[-2.9,2.0,0.2,7.3],"y":0,"h":2.5,"top":3.3,"open":[{"s":"n","a":-1.35,"w":1.4,"y0":0,"y1":2.15,"nocut":true},{"s":"e","a":3.3,"w":0.8,"y0":0.7,"y1":1.6},{"s":"e","a":5.2,"w":0.8,"y0":0.7,"y1":1.6},{"s":"w","a":3.2,"w":0.8,"y0":0.7,"y1":1.6},{"s":"w","a":5.1,"w":0.8,"y0":0.7,"y1":1.6},{"s":"s","a":-1.35,"w":1.2,"y0":0,"y1":2.15}]},{"r":[-2.2,-4.3,1.0,-1.2],"y":0,"h":2.35,"top":5.0,"open":[{"s":"e","a":-3.0,"w":1.15,"y0":0,"y1":2.1},{"s":"w","a":-2.75,"w":0.9,"y0":0.7,"y1":1.6},{"s":"n","a":-0.6,"w":0.9,"y0":0.7,"y1":1.6}]},{"r":[-2.3,-10.2,0.9,-7.6],"y":0,"h":2.0,"top":3.2,"open":[{"s":"e","a":-8.3,"w":1.1,"y0":0,"y1":1.95},{"s":"s","a":-0.3,"w":0.7,"y0":0.6,"y1":1.4},{"s":"s","a":-1.6,"w":0.7,"y0":0.6,"y1":1.4},{"s":"w","a":-8.9,"w":0.8,"y0":0.6,"y1":1.4}]}],"items":[[-1.4,0,4.0],[0.5,0,9.2],[-0.6,0,-2.4],[-0.7,0,-9.0]],"extra":[[-2.9,3.5,7.3,0.4,6.3,10.3,"prop"]]},"house_jp":{"t":0.22,"inset":0.04,"tex":"concrete","cut":false,"rooms":[{"r":[-3.66,-3.0,0.3,4.5],"y":1.27,"h":2.43,"top":7.0,"skip":["e"],"open":[{"s":"s","a":-0.56,"w":1.2,"y0":0,"y1":2.25},{"s":"s","a":-2.45,"w":1.2,"y0":0.82,"y1":2.2},{"s":"w","a":-1.24,"w":1.2,"y0":0.82,"y1":2.2},{"s":"w","a":1.88,"w":0.55,"y0":0.82,"y1":1.48},{"s":"w","a":3.21,"w":1.3,"y0":0.82,"y1":1.48},{"s":"n","a":-1.23,"w":1.2,"y0":0,"y1":2.25}]},{"r":[0.3,-3.75,3.9,4.5],"y":1.27,"h":2.43,"top":7.0,"open":[{"s":"w","a":0.75,"w":7.5,"y0":0,"y1":2.43},{"s":"s","a":2.33,"w":1.6,"y0":0,"y1":2.2},{"s":"e","a":-1.64,"w":1.6,"y0":0,"y1":2.2},{"s":"e","a":2.3,"w":1.6,"y0":0.52,"y1":1.89}]}],"extra":[[-3.66,0,-3.75,3.9,1.27,4.5,"prop"],[-3.58,0,-4.1,-1.45,0.89,-2.93,"prop"],[-4.96,0,4.5,0.17,1.27,5.63,"prop"],[3.9,0,-2.64,4.64,1.0,-0.64,"prop"],[4.64,0,-2.64,5.1,0.5,-0.64,"prop"],[-6.85,0,-5.88,-6.62,0.93,5.91,"prop"],[6.67,0,-5.66,6.84,1.04,5.64,"prop"],[-6.69,0,5.63,6.85,2.06,5.9,"prop"],[-3.3,0,-5.88,-2.0,1.95,-5.43,"prop"],[-2.0,0,-5.88,6.69,1.5,-5.43,"prop"],[-2.15,0,-5.43,-1.2,0.4,-4.1,"prop"],[-1.2,0,-5.43,0.63,0.8,-4.41,"prop"],[-1.46,0,-4.41,0.39,1.27,-3.75,"prop"]],"items":[[-2.2,1.27,2.5],[2.3,1.27,1.0]],"col":[0.92,0.9,0.85]}};
+  // paredes (com vãos de porta/janela), teto e piso de cada casa — caixas locais [x0,y0,z0,x1,y1,z1,tipo,sólida,cor]
+  function houseBoxes(H) {
+    const out = [], T = H.t, IN = H.inset, tex = H.tex || 'prop', col = H.col || null;
+    const B = (x0, y0, z0, x1, y1, z1, t = tex, solid = 1) => { if (x1 - x0 > 0.01 && y1 - y0 > 0.01 && z1 - z0 > 0.01) out.push([+x0.toFixed(3), +y0.toFixed(3), +z0.toFixed(3), +x1.toFixed(3), +y1.toFixed(3), +z1.toFixed(3), t, solid, t === 'prop' ? null : col]); };
+    for (const rm of H.rooms) {
+      const [x0, z0, x1, z1] = rm.r, y = rm.y, h = rm.h, skip = rm.skip || [];
+      const sides = { n: ['x', z1 - IN - T, z1 - IN, x0 + IN, x1 - IN], s: ['x', z0 + IN, z0 + IN + T, x0 + IN, x1 - IN], e: ['z', x1 - IN - T, x1 - IN, z0 + IN + T, z1 - IN - T], w: ['z', x0 + IN, x0 + IN + T, z0 + IN + T, z1 - IN - T] };
+      for (const sd in sides) {
+        if (skip.includes(sd)) continue;
+        const [along, c0, c1, a0, a1] = sides[sd];
+        const ops = (rm.open || []).filter((o) => o.s === sd).map((o) => [Math.max(a0, o.a - o.w / 2), Math.min(a1, o.a + o.w / 2), o.y0, o.y1]).sort((p, q) => p[0] - q[0]);
+        const seg = (s0, s1, yA, yB) => { if (along === 'x') B(s0, y + yA, c0, s1, y + yB, c1); else B(c0, y + yA, s0, c1, y + yB, s1); };
+        let cur = a0;
+        for (const [o0, o1, oy0, oy1] of ops) { seg(cur, o0, 0, h); seg(o0, o1, 0, oy0); seg(o0, o1, oy1, h); cur = Math.max(cur, o1); }
+        seg(cur, a1, 0, h);
+      }
+      B(x0 + IN, y + h, z0 + IN, x1 - IN, y + h + 0.2, z1 - IN); // teto
+      if (rm.top > y + h + 0.2) B(x0, y + h + 0.2, z0, x1, rm.top, z1, 'prop'); // andar de cima (fechado)
+      if (H.tex) B(x0 + IN, y, z0 + IN, x1 - IN, y + 0.03, z1 - IN, 'wood', 0); // piso
+    }
+    for (const e of H.extra || []) B(e[0], e[1], e[2], e[3], e[4], e[5], e[6] || 'prop');
+    return out;
+  }
+  const PROP_BOXES = {};
+  for (const k in HOUSES) PROP_BOXES[k] = houseBoxes(HOUSES[k]);
   const MAP_OPEN = (function () {
     const { solids, deco, add, bx, wall, door, win, house } = builder();
     let seed = 20261115;
     const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
     const rr = (a, b) => a + rnd() * (b - a);
-    const SX = 220, SZ = 150;
+    const SX = 300, SZ = 200;
     const GREY = [0.36, 0.37, 0.4];
     // livre para colocar algo (sem caixa sólida perto, fora da linha e das ruas principais)
     const blocked = [];
@@ -265,6 +294,42 @@
     add(126, 0, -SZ + 0.5, 134, 0.019, SZ - 0.5, 'road', false); keepOut(125, -SZ, 135, SZ);
     add(-SX + 0.5, 0, 124, SX - 0.5, 0.022, 132, 'road', false); keepOut(-SX, 123, SX, 133);
     add(-SX + 0.5, 0, -132, SX - 0.5, 0.022, -124, 'road', false); keepOut(-SX, -133, SX, -123);
+    // região nova (mapa maior): ruas nas pontas
+    add(-264, 0, -SZ + 0.5, -256, 0.018, SZ - 0.5, 'road', false); keepOut(-265, -SZ, -255, SZ);
+    add(256, 0, -SZ + 0.5, 264, 0.018, SZ - 0.5, 'road', false); keepOut(255, -SZ, 265, SZ);
+    add(-SX + 0.5, 0, 171, SX - 0.5, 0.023, 179, 'road', false); keepOut(-SX, 170, SX, 180);
+    add(-SX + 0.5, 0, -179, SX - 0.5, 0.023, -171, 'road', false); keepOut(-SX, -180, SX, -170);
+    // casas 3D (duplex, fileira de casas e casa japonesa) — colisão pelas caixas do modelo, giradas de 90 em 90°
+    const props = [], houseM = [], houseW = [];
+    const prop = (name, x, z, q) => {
+      props.push([name, x, z, q]);
+      for (const b of PROP_BOXES[name]) {
+        let [x0, y0, z0, x1, y1, z1] = b;
+        for (let k = 0; k < q; k++) { const nx0 = z0, nx1 = z1, nz0 = -x1, nz1 = -x0; x0 = nx0; x1 = nx1; z0 = nz0; z1 = nz1; } // gira 90° (yaw +)
+        add(x + x0, Math.max(0, y0), z + z0, x + x1, y1, z + z1, b[6] || 'prop', b[7] !== 0, b[8] || null);
+      }
+      // kit médico e arma dentro da casa (no chão), alternando
+      ((HOUSES[name] && HOUSES[name].items) || []).forEach(([lx, ly, lz], k) => {
+        for (let r = 0; r < q; r++) { const t = lx; lx = lz; lz = -t; }
+        (k % 2 ? houseW : houseM).push([Math.round((x + lx) * 10) / 10, ly, Math.round((z + lz) * 10) / 10]);
+      });
+      const bb = PROP_BOXES[name].reduce((a, b) => [Math.min(a[0], b[0], b[2]), Math.max(a[1], b[3], b[5])], [0, 0]);
+      keepOut(x + bb[0] - 1.5, z + bb[0] - 1.5, x + bb[1] + 1.5, z + bb[1] + 1.5);
+    };
+    for (const s of [-1, 1]) {
+      // oeste: casas japonesas e duplex dos dois lados da rua x = -260
+      for (const zz of [-160, -110, -60, 60, 110, 155]) prop('house_jp', -260 + s * 18, zz, s > 0 ? 1 : 3);
+      for (const zz of [-135, -85, -35, 35, 85, 132]) prop('house_duplex', -260 + s * 14, zz, s > 0 ? 1 : 3);
+      // leste: fileiras de casas e duplex na rua x = 260
+      for (const zz of [-150, -110, -70, 70, 110, 150]) prop('house_casas', 260 + s * 14, zz, s > 0 ? 3 : 1);
+      for (const zz of [-130, -90, -50, 50, 90, 130]) prop('house_duplex', 260 + s * 14, zz, s > 0 ? 3 : 1);
+      // norte e sul: casas ao longo das ruas z = ±175
+      for (let xx = -230; xx <= 230; xx += 32) {
+        if (Math.abs(xx + 130) < 14 || Math.abs(xx + 45) < 14 || Math.abs(xx - 45) < 14 || Math.abs(xx - 130) < 14) continue;
+        prop((xx / 32 + 8) % 2 ? 'house_casas' : 'house_duplex', xx, s * 160, s > 0 ? 2 : 0);
+        prop('house_duplex', xx + 8, s * 190, s > 0 ? 0 : 2);
+      }
+    }
     // cancelas das passagens de nível
     for (const cx of [-130, -45, 45, 130]) for (const s of [-1, 1]) {
       const gx = cx + s * 4.6;
@@ -426,7 +491,7 @@
 
     // pedras e árvores espalhadas (sem bloquear ruas/linha/construções)
     let rocks = 0, guard = 0;
-    while (rocks < 50 && guard++ < 3000) {
+    while (rocks < 75 && guard++ < 5000) {
       const x = rr(-SX + 6, SX - 6), z = rr(-SZ + 6, SZ - 6), w = rr(1.4, 3.4), d = rr(1.2, 3.0), h = rr(0.7, 1.8);
       if (!freeAt(x, z, Math.max(w, d))) continue;
       bx(x, z, w, d, h, 'rock', 0, [0.45 + rnd() * 0.1, 0.44 + rnd() * 0.08, 0.42]);
@@ -434,7 +499,7 @@
       rocks++;
     }
     let trees = 0; guard = 0;
-    while (trees < 210 && guard++ < 6000) {
+    while (trees < 320 && guard++ < 9000) {
       const x = rr(-SX + 4, SX - 4), z = rr(-SZ + 4, SZ - 4);
       if (!freeAt(x, z, 2.2)) continue;
       const h = rr(5, 9), r = rr(1.8, 3.0);
@@ -457,11 +522,13 @@
     const medkits = [[-120, 0, -24], [-100, 0, -31], [-51, 0, -72], [40, 0, -80], [60, 0, -64], [110, 0, -75], [128, 0, -92], [-60, 0, 60], [-20, 0, 66], [8, 0, 66], [60, 0, 92], [96, 0, 62], [-132, 0, 80], [-104, 0, 8], [-60, 0, -8], [20, 0, 12], [70, 0, -10], [178, 1.0, 5], [178, 1.0, -5], [0, 6.2, 0], [-140, 0, -60]];
     for (let g = 0; g < 400 && medkits.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) medkits.push([Math.round(x), 0, Math.round(z)]); }
     // armas no chão para pegar (trocam a arma do mesmo tipo)
-    const WL = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'deagle', 'ak47', 'm4a1', 'smg', 'pistol'];
+    const WL = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'deagle', 'ak47', 'm4a1', 'smg', 'pistol', 'maverick', 'maverick'];
     const weapons = [[0, 6.2, -4, 'sniper'], [0, 6.2, 4, 'sniper'], [-180, 0, 3.5, 'ak47'], [-170, 0, -3.5, 'm4a1'], [176, 1.0, 4, 'doze'], [182, 1.0, -4, 'm4a1'], [-112, 0, -24, 'doze'], [46, 0, -66, 'ak47'], [-20, 0, 76, 'deagle'], [60, 0, 88, 'smg']];
     for (let g = 0; g < 600 && weapons.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) weapons.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, WL[Math.floor(rnd() * WL.length)]]); }
+    for (const m of houseM) medkits.push(m);
+    houseW.forEach(([x, y, z], k) => weapons.push([x, y, z, ['maverick', 'ak47', 'm4a1', 'doze', 'smg', 'deagle', 'sniper', 'maverick'][(k * 5 + 3) % 8]]));
     const train = { z: 0, x0: -146, x1: 209.5, speed: 5, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
-    return { id: 'aberto', solids, deco, spawns, medkits, weapons, sx: SX, sz: SZ, train };
+    return { id: 'aberto', solids, deco, spawns, medkits, weapons, props, sx: SX, sz: SZ, train };
   })();
   const MAPS = { base: MAP_BASE, aberto: MAP_OPEN };
   const mapFor = (mode) => (mode === 'aberto' ? MAP_OPEN : MAP_BASE);
@@ -514,6 +581,14 @@
   }
   const GROUND = [-1e9, -1, -1e9, 1e9, 0, 1e9, 'ground'];
 
+  // itens ativos do mapa: número (até 30) ou lista de blocos de 30 bits
+  function maskOf(list) {
+    if (list.length <= 30) { let m = 0; list.forEach((o, i) => { if (o.active) m |= 1 << i; }); return m; }
+    const a = new Array(Math.ceil(list.length / 30)).fill(0);
+    list.forEach((o, i) => { if (o.active) a[(i / 30) | 0] |= 1 << (i % 30); });
+    return a;
+  }
+  const hasBit = (m, i) => (typeof m === 'number' ? i < 30 && (m >> i) & 1 : !!m && ((m[(i / 30) | 0] >> (i % 30)) & 1)) ? true : false;
   function weaponOf(p) { return WEAPONS[p.weapons ? p.weapons[p.cur] : 'smg'] || WEAPONS.smg; }
 
   // Aplica um comando de movimento (determinístico: cliente prevê, servidor confirma)
@@ -1145,7 +1220,7 @@
       useMap(this.map, this.dyn);
       const used = new Set([...this.players.values()].map((p) => p.name));
       const name = BOT_NAMES.find((n) => !used.has(n)) || 'Bot' + this.nextId;
-      const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper'][Math.floor(Math.random() * 7)];
+      const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper', 'maverick'][Math.floor(Math.random() * 8)];
       const uni = Object.keys(UNIFORMS)[Math.floor(Math.random() * 6)];
       buildNav();
       // alguns bots usam itens da lojinha, para as skins aparecerem nas partidas
@@ -1203,7 +1278,7 @@
         }
         ai.strafeT -= dt;
         if (ai.strafeT <= 0) { ai.strafeT = 0.6 + Math.random() * 1.2; ai.strafe = Math.random() < 0.5 ? -1 : 1; if (Math.random() < 0.2 && this.botSkill > 0) ai.crouchT = 1 + Math.random(); }
-        s = ai.strafe; f = dist > (w.id === 'doze' || w.id === 'smg' ? 6 : 14) ? 0.7 : dist < 4 ? -0.5 : 0;
+        s = ai.strafe; f = dist > (w.pump || w.id === 'smg' ? 6 : 14) ? 0.7 : dist < 4 ? -0.5 : 0;
         if (w.id === 'sniper' && dist > 12) { b |= BTN.ADS; s *= 0.3; }
         if (ai.crouchT > 0) { ai.crouchT -= dt; b |= BTN.CROUCH; }
         ai.path = null;
@@ -1256,10 +1331,10 @@
         const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
       }
-      let mk = 0; this.medkits.forEach((m, i) => { if (m.active) mk |= 1 << i; });
+      const mk = maskOf(this.medkits);
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
       if (this.map.train) s.tr = r2(this.trainX);
-      if (this.wpicks.length) { let wk = 0; this.wpicks.forEach((o, i) => { if (o.active) wk |= 1 << i; }); s.wk = wk; }
+      if (this.wpicks.length) s.wk = maskOf(this.wpicks);
       if (this.drops.length) s.dw = this.drops.map((d) => [d.id, r2(d.x), r2(d.y), r2(d.z), WEAPON_LIST.indexOf(d.w)]);
       return s;
     }
@@ -1278,7 +1353,7 @@
   function r3(v) { return Math.round(v * 1000) / 1000; }
 
   return {
-    isRounds, isFFA, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
+    isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
     clamp, collides, applyInput, raycastWorld, rayPlayer, aimDir, weaponOf,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,

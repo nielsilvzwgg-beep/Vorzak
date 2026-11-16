@@ -75,9 +75,17 @@ label{display:block;margin:10px 0 4px;color:var(--dim);font-size:15px;text-trans
 #vig{position:fixed;inset:0;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(200,0,0,.75));transition:opacity .25s}
 #lowhp{position:fixed;inset:0;opacity:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(120,0,0,.6))}
 #healfx{position:fixed;inset:0;opacity:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(40,220,90,.45));transition:opacity .4s}
-.hp{position:fixed;left:calc(16px + var(--sal));bottom:calc(16px + var(--sab));width:min(300px,calc(var(--gw)*0.38))}
-.hp .v{font-size:36px;font-weight:700;line-height:1;text-shadow:0 2px 4px #000}
-.hp .v small{font-size:16px;color:var(--dim)}
+/* vida embaixo, no centro (no lugar da barra de XP) */
+.hp{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(6px + var(--sab));width:min(560px,calc(var(--gw)*0.34));display:flex;align-items:center;gap:8px}
+.hp .v{font-size:22px;font-weight:700;line-height:1;text-shadow:0 2px 4px #000;white-space:nowrap}
+.hp .v small{font-size:12px;color:var(--dim)}
+.hp .hpbar{flex:1;margin:0}.hp .med{margin:0;white-space:nowrap}
+/* radar (minimapa) no canto de cima, à esquerda; toque abre o mapa grande */
+#radar{position:fixed;left:calc(8px + var(--sal));top:calc(8px + var(--sat));width:150px;height:150px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.5);background:rgba(20,30,20,.55);box-shadow:0 2px 10px rgba(0,0,0,.55);pointer-events:auto;cursor:pointer}
+#radar canvas{width:100%;height:100%;display:block}
+#bigmap{position:fixed;inset:0;display:none;background:rgba(0,0,0,.62);align-items:center;justify-content:center;flex-direction:column;pointer-events:auto;z-index:999}
+#bigmap.on{display:flex}#bigmap canvas{max-width:92%;max-height:84%;border:2px solid rgba(255,255,255,.5);box-shadow:0 4px 20px #000}
+#bigmap .bmh{margin-top:8px;font-size:15px;letter-spacing:1px;color:#ddd}
 .hpbar{height:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.25);margin-top:4px;position:relative;overflow:hidden}
 .hpbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#2fbf55,#66e07f);transition:width .15s}
 .hpbar b{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.5);transition:width .6s .2s}
@@ -86,7 +94,7 @@ label{display:block;margin:10px 0 4px;color:var(--dim);font-size:15px;text-trans
 .ammo .m{font-size:46px;font-weight:700;line-height:1}.ammo .m small{font-size:22px;color:var(--dim)}
 .ammo .w{font-size:18px;letter-spacing:1px;text-transform:uppercase;color:var(--acc2)}
 .ammo .m.low{color:var(--red)}
-.xp{position:fixed;left:50%;bottom:calc(8px + var(--sab));transform:translateX(-50%);width:min(420px,calc(var(--gw)*0.4));text-align:center;font-size:14px;text-shadow:0 1px 2px #000}
+.xp{display:none!important;position:fixed;left:50%;bottom:calc(8px + var(--sab));transform:translateX(-50%);width:min(420px,calc(var(--gw)*0.4));text-align:center;font-size:14px;text-shadow:0 1px 2px #000}
 .xp .bar{height:5px;margin-top:3px;background:rgba(0,0,0,.5)}
 .top{position:fixed;top:calc(8px + var(--sat));left:50%;transform:translateX(-50%);display:flex;gap:2px;align-items:stretch;font-weight:700}
 .top div{background:rgba(0,0,0,.55);padding:4px 14px;font-size:22px;min-width:64px;text-align:center}
@@ -116,8 +124,8 @@ label{display:block;margin:10px 0 4px;color:var(--dim);font-size:15px;text-trans
 @keyframes fade{0%,85%{opacity:1}100%{opacity:0}}
 #chatin{position:fixed;left:calc(12px + var(--sal));bottom:calc(84px + var(--sab));width:min(380px,calc(var(--gw)*0.7));display:none;pointer-events:auto}
 #chatin input{width:100%}
-#fps{position:fixed;left:calc(8px + var(--sal));top:calc(6px + var(--sat));font-size:13px;color:#9f9;display:none;text-shadow:0 1px 2px #000}
-#net{position:fixed;left:calc(8px + var(--sal));top:calc(22px + var(--sat));font-size:13px;color:var(--dim);text-shadow:0 1px 2px #000}
+#fps{position:fixed;left:calc(170px + var(--sal));top:calc(6px + var(--sat));font-size:13px;color:#9f9;display:none;text-shadow:0 1px 2px #000}
+#net{position:fixed;left:calc(170px + var(--sal));top:calc(22px + var(--sat));font-size:13px;color:var(--dim);text-shadow:0 1px 2px #000}
 #dmgdir{position:fixed;left:50%;top:50%;width:0;height:0}
 #dmgdir i{position:absolute;left:-60px;top:-160px;width:120px;height:26px;background:radial-gradient(ellipse at center,rgba(255,40,30,.85),transparent 70%);transform-origin:60px 160px;opacity:0;transition:opacity .6s}
 /* toque */
@@ -146,17 +154,18 @@ body.lshort .scr{padding:calc(8px + var(--sat)) calc(12px + var(--sar)) calc(8px
 body.lshort h1{font-size:30px}body.lshort h2{font-size:22px;margin-bottom:8px}body.lshort .sub{margin-bottom:8px;font-size:12px}
 body.lshort .col{max-width:300px}body.lshort .btn{padding:6px 12px;font-size:16px;margin-bottom:4px}body.lshort .btn.pri{font-size:19px}
 body.lshort .pcard{position:fixed;width:min(260px,calc(var(--gw)*0.38));padding:8px}body.lshort .pcard .lv{font-size:26px}
-body.lshort .hp{width:min(220px,calc(var(--gw)*0.3))}body.lshort .hp .v{font-size:24px}body.lshort .hpbar{height:9px}body.lshort .med{font-size:14px}
+body.lshort .hp{width:min(420px,calc(var(--gw)*0.34))}body.lshort .hp .v{font-size:18px}body.lshort .hpbar{height:9px}body.lshort .med{font-size:14px}
 body.lshort .ammo .m{font-size:30px}body.lshort .ammo .w{font-size:13px}body.lshort .top div{font-size:17px;padding:2px 10px;min-width:50px}body.lshort .top .tm{font-size:15px}
 body.lshort #feed{font-size:13px}body.lshort .xp{font-size:11px;width:min(300px,calc(var(--gw)*0.34))}body.lshort #chatlog{bottom:calc(80px + var(--sab));font-size:13px}
 body.lshort #center{font-size:18px}body.lshort #death{padding-top:calc(var(--gh)*0.18)}body.lshort #death b{font-size:32px}body.lshort #roundban{top:14%;padding:8px 18px}
 body.lshort .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}body.lshort .item canvas{height:64px}
 /* layout com controles de toque: libera os cantos para os botões */
-body.touchui .ammo{right:auto;left:calc(10px + var(--sal));bottom:auto;top:calc(42px + var(--sat));text-align:left}
+body.touchui .ammo{right:auto;left:calc(10px + var(--sal));bottom:auto;top:calc(130px + var(--sat));text-align:left}
+body.touchui #radar,body.lshort #radar{width:112px;height:112px}body.touchui #fps,body.touchui #net,body.lshort #fps,body.lshort #net{left:calc(132px + var(--sal))}
 body.touchui .ammo .m{font-size:26px}body.touchui .ammo .w{font-size:12px}
 body.touchui #feed{top:calc(64px + var(--sat))}
 body.touchui #chatlog{width:min(300px,calc(var(--gw)*0.4));bottom:calc(90px + var(--sab))}
-body.touchui .hp{bottom:calc(10px + var(--sab))}
+body.touchui .hp{bottom:calc(6px + var(--sab))}
 /* teclado do jogo (gira junto com a tela) */
 #vkb{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;background:#0b0d11;border-top:2px solid var(--acc);padding:5px calc(5px + var(--sar)) calc(5px + var(--sab)) calc(5px + var(--sal));touch-action:none}
 #vkb.on{display:block}
@@ -460,7 +469,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     <label><input type="checkbox" id="oshadow"> Sombras</label>
     <label><input type="checkbox" id="oeffects"> Efeitos e partículas</label>
     <label><input type="checkbox" id="oreal"> Personagens 3D realistas (desligue se o celular travar)</label>
-    <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0.</div>
+    <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0. Casas "Casa Dúplex" por alecsvaldez, "Casas" por Allvis e "Tokyo Japanese House / Casa Japonesa [Low Poly]" por SitoNyaa (Sketchfab), licença CC BY 4.0 (portas retiradas e janelas abertas para o jogo). Arma "Maverick 88" por Alex_Sandro (Sketchfab), licença CC BY 4.0.</div>
     <label>Resolução: <span id="oscalev"></span></label><input type="range" id="oscale" min="0.4" max="1" step="0.05">
     <label>Campo de visão (FOV): <span id="ofovv"></span></label><input type="range" id="ofov" min="60" max="100" step="1">
     <label><input type="checkbox" id="ofps"> Mostrar FPS</label>
@@ -523,7 +532,8 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div id="xppop"></div>
   <div id="center"></div>
   <div id="medbar">Usando kit médico…<div class="bar"><i></i></div></div>
-  <div class="hp"><div class="v"><span id="hpv">100</span> <small>/ 100 HP</small></div><div class="hpbar"><b id="hpd"></b><i id="hpb"></i></div><div class="med">✚ Kits médicos: <span id="medn">2</span></div></div>
+  <div class="hp"><div class="v"><span id="hpv">100</span> <small>HP</small></div><div class="hpbar"><b id="hpd"></b><i id="hpb"></i></div><div class="med">✚ <span id="medn">2</span></div></div>
+  <div id="radar"><canvas id="radarc" width="220" height="220"></canvas></div>
   <div id="grabtip" style="display:none"></div>
   <div class="ammo"><div class="w" id="wname">AK-47</div><div class="m" id="mag">30 <small>/ 120</small></div><div id="rld" style="color:var(--acc2);font-size:16px"></div></div>
   <div class="xp"><span id="xplv">Nível 1</span> · <span id="xpv">0 / 600 XP</span> · <span id="xpm" style="color:#ffd54a"></span><div class="bar"><i id="xpb" style="width:0"></i></div></div>
@@ -541,6 +551,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div id="joyhint"></div>
   <div id="joy"><i></i></div>
 </div>
+<div id="bigmap"><canvas id="bigmapc"></canvas><div class="bmh">MAPA · toque (ou M) para fechar</div></div>
 <div id="edit"><div id="editbar"><b>Arraste os botões</b><span>Tamanho</span><input type="range" id="esize" min="0.6" max="1.8" step="0.05" style="width:120px"><button class="btn sm" id="ereset">Padrão</button><button class="btn sm" id="esave">Salvar</button></div></div>
 <div id="vkb"><div id="vkp"><span id="vkl"></span><div id="vkt"></div><div class="vk vkx" data-k="close">✕</div></div><div id="vkk"></div></div>
 <div id="toast"></div>
@@ -578,11 +589,12 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     deagle: { id: 'deagle', name: 'Desert Eagle', slot: 1, dmg: 56, pellets: 1, rpm: 200, mag: 7, reserve: 35, reload: 1.9, spread: 0.022, adsSpread: 0.006, moveMul: 1.8, bloom: 0.02, bloomMax: 0.06, recoil: 0.06, recoilYaw: 0.015, range: 45, auto: false, head: 2.1, price: 1200, level: 2, zoom: 1.2, speed: 0.97, snd: { f: 700, d: 0.3, v: 1.0, b: 60 }, sightY: 0.085 },
     ak47: { id: 'ak47', name: 'AK-47', slot: 0, dmg: 31, pellets: 1, rpm: 600, mag: 30, reserve: 120, reload: 2.5, spread: 0.024, adsSpread: 0.007, moveMul: 1.8, bloom: 0.006, bloomMax: 0.05, recoil: 0.021, recoilYaw: 0.009, range: 55, auto: true, head: 2.0, price: 2700, level: 2, zoom: 1.3, speed: 0.9, snd: { f: 900, d: 0.22, v: 1.0, b: 70 }, sightY: 0.075 },
     m4a1: { id: 'm4a1', name: 'M4A1', slot: 0, dmg: 27, pellets: 1, rpm: 760, mag: 30, reserve: 120, reload: 2.2, spread: 0.018, adsSpread: 0.005, moveMul: 1.7, bloom: 0.005, bloomMax: 0.04, recoil: 0.015, recoilYaw: 0.006, range: 60, auto: true, head: 2.0, price: 3100, level: 4, zoom: 1.35, speed: 0.92, snd: { f: 1150, d: 0.18, v: 0.9, b: 80 }, sightY: 0.095 },
-    doze: { id: 'doze', name: 'Doze Nova (cal. 12)', slot: 0, dmg: 15, pellets: 8, rpm: 68, mag: 8, reserve: 32, reload: 3.0, spread: 0.075, adsSpread: 0.06, moveMul: 1.2, bloom: 0, bloomMax: 0, recoil: 0.07, recoilYaw: 0.02, range: 12, auto: false, head: 1.5, price: 2000, level: 3, zoom: 1.1, speed: 0.9, snd: { f: 480, d: 0.38, v: 1.1, b: 50 }, sightY: 0.07 },
+    doze: { id: 'doze', pump: true, name: 'Doze Nova (cal. 12)', slot: 0, dmg: 15, pellets: 8, rpm: 68, mag: 8, reserve: 32, reload: 3.0, spread: 0.075, adsSpread: 0.06, moveMul: 1.2, bloom: 0, bloomMax: 0, recoil: 0.07, recoilYaw: 0.02, range: 12, auto: false, head: 1.5, price: 2000, level: 3, zoom: 1.1, speed: 0.9, snd: { f: 480, d: 0.38, v: 1.1, b: 50 }, sightY: 0.07 },
+    maverick: { id: 'maverick', name: 'Maverick 88 (cal. 12)', slot: 0, dmg: 16, pellets: 8, rpm: 75, mag: 6, reserve: 30, reload: 2.6, spread: 0.06, adsSpread: 0.045, moveMul: 1.2, bloom: 0, bloomMax: 0, recoil: 0.065, recoilYaw: 0.02, range: 16, auto: false, head: 1.5, price: 2400, level: 3, zoom: 1.12, speed: 0.92, snd: { f: 430, d: 0.4, v: 1.15, b: 48 }, sightY: 0.08, pump: true },
     smg: { id: 'smg', name: 'Submetralhadora MP5', slot: 0, dmg: 21, pellets: 1, rpm: 850, mag: 30, reserve: 150, reload: 2.0, spread: 0.022, adsSpread: 0.011, moveMul: 1.3, bloom: 0.004, bloomMax: 0.035, recoil: 0.011, recoilYaw: 0.006, range: 25, auto: true, head: 1.8, price: 0, level: 1, zoom: 1.2, speed: 1.0, snd: { f: 1700, d: 0.12, v: 0.7, b: 100 }, sightY: 0.08 },
     sniper: { id: 'sniper', name: 'Sniper AWM .338', slot: 0, dmg: 115, pellets: 1, rpm: 42, mag: 5, reserve: 25, reload: 3.4, spread: 0.09, adsSpread: 0.0008, moveMul: 2.0, bloom: 0, bloomMax: 0, recoil: 0.1, recoilYaw: 0.01, range: 200, auto: false, head: 2.5, price: 4500, level: 5, zoom: 4.5, scope: true, speed: 0.82, snd: { f: 380, d: 0.6, v: 1.25, b: 45 }, sightY: 0.1 },
   };
-  const WEAPON_LIST = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'pistol', 'deagle'];
+  const WEAPON_LIST = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'pistol', 'deagle', 'maverick'];
 
   const UNIFORMS = {
     woodland: { id: 'woodland', name: 'Floresta', price: 0, level: 1, c: ['#4b5a32', '#2f3a22', '#6b6a45', '#1f221a'] },
@@ -773,12 +785,40 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   })();
   // ---------------------------------------------------------------- mapa aberto (até 30 jogadores) com ferrovia
   // trem sai do depósito (oeste) quando a partida começa, atravessa o mapa e para na estação (leste)
+  // caixas de colisão das casas 3D (geradas pelo tools/prop2vzm.py; coordenadas locais em metros)
+  // casas por dentro (models/houses.json): cômodos com paredes internas, portas sem porta e janelas abertas
+  const HOUSES = {"house_duplex":{"t":0.3,"inset":0.04,"tex":"concrete","col":[0.95,0.93,0.88],"cut":true,"depth":0.32,"rooms":[{"r":[-4.0,-3.7,4.0,5.35],"y":0,"h":2.6,"top":5.1,"open":[{"s":"n","a":0,"w":2.5,"y0":0,"y1":2.2},{"s":"n","a":-2.6,"w":2.0,"y0":0.75,"y1":2.1},{"s":"n","a":2.6,"w":2.0,"y0":0.75,"y1":2.1},{"s":"s","a":0,"w":1.8,"y0":0,"y1":2.15},{"s":"s","a":-2.45,"w":2.0,"y0":0.75,"y1":2.1},{"s":"s","a":2.5,"w":2.0,"y0":0.75,"y1":2.1},{"s":"w","a":0.8,"w":1.8,"y0":0.9,"y1":2.0},{"s":"e","a":0.8,"w":1.8,"y0":0.9,"y1":2.0}]}],"items":[[-2.3,0,3.6],[2.3,0,-2.2]]},"house_casas":{"t":0.18,"inset":0.03,"tex":"concrete","col":[0.86,0.8,0.7],"cut":true,"depth":0.3,"rooms":[{"r":[-2.9,7.3,2.6,10.3],"y":0,"h":2.6,"top":3.5,"open":[{"s":"e","a":8.8,"w":1.15,"y0":0,"y1":2.15},{"s":"n","a":-2.1,"w":0.8,"y0":0.7,"y1":1.6},{"s":"n","a":-0.9,"w":0.8,"y0":0.7,"y1":1.6},{"s":"s","a":-1.35,"w":1.4,"y0":0,"y1":2.15}]},{"r":[-2.9,2.0,0.2,7.3],"y":0,"h":2.5,"top":3.3,"open":[{"s":"n","a":-1.35,"w":1.4,"y0":0,"y1":2.15,"nocut":true},{"s":"e","a":3.3,"w":0.8,"y0":0.7,"y1":1.6},{"s":"e","a":5.2,"w":0.8,"y0":0.7,"y1":1.6},{"s":"w","a":3.2,"w":0.8,"y0":0.7,"y1":1.6},{"s":"w","a":5.1,"w":0.8,"y0":0.7,"y1":1.6},{"s":"s","a":-1.35,"w":1.2,"y0":0,"y1":2.15}]},{"r":[-2.2,-4.3,1.0,-1.2],"y":0,"h":2.35,"top":5.0,"open":[{"s":"e","a":-3.0,"w":1.15,"y0":0,"y1":2.1},{"s":"w","a":-2.75,"w":0.9,"y0":0.7,"y1":1.6},{"s":"n","a":-0.6,"w":0.9,"y0":0.7,"y1":1.6}]},{"r":[-2.3,-10.2,0.9,-7.6],"y":0,"h":2.0,"top":3.2,"open":[{"s":"e","a":-8.3,"w":1.1,"y0":0,"y1":1.95},{"s":"s","a":-0.3,"w":0.7,"y0":0.6,"y1":1.4},{"s":"s","a":-1.6,"w":0.7,"y0":0.6,"y1":1.4},{"s":"w","a":-8.9,"w":0.8,"y0":0.6,"y1":1.4}]}],"items":[[-1.4,0,4.0],[0.5,0,9.2],[-0.6,0,-2.4],[-0.7,0,-9.0]],"extra":[[-2.9,3.5,7.3,0.4,6.3,10.3,"prop"]]},"house_jp":{"t":0.22,"inset":0.04,"tex":"concrete","cut":false,"rooms":[{"r":[-3.66,-3.0,0.3,4.5],"y":1.27,"h":2.43,"top":7.0,"skip":["e"],"open":[{"s":"s","a":-0.56,"w":1.2,"y0":0,"y1":2.25},{"s":"s","a":-2.45,"w":1.2,"y0":0.82,"y1":2.2},{"s":"w","a":-1.24,"w":1.2,"y0":0.82,"y1":2.2},{"s":"w","a":1.88,"w":0.55,"y0":0.82,"y1":1.48},{"s":"w","a":3.21,"w":1.3,"y0":0.82,"y1":1.48},{"s":"n","a":-1.23,"w":1.2,"y0":0,"y1":2.25}]},{"r":[0.3,-3.75,3.9,4.5],"y":1.27,"h":2.43,"top":7.0,"open":[{"s":"w","a":0.75,"w":7.5,"y0":0,"y1":2.43},{"s":"s","a":2.33,"w":1.6,"y0":0,"y1":2.2},{"s":"e","a":-1.64,"w":1.6,"y0":0,"y1":2.2},{"s":"e","a":2.3,"w":1.6,"y0":0.52,"y1":1.89}]}],"extra":[[-3.66,0,-3.75,3.9,1.27,4.5,"prop"],[-3.58,0,-4.1,-1.45,0.89,-2.93,"prop"],[-4.96,0,4.5,0.17,1.27,5.63,"prop"],[3.9,0,-2.64,4.64,1.0,-0.64,"prop"],[4.64,0,-2.64,5.1,0.5,-0.64,"prop"],[-6.85,0,-5.88,-6.62,0.93,5.91,"prop"],[6.67,0,-5.66,6.84,1.04,5.64,"prop"],[-6.69,0,5.63,6.85,2.06,5.9,"prop"],[-3.3,0,-5.88,-2.0,1.95,-5.43,"prop"],[-2.0,0,-5.88,6.69,1.5,-5.43,"prop"],[-2.15,0,-5.43,-1.2,0.4,-4.1,"prop"],[-1.2,0,-5.43,0.63,0.8,-4.41,"prop"],[-1.46,0,-4.41,0.39,1.27,-3.75,"prop"]],"items":[[-2.2,1.27,2.5],[2.3,1.27,1.0]],"col":[0.92,0.9,0.85]}};
+  // paredes (com vãos de porta/janela), teto e piso de cada casa — caixas locais [x0,y0,z0,x1,y1,z1,tipo,sólida,cor]
+  function houseBoxes(H) {
+    const out = [], T = H.t, IN = H.inset, tex = H.tex || 'prop', col = H.col || null;
+    const B = (x0, y0, z0, x1, y1, z1, t = tex, solid = 1) => { if (x1 - x0 > 0.01 && y1 - y0 > 0.01 && z1 - z0 > 0.01) out.push([+x0.toFixed(3), +y0.toFixed(3), +z0.toFixed(3), +x1.toFixed(3), +y1.toFixed(3), +z1.toFixed(3), t, solid, t === 'prop' ? null : col]); };
+    for (const rm of H.rooms) {
+      const [x0, z0, x1, z1] = rm.r, y = rm.y, h = rm.h, skip = rm.skip || [];
+      const sides = { n: ['x', z1 - IN - T, z1 - IN, x0 + IN, x1 - IN], s: ['x', z0 + IN, z0 + IN + T, x0 + IN, x1 - IN], e: ['z', x1 - IN - T, x1 - IN, z0 + IN + T, z1 - IN - T], w: ['z', x0 + IN, x0 + IN + T, z0 + IN + T, z1 - IN - T] };
+      for (const sd in sides) {
+        if (skip.includes(sd)) continue;
+        const [along, c0, c1, a0, a1] = sides[sd];
+        const ops = (rm.open || []).filter((o) => o.s === sd).map((o) => [Math.max(a0, o.a - o.w / 2), Math.min(a1, o.a + o.w / 2), o.y0, o.y1]).sort((p, q) => p[0] - q[0]);
+        const seg = (s0, s1, yA, yB) => { if (along === 'x') B(s0, y + yA, c0, s1, y + yB, c1); else B(c0, y + yA, s0, c1, y + yB, s1); };
+        let cur = a0;
+        for (const [o0, o1, oy0, oy1] of ops) { seg(cur, o0, 0, h); seg(o0, o1, 0, oy0); seg(o0, o1, oy1, h); cur = Math.max(cur, o1); }
+        seg(cur, a1, 0, h);
+      }
+      B(x0 + IN, y + h, z0 + IN, x1 - IN, y + h + 0.2, z1 - IN); // teto
+      if (rm.top > y + h + 0.2) B(x0, y + h + 0.2, z0, x1, rm.top, z1, 'prop'); // andar de cima (fechado)
+      if (H.tex) B(x0 + IN, y, z0 + IN, x1 - IN, y + 0.03, z1 - IN, 'wood', 0); // piso
+    }
+    for (const e of H.extra || []) B(e[0], e[1], e[2], e[3], e[4], e[5], e[6] || 'prop');
+    return out;
+  }
+  const PROP_BOXES = {};
+  for (const k in HOUSES) PROP_BOXES[k] = houseBoxes(HOUSES[k]);
   const MAP_OPEN = (function () {
     const { solids, deco, add, bx, wall, door, win, house } = builder();
     let seed = 20261115;
     const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
     const rr = (a, b) => a + rnd() * (b - a);
-    const SX = 220, SZ = 150;
+    const SX = 300, SZ = 200;
     const GREY = [0.36, 0.37, 0.4];
     // livre para colocar algo (sem caixa sólida perto, fora da linha e das ruas principais)
     const blocked = [];
@@ -814,6 +854,42 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     add(126, 0, -SZ + 0.5, 134, 0.019, SZ - 0.5, 'road', false); keepOut(125, -SZ, 135, SZ);
     add(-SX + 0.5, 0, 124, SX - 0.5, 0.022, 132, 'road', false); keepOut(-SX, 123, SX, 133);
     add(-SX + 0.5, 0, -132, SX - 0.5, 0.022, -124, 'road', false); keepOut(-SX, -133, SX, -123);
+    // região nova (mapa maior): ruas nas pontas
+    add(-264, 0, -SZ + 0.5, -256, 0.018, SZ - 0.5, 'road', false); keepOut(-265, -SZ, -255, SZ);
+    add(256, 0, -SZ + 0.5, 264, 0.018, SZ - 0.5, 'road', false); keepOut(255, -SZ, 265, SZ);
+    add(-SX + 0.5, 0, 171, SX - 0.5, 0.023, 179, 'road', false); keepOut(-SX, 170, SX, 180);
+    add(-SX + 0.5, 0, -179, SX - 0.5, 0.023, -171, 'road', false); keepOut(-SX, -180, SX, -170);
+    // casas 3D (duplex, fileira de casas e casa japonesa) — colisão pelas caixas do modelo, giradas de 90 em 90°
+    const props = [], houseM = [], houseW = [];
+    const prop = (name, x, z, q) => {
+      props.push([name, x, z, q]);
+      for (const b of PROP_BOXES[name]) {
+        let [x0, y0, z0, x1, y1, z1] = b;
+        for (let k = 0; k < q; k++) { const nx0 = z0, nx1 = z1, nz0 = -x1, nz1 = -x0; x0 = nx0; x1 = nx1; z0 = nz0; z1 = nz1; } // gira 90° (yaw +)
+        add(x + x0, Math.max(0, y0), z + z0, x + x1, y1, z + z1, b[6] || 'prop', b[7] !== 0, b[8] || null);
+      }
+      // kit médico e arma dentro da casa (no chão), alternando
+      ((HOUSES[name] && HOUSES[name].items) || []).forEach(([lx, ly, lz], k) => {
+        for (let r = 0; r < q; r++) { const t = lx; lx = lz; lz = -t; }
+        (k % 2 ? houseW : houseM).push([Math.round((x + lx) * 10) / 10, ly, Math.round((z + lz) * 10) / 10]);
+      });
+      const bb = PROP_BOXES[name].reduce((a, b) => [Math.min(a[0], b[0], b[2]), Math.max(a[1], b[3], b[5])], [0, 0]);
+      keepOut(x + bb[0] - 1.5, z + bb[0] - 1.5, x + bb[1] + 1.5, z + bb[1] + 1.5);
+    };
+    for (const s of [-1, 1]) {
+      // oeste: casas japonesas e duplex dos dois lados da rua x = -260
+      for (const zz of [-160, -110, -60, 60, 110, 155]) prop('house_jp', -260 + s * 18, zz, s > 0 ? 1 : 3);
+      for (const zz of [-135, -85, -35, 35, 85, 132]) prop('house_duplex', -260 + s * 14, zz, s > 0 ? 1 : 3);
+      // leste: fileiras de casas e duplex na rua x = 260
+      for (const zz of [-150, -110, -70, 70, 110, 150]) prop('house_casas', 260 + s * 14, zz, s > 0 ? 3 : 1);
+      for (const zz of [-130, -90, -50, 50, 90, 130]) prop('house_duplex', 260 + s * 14, zz, s > 0 ? 3 : 1);
+      // norte e sul: casas ao longo das ruas z = ±175
+      for (let xx = -230; xx <= 230; xx += 32) {
+        if (Math.abs(xx + 130) < 14 || Math.abs(xx + 45) < 14 || Math.abs(xx - 45) < 14 || Math.abs(xx - 130) < 14) continue;
+        prop((xx / 32 + 8) % 2 ? 'house_casas' : 'house_duplex', xx, s * 160, s > 0 ? 2 : 0);
+        prop('house_duplex', xx + 8, s * 190, s > 0 ? 0 : 2);
+      }
+    }
     // cancelas das passagens de nível
     for (const cx of [-130, -45, 45, 130]) for (const s of [-1, 1]) {
       const gx = cx + s * 4.6;
@@ -975,7 +1051,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
 
     // pedras e árvores espalhadas (sem bloquear ruas/linha/construções)
     let rocks = 0, guard = 0;
-    while (rocks < 50 && guard++ < 3000) {
+    while (rocks < 75 && guard++ < 5000) {
       const x = rr(-SX + 6, SX - 6), z = rr(-SZ + 6, SZ - 6), w = rr(1.4, 3.4), d = rr(1.2, 3.0), h = rr(0.7, 1.8);
       if (!freeAt(x, z, Math.max(w, d))) continue;
       bx(x, z, w, d, h, 'rock', 0, [0.45 + rnd() * 0.1, 0.44 + rnd() * 0.08, 0.42]);
@@ -983,7 +1059,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       rocks++;
     }
     let trees = 0; guard = 0;
-    while (trees < 210 && guard++ < 6000) {
+    while (trees < 320 && guard++ < 9000) {
       const x = rr(-SX + 4, SX - 4), z = rr(-SZ + 4, SZ - 4);
       if (!freeAt(x, z, 2.2)) continue;
       const h = rr(5, 9), r = rr(1.8, 3.0);
@@ -1006,11 +1082,13 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     const medkits = [[-120, 0, -24], [-100, 0, -31], [-51, 0, -72], [40, 0, -80], [60, 0, -64], [110, 0, -75], [128, 0, -92], [-60, 0, 60], [-20, 0, 66], [8, 0, 66], [60, 0, 92], [96, 0, 62], [-132, 0, 80], [-104, 0, 8], [-60, 0, -8], [20, 0, 12], [70, 0, -10], [178, 1.0, 5], [178, 1.0, -5], [0, 6.2, 0], [-140, 0, -60]];
     for (let g = 0; g < 400 && medkits.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) medkits.push([Math.round(x), 0, Math.round(z)]); }
     // armas no chão para pegar (trocam a arma do mesmo tipo)
-    const WL = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'deagle', 'ak47', 'm4a1', 'smg', 'pistol'];
+    const WL = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'deagle', 'ak47', 'm4a1', 'smg', 'pistol', 'maverick', 'maverick'];
     const weapons = [[0, 6.2, -4, 'sniper'], [0, 6.2, 4, 'sniper'], [-180, 0, 3.5, 'ak47'], [-170, 0, -3.5, 'm4a1'], [176, 1.0, 4, 'doze'], [182, 1.0, -4, 'm4a1'], [-112, 0, -24, 'doze'], [46, 0, -66, 'ak47'], [-20, 0, 76, 'deagle'], [60, 0, 88, 'smg']];
     for (let g = 0; g < 600 && weapons.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) weapons.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, WL[Math.floor(rnd() * WL.length)]]); }
+    for (const m of houseM) medkits.push(m);
+    houseW.forEach(([x, y, z], k) => weapons.push([x, y, z, ['maverick', 'ak47', 'm4a1', 'doze', 'smg', 'deagle', 'sniper', 'maverick'][(k * 5 + 3) % 8]]));
     const train = { z: 0, x0: -146, x1: 209.5, speed: 5, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
-    return { id: 'aberto', solids, deco, spawns, medkits, weapons, sx: SX, sz: SZ, train };
+    return { id: 'aberto', solids, deco, spawns, medkits, weapons, props, sx: SX, sz: SZ, train };
   })();
   const MAPS = { base: MAP_BASE, aberto: MAP_OPEN };
   const mapFor = (mode) => (mode === 'aberto' ? MAP_OPEN : MAP_BASE);
@@ -1063,6 +1141,14 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   }
   const GROUND = [-1e9, -1, -1e9, 1e9, 0, 1e9, 'ground'];
 
+  // itens ativos do mapa: número (até 30) ou lista de blocos de 30 bits
+  function maskOf(list) {
+    if (list.length <= 30) { let m = 0; list.forEach((o, i) => { if (o.active) m |= 1 << i; }); return m; }
+    const a = new Array(Math.ceil(list.length / 30)).fill(0);
+    list.forEach((o, i) => { if (o.active) a[(i / 30) | 0] |= 1 << (i % 30); });
+    return a;
+  }
+  const hasBit = (m, i) => (typeof m === 'number' ? i < 30 && (m >> i) & 1 : !!m && ((m[(i / 30) | 0] >> (i % 30)) & 1)) ? true : false;
   function weaponOf(p) { return WEAPONS[p.weapons ? p.weapons[p.cur] : 'smg'] || WEAPONS.smg; }
 
   // Aplica um comando de movimento (determinístico: cliente prevê, servidor confirma)
@@ -1694,7 +1780,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       useMap(this.map, this.dyn);
       const used = new Set([...this.players.values()].map((p) => p.name));
       const name = BOT_NAMES.find((n) => !used.has(n)) || 'Bot' + this.nextId;
-      const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper'][Math.floor(Math.random() * 7)];
+      const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper', 'maverick'][Math.floor(Math.random() * 8)];
       const uni = Object.keys(UNIFORMS)[Math.floor(Math.random() * 6)];
       buildNav();
       // alguns bots usam itens da lojinha, para as skins aparecerem nas partidas
@@ -1752,7 +1838,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         }
         ai.strafeT -= dt;
         if (ai.strafeT <= 0) { ai.strafeT = 0.6 + Math.random() * 1.2; ai.strafe = Math.random() < 0.5 ? -1 : 1; if (Math.random() < 0.2 && this.botSkill > 0) ai.crouchT = 1 + Math.random(); }
-        s = ai.strafe; f = dist > (w.id === 'doze' || w.id === 'smg' ? 6 : 14) ? 0.7 : dist < 4 ? -0.5 : 0;
+        s = ai.strafe; f = dist > (w.pump || w.id === 'smg' ? 6 : 14) ? 0.7 : dist < 4 ? -0.5 : 0;
         if (w.id === 'sniper' && dist > 12) { b |= BTN.ADS; s *= 0.3; }
         if (ai.crouchT > 0) { ai.crouchT -= dt; b |= BTN.CROUCH; }
         ai.path = null;
@@ -1805,10 +1891,10 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
       }
-      let mk = 0; this.medkits.forEach((m, i) => { if (m.active) mk |= 1 << i; });
+      const mk = maskOf(this.medkits);
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
       if (this.map.train) s.tr = r2(this.trainX);
-      if (this.wpicks.length) { let wk = 0; this.wpicks.forEach((o, i) => { if (o.active) wk |= 1 << i; }); s.wk = wk; }
+      if (this.wpicks.length) s.wk = maskOf(this.wpicks);
       if (this.drops.length) s.dw = this.drops.map((d) => [d.id, r2(d.x), r2(d.y), r2(d.z), WEAPON_LIST.indexOf(d.w)]);
       return s;
     }
@@ -1827,7 +1913,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   function r3(v) { return Math.round(v * 1000) / 1000; }
 
   return {
-    isRounds, isFFA, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
+    isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
     clamp, collides, applyInput, raycastWorld, rayPlayer, aimDir, weaponOf,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,
@@ -2574,7 +2660,7 @@ const Assets = (() => {
     const tr = G('plain'), rnd = Engine.rnd(42);
     for (const b of MAP.solids.concat(MAP.deco)) {
       const t = b[6], col = b[7] || [1, 1, 1];
-      if (t === 'trunk') continue; // o tronco é desenhado junto com a copa
+      if (t === 'trunk' || t === 'prop') continue; // tronco: desenhado com a copa; prop: a casa 3D é desenhada à parte
       if (t === 'tree') { // árvore: tronco + copa (esferas)
         const cx = (b[0] + b[3]) / 2, cz = (b[2] + b[5]) / 2, r = (b[3] - b[0]) / 2, h = b[4];
         tr.cylZ(0, 0, 0, h * 0.75, 0.28, { col: [0.32, 0.24, 0.16], seg: 6, m: M4.compose(M4.create(), cx, 0, cz, 0, -Math.PI / 2, 0) });
@@ -2833,6 +2919,7 @@ const Assets = (() => {
         g.box(-0.018, -0.12, -0.022, 0.018, 0.0, 0.022, { col: DRK, uv: UA, m: rot(0, 0.0, 0.06, -0.3) });
         mag.box(-0.016, -0.2, -0.03, 0.016, 0.0, 0.035, { col: MET, uv: UA, m: rot(0, 0, 0, 0.12) });
         magPos = [0, 0.0, -0.12]; muzzle = [0, 0.045, -0.81]; sight = 0.122; support = -0.36; break;
+      case 'maverick': // enquanto o modelo 3D carrega: a doze
       case 'doze':
         B(-0.024, 0.0, -0.16, 0.024, 0.075, 0.12, DRK);
         CY(0.055, -0.78, -0.16, 0.016, MET);
@@ -2888,9 +2975,21 @@ const Assets = (() => {
         mag.box(-0.014, -0.03, -0.02, 0.014, 0.0, 0.025, { col: [0.1, 0.1, 0.1], uv: UA, m: rot(0, 0, 0, -0.2) });
         magPos = [0, -0.095, 0.025]; muzzle = [0, 0.065, -0.26]; sight = 0.102; kind = 'pistol'; break;
     }
+    if (id === 'maverick') { muzzle = [0, 0.055, -0.77]; sight = 0.08; support = -0.41; }
     return { g, mag, pump, magPos, muzzle, sight, support, kind };
   }
+  // armas com modelo 3D próprio (.vzm com peças "body" e "pump")
+  const MODEL_W = { maverick: 'wpn_maverick' };
   function weapon(id, pat) {
+    if (MODEL_W[id]) {
+      const mk = 'wm_' + id; if (cache[mk]) return cache[mk];
+      const P = prop(MODEL_W[id]);
+      if (P && P.parts) {
+        const d = weaponGeo(id, false);
+        return (cache[mk] = { body: { mesh: P.parts.body, tex: P.tex, spec: 0.55 }, mag: { mesh: R.mesh(d.mag), tex: tex.plain, spec: 0.5 }, pump: { mesh: P.parts.pump, tex: P.tex, spec: 0.45 }, magPos: d.magPos, muzzle: d.muzzle, sight: d.sight, support: d.support, kind: d.kind });
+      }
+      pat = null;
+    }
     const key = 'w_' + id + (pat ? '_' + pat : ''); if (cache[key]) return cache[key];
     const d = weaponGeo(id, !!pat), t = pat ? skinTex(pat) : tex.plain, sp = pat === 'ouro' ? 1 : pat ? 0.7 : 0.6;
     return (cache[key] = { body: { mesh: R.mesh(d.g), tex: t, spec: sp }, mag: { mesh: R.mesh(d.mag), tex: t, spec: sp * 0.85 }, pump: d.pump.vcount ? { mesh: R.mesh(d.pump), tex: t, spec: 0.4 } : null, magPos: d.magPos, muzzle: d.muzzle, sight: d.sight, support: d.support, kind: d.kind });
@@ -2942,8 +3041,8 @@ const Assets = (() => {
     limb(g, at(0.115), at(0.15), 0.09, 0.084, [0.82, 0.82, 0.82], UVC);
     limb(g, at(0.145), elbow, 0.084, 0.08, [1, 1, 1], UVC);
   }
-  const GRIP = { ak47: [0, 0.02, 0.05, -0.3, 0.019], m4a1: [0, 0, 0.06, -0.3, 0.018], doze: [0, 0, 0.1, -0.35, 0.02], smg: [0, 0, 0.08, -0.3, 0.018], sniper: [0, -0.005, 0.13, -0.32, 0.026], pistol: [0, 0, 0.002, -0.22, 0.016], deagle: [0, 0, 0.003, -0.2, 0.018] };
-  const HG = { ak47: [0.045, 0.032], m4a1: [0.045, 0.033], doze: [0.025, 0.03], smg: [0.022, 0.029], sniper: [-0.02, 0.03] };
+  const GRIP = { ak47: [0, 0.02, 0.05, -0.3, 0.019], m4a1: [0, 0, 0.06, -0.3, 0.018], doze: [0, 0, 0.1, -0.35, 0.02], maverick: [0, -0.012, 0.13, -0.55, 0.02], smg: [0, 0, 0.08, -0.3, 0.018], sniper: [0, -0.005, 0.13, -0.32, 0.026], pistol: [0, 0, 0.002, -0.22, 0.016], deagle: [0, 0, 0.003, -0.2, 0.018] };
+  const HG = { ak47: [0.045, 0.032], m4a1: [0.045, 0.033], doze: [0.025, 0.03], maverick: [0.008, 0.029], smg: [0.022, 0.029], sniper: [-0.02, 0.03] };
   function arms(fkey, wid, tone = 1) {
     const key = 'arms_' + fkey + wid + tone; if (cache[key]) return cache[key];
     const w = weapon(wid), g = new Geo(), skin = SKIN[tone % 4];
@@ -3026,15 +3125,24 @@ const Assets = (() => {
   function prop(name) {
     if (Props[name]) return Props[name];
     if (!propPending[name]) propPending[name] = (async () => {
-      const res = await fetch(name + '.vzm'); if (!res.ok) throw new Error(res.status);
+      const res = await fetch(name + '.vzm?v=2') /* v=2: casas sem portas */; if (!res.ok) throw new Error(res.status);
       const buf = await res.arrayBuffer(), dv = new DataView(buf), hl = dv.getUint32(4, true);
       const hdr = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, hl))), base = 8 + hl;
       const A = (k, T) => { const [o, n] = hdr.off[k]; return new T(buf, base + o, n / T.BYTES_PER_ELEMENT); };
       const m = { pos: A('pos', Float32Array), nrm: A('nrm', Float32Array), uv: A('uv', Float32Array), col: A('col', Float32Array), index: A('index', hdr.big ? Uint32Array : Uint16Array) };
       const [jo, jn] = hdr.off.jpg, bmp = await createImageBitmap(new Blob([new Uint8Array(buf, base + jo, jn)], { type: 'image/jpeg' }));
-      Props[name] = { mesh: R.propMesh(m), tex: R.texture(bmp), size: hdr.size };
+      const parts = {};
+      for (const k in hdr.parts || {}) { const [o, n] = hdr.parts[k]; parts[k] = R.propMesh(Object.assign({}, m, { index: m.index.subarray(o, o + n) })); }
+      Props[name] = { mesh: R.propMesh(m), tex: R.texture(bmp), size: hdr.size, parts: hdr.parts ? parts : null };
     })().catch((e) => console.warn('objeto 3D indisponível:', name, e.message));
     return null;
+  }
+  // casa enquanto o modelo 3D carrega: as próprias caixas de colisão em concreto
+  const boxCache = {};
+  function propBoxes(name, boxes) {
+    if (boxCache[name]) return boxCache[name];
+    const g = new Geo(); for (const b of boxes || []) g.box(b[0], Math.max(0, b[1]), b[2], b[3], b[4], b[5], { col: [0.8, 0.78, 0.74], s: 0.3 });
+    return (boxCache[name] = { mesh: R.mesh(g), tex: tex.concrete });
   }
   // trem simples (enquanto o modelo não chega): caixa prateada com faixa vermelha
   let trainBox = null;
@@ -3139,7 +3247,7 @@ const Assets = (() => {
     return st;
   }
 
-  return { init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP, subsetMesh, cloth, prop, simpleTrain };
+  return { init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP, subsetMesh, cloth, prop, simpleTrain, propBoxes };
 })();
 
 </script>
@@ -3270,7 +3378,7 @@ const Sfx = (() => {
   function click(t, f = 2500, g = 0.25) { noise(t, 0.035, f, 3, g, 'bandpass'); }
   function reload(w, dur) {
     if (!ctx) return; const t = ctx.currentTime;
-    if (w === 'doze') { for (let i = 0; i < 4; i++) click(t + 0.3 + i * (dur - 0.5) / 4, 1800, 0.3); click(t + dur - 0.15, 900, 0.4); return; }
+    if (w === 'doze' || w === 'maverick') { for (let i = 0; i < 4; i++) click(t + 0.3 + i * (dur - 0.5) / 4, 1800, 0.3); click(t + dur - 0.15, 900, 0.4); return; }
     click(t + dur * 0.15, 1600, 0.3); click(t + dur * 0.55, 2200, 0.35); click(t + dur * 0.85, 1200, 0.45); click(t + dur * 0.9, 2600, 0.3);
   }
   function pump() { if (!ctx) return; const t = ctx.currentTime; click(t + 0.15, 900, 0.35); click(t + 0.32, 1300, 0.35); }
@@ -3619,6 +3727,7 @@ const Sfx = (() => {
       switch (e.e) {
         case 'shot': {
           if (e.id === me) return;
+          { const rr = this.remote.get(e.id); if (rr) rr.firedAt = now(); }
           const rp = this.remotePos(e.id), o = rp ? [rp.x, rp.y + (rp.fl & 2 ? 1.0 : 1.45), rp.z] : e.o;
           Trace.add(o[0], o[1], o[2], e.t[0], e.t[1], e.t[2]);
           Parts.burst('muzzle', o[0], o[1], o[2]);
@@ -3843,7 +3952,7 @@ const Sfx = (() => {
         let near = null, bd = 2.0;
         if (L.alive && this.map && this.map.weapons) {
           const chk = (x, y, z, wid) => { const d = Math.hypot(L.x - x, L.z - z); if (Math.abs(L.y - y) < 1.6 && d < bd) { bd = d; near = wid; } };
-          this.map.weapons.forEach((w, i) => { if (this.wkMask & (1 << i)) chk(w[0], w[1], w[2], w[3]); });
+          this.map.weapons.forEach((w, i) => { if (S.hasBit(this.wkMask, i)) chk(w[0], w[1], w[2], w[3]); });
           for (const d of this.drops || []) chk(d[1], d[2], d[3], S.WEAPON_LIST[d[4]]);
         }
         if (near !== this.grabNear) {
@@ -3866,8 +3975,8 @@ const Sfx = (() => {
       fw.last = t; fw.semi = false; fw.shots.push(++fw.shotSeq);
       this.conn.send({ t: 'act', a: 'shoot', w: w.id, yaw: this.look.yaw, pitch: this.look.pitch, seq: fw.shotSeq });
       Sfx.shot(w.id);
-      fw.flash = 0.05; fw.kick = Math.min(1.4, fw.kick + (w.id === 'sniper' || w.id === 'doze' || w.id === 'deagle' ? 1.2 : 0.5));
-      if (w.id === 'doze' || w.id === 'sniper') { fw.pumpT = 0; setTimeout(() => Sfx.pump(), 250); }
+      fw.flash = 0.05; fw.kick = Math.min(1.4, fw.kick + (w.id === 'sniper' || w.pump || w.id === 'deagle' ? 1.2 : 0.5));
+      if (w.pump || w.id === 'sniper') { fw.pumpT = 0; setTimeout(() => Sfx.pump(), 250); }
       const rk = w.recoil * (this.fw.adsT > 0.5 ? 0.7 : 1) * (L.crouch ? 0.8 : 1);
       this.look.pitch = Math.min(1.5, this.look.pitch + rk); fw.recoilAcc += rk;
       this.look.yaw += (Math.random() - 0.5) * 2 * w.recoilYaw;
@@ -3944,26 +4053,39 @@ const Sfx = (() => {
           items.push({ mesh: car.mesh, tex: car.tex, model: m, spec: 0.35 });
         }
       }
+      // casas 3D do mapa aberto (só as que estão perto: longe a névoa esconde)
+      if (this.map && this.map.props) {
+        const pm = this._propM || (this._propM = []), cam = this.eye();
+        this.map.props.forEach((pr, i) => {
+          if (Math.hypot(pr[1] - cam[0], pr[2] - cam[2]) > 190) return;
+          const P = Assets.prop(pr[0]) || Assets.propBoxes(pr[0], S.PROP_BOXES[pr[0]]);
+          const m = pm[i] || (pm[i] = M4.compose(M4.create(), pr[1], 0, pr[2], pr[3] * Math.PI / 2, 0, 0));
+          items.push({ mesh: P.mesh, tex: P.tex, model: m, spec: 0.15 });
+        });
+      }
       // kits médicos
-      const mk = Assets.medkit(true);
+      // kits médicos: parados no chão (brilho leve para achar)
+      const mk = Assets.medkit(true), ce = this.eye(), far = (x, z) => Math.abs(x - ce[0]) > 95 || Math.abs(z - ce[2]) > 95;
       (this.map || S.MAPS.base).medkits.forEach((m, i) => {
-        if (!(this.medMask & (1 << i))) return;
-        const it = this._mk || (this._mk = []); const o = it[i] || (it[i] = { mesh: mk.mesh, tex: mk.tex, model: M4.create(), emis: 0, spec: 0.3 });
-        M4.compose(o.model, m[0], m[1] + 0.45 + Math.sin(t * 2 + i) * 0.08, m[2], t * 1.2 + i, 0, 0);
-        o.emis = 0.12 + Math.sin(t * 4) * 0.08; items.push(o);
+        if (!S.hasBit(this.medMask, i) || far(m[0], m[2])) return;
+        const it = this._mk || (this._mk = []); let o = it[i];
+        if (!o) { o = it[i] = { mesh: mk.mesh, tex: mk.tex, model: M4.create(), emis: 0, spec: 0.3 }; M4.compose(o.model, m[0], m[1] + 0.146, m[2], i * 1.7, 0, 0); }
+        o.emis = 0.1 + Math.sin(t * 3 + i) * 0.06; items.push(o);
       });
       // armas no chão (do mapa + largadas por jogadores)
       const wmap = (this.map && this.map.weapons) || [], gw = this._gw || (this._gw = []); let gi = 0;
       const drawW = (x, y, z, wid, k) => {
         const wm = Assets.weapon(wid); if (!wm) return;
         const o = gw[gi] || (gw[gi] = { a: M4.create(), b: M4.create() }); gi++;
-        M4.compose(o.a, x, y + 0.42 + Math.sin(t * 2 + k) * 0.06, z, t * 0.9 + k, 0, 0.12);
-        items.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: o.a, emis: 0.18 + Math.sin(t * 4 + k) * 0.08, spec: wm.body.spec });
+        if (far(x, z)) return;
+        M4.compose(o.a, x, y + 0.04, z, k * 2.1, 0, Math.PI / 2); // deitada de lado no chão
+        items.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: o.a, emis: 0.12 + Math.sin(t * 3 + k) * 0.06, spec: wm.body.spec });
+        if (wm.pump) items.push({ mesh: wm.pump.mesh, tex: wm.pump.tex, model: o.a, emis: 0.1, spec: wm.pump.spec });
         M4.compose(tmpW, wm.magPos[0], wm.magPos[1], wm.magPos[2], 0, 0, 0); M4.mul(o.b, o.a, tmpW);
         items.push({ mesh: wm.mag.mesh, tex: wm.mag.tex, model: o.b, emis: 0.1, spec: wm.mag.spec });
       };
       const tmpW = this._tmpW || (this._tmpW = M4.create());
-      wmap.forEach((w, i) => { if (this.wkMask & (1 << i)) drawW(w[0], w[1], w[2], w[3], i); });
+      wmap.forEach((w, i) => { if (S.hasBit(this.wkMask, i)) drawW(w[0], w[1], w[2], w[3], i); });
       for (const d of this.drops || []) drawW(d[1], d[2], d[3], S.WEAPON_LIST[d[4]], d[0]);
       // jogadores
       for (const rp of this.remote.values()) if (rp.cur) this.soldierItems(rp, items);
@@ -4124,7 +4246,7 @@ const Sfx = (() => {
       if (rl) {
         const p = Math.min(1, (t - fw.reloadStart) / w.reload), e = Math.sin(Math.min(1, p * 1.15) * Math.PI);
         rx -= 0.35 * e; rz += 0.5 * e; y -= 0.05 * e; x -= 0.03 * e;
-        if (w.id === 'doze') { magOff = [0, -0.05 + Math.sin(p * 25) * 0.03, 0]; }
+        if (w.pump) { magOff = [0, -0.05 + Math.sin(p * 25) * 0.03, 0]; }
         else if (p > 0.15 && p < 0.45) magOff = [0, -(p - 0.15) * 1.5, (p - 0.15) * 0.4];
         else if (p >= 0.45 && p < 0.55) magHide = true;
         else if (p >= 0.55 && p < 0.8) magOff = [0, -(0.8 - p) * 1.2, 0];
@@ -4136,7 +4258,7 @@ const Sfx = (() => {
       M4.compose(tmp, x, y, z, ry, rx, rz); M4.mul(GM, CW, tmp);
       vm.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: GM, spec: Math.max(0.7, wm.body.spec) });
       const AR = Assets.arms(Assets.fabricKey(uni, myLook.s, myLook.c), w.id, tone); vm.push({ mesh: AR.mesh, tex: AR.tex, model: GM, spec: 0.08 });
-      if (!magHide && w.id !== 'doze' || (w.id === 'doze' && rl)) {
+      if (!magHide && !w.pump || (w.pump && rl)) {
         const MM = this._mm || (this._mm = M4.create());
         M4.compose(tmp, wm.magPos[0] + magOff[0], wm.magPos[1] + magOff[1], wm.magPos[2] + magOff[2], 0, 0, 0); M4.mul(MM, GM, tmp);
         vm.push({ mesh: wm.mag.mesh, tex: wm.mag.tex, model: MM, spec: 0.5 });
@@ -4161,6 +4283,57 @@ const Sfx = (() => {
         vmAdd.push({ mesh: fl.mesh, tex: fl.tex, model: FM, emis: 1, tint: [1, 0.7, 0.3, 0.9] });
       }
     },
+    // ------------------------------------------------ radar (minimapa) e mapa grande
+    radar() {
+      const map = this.map || S.MAPS.base, img = mapImage(map), L = this.local, t = now();
+      const c = $('radarc'), x = c.getContext('2d'), W = c.width, k = img.k, R = W / 2;
+      const range = map.sx > 100 ? 70 : 34, sc = R / range; // metros mostrados até a borda
+      x.save(); x.clearRect(0, 0, W, W);
+      x.beginPath(); x.arc(R, R, R, 0, 6.3); x.clip();
+      x.fillStyle = '#3c5230'; x.fillRect(0, 0, W, W);
+      x.translate(R, R); x.rotate(this.look.yaw); x.scale(sc / k, sc / k);
+      x.drawImage(img.c, -(L.x + map.sx) * k, -(L.z + map.sz) * k);
+      x.setTransform(1, 0, 0, 1, 0, 0);
+      const toR = (wx, wz) => { const dx = (wx - L.x) * sc, dz = (wz - L.z) * sc, cs = Math.cos(this.look.yaw), sn = Math.sin(this.look.yaw); return [R + dx * cs - dz * sn, R + dx * sn + dz * cs]; };
+      this.radarMarks(x, toR, 1, t);
+      // eu: seta no centro (frente para cima)
+      x.fillStyle = '#ffd21f'; x.strokeStyle = '#000'; x.lineWidth = 2;
+      x.beginPath(); x.moveTo(R, R - 9); x.lineTo(R + 7, R + 7); x.lineTo(R, R + 3); x.lineTo(R - 7, R + 7); x.closePath(); x.stroke(); x.fill();
+      x.restore();
+      x.strokeStyle = 'rgba(255,255,255,.25)'; x.lineWidth = 2; x.beginPath(); x.arc(R, R, R - 1, 0, 6.3); x.stroke();
+      x.fillStyle = 'rgba(255,255,255,.85)'; x.font = '700 15px Rajdhani, sans-serif'; x.textAlign = 'center';
+      const n = toR(L.x, L.z - range * 0.86); x.fillText('N', n[0], n[1] + 5);
+      if (this.bigOpen) this.bigMap();
+    },
+    // jogadores e trem no radar/mapa: aliados sempre; inimigos só quando atiram (ou bem perto)
+    radarMarks(x, toP, size, t) {
+      if (this.train) {
+        const T = this.map.train, fx = this.trainNow(), a = toP(fx, T.z), b = toP(fx - T.cars * (T.len + T.gap), T.z);
+        x.strokeStyle = '#e8e8ee'; x.lineWidth = 5 * size; x.lineCap = 'round'; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.stroke();
+        x.strokeStyle = '#c0282d'; x.lineWidth = 2 * size; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.stroke();
+      }
+      for (const rp of this.remote.values()) {
+        const c = rp.cur; if (!c || !(c.fl & 1)) continue;
+        const enemy = this.isEnemy(rp.id), near = Math.hypot(c.x - this.local.x, c.z - this.local.z) < 12;
+        if (enemy && !(near || (rp.firedAt && t - rp.firedAt < 2.5))) continue;
+        const p = toP(c.x, c.z);
+        x.fillStyle = enemy ? '#ff3b30' : '#4aa8ff'; x.strokeStyle = '#000'; x.lineWidth = 1.5;
+        x.beginPath(); x.arc(p[0], p[1], 4.5 * size, 0, 6.3); x.fill(); x.stroke();
+      }
+    },
+    bigMap() {
+      const map = this.map || S.MAPS.base, img = mapImage(map), L = this.local, c = $('bigmapc'), x = c.getContext('2d');
+      if (c.width !== img.c.width) { c.width = img.c.width; c.height = img.c.height; }
+      x.drawImage(img.c, 0, 0);
+      const k = img.k, toP = (wx, wz) => [(wx + map.sx) * k, (wz + map.sz) * k], sz = Math.max(1.4, img.c.width / 500);
+      this.radarMarks(x, toP, sz, now());
+      const p = toP(L.x, L.z), yaw = this.look.yaw;
+      x.save(); x.translate(p[0], p[1]); x.rotate(-yaw); x.scale(sz, sz);
+      x.fillStyle = '#ffd21f'; x.strokeStyle = '#000'; x.lineWidth = 2;
+      x.beginPath(); x.moveTo(0, -11); x.lineTo(8, 8); x.lineTo(0, 4); x.lineTo(-8, 8); x.closePath(); x.stroke(); x.fill();
+      x.restore();
+    },
+    toggleMap(on) { this.bigOpen = on == null ? !this.bigOpen : !!on; $('bigmap').classList.toggle('on', this.bigOpen); if (this.bigOpen) this.bigMap(); },
     overlay() {
       const dpr = 1, wv = ov.clientWidth, hv = ov.clientHeight;
       if (ov.width !== wv || ov.height !== hv) { ov.width = wv; ov.height = hv; }
@@ -4290,6 +4463,7 @@ const Sfx = (() => {
     if (e.code === 'Digit1') keys._swap = 0;
     if (e.code === 'Digit2') keys._swap = 1;
     if (e.code === 'KeyQ') keys._swap = 'next';
+    if (e.code === 'KeyM' && Game.active && !chatOpen) Game.toggleMap();
     if (e.code === 'KeyE' || e.code === 'KeyF') keys._grab = true;
     if (e.code === 'KeyH' || e.code === 'Digit4') keys._med = true;
     if (e.code === 'Enter' || e.code === 'KeyT') { e.preventDefault(); openChat(); }
@@ -4378,6 +4552,7 @@ const Sfx = (() => {
     },
   };
   Touch.build($('touch'));
+  $('radar').addEventListener('click', () => Game.toggleMap(true)); $('bigmap').addEventListener('click', () => Game.toggleMap(false));
   // ---- rotação de tela: converte coordenadas da tela para o espaço (possivelmente girado) do jogo
   let rotated = false, VK = null;
   const VW = () => (rotated ? innerHeight : innerWidth), VH = () => (rotated ? innerWidth : innerHeight);
@@ -4564,7 +4739,9 @@ const Sfx = (() => {
   function touchStart(e) {
     if (!Game.active || Game.paused || chatOpen) return;
     Sfx.init();
+    if (Game.bigOpen) { e.preventDefault(); Game.toggleMap(false); return; }
     for (const t of e.changedTouches) {
+      const rd = $('radar'); if (rd && lx(t) >= rd.offsetLeft && lx(t) <= rd.offsetLeft + rd.offsetWidth && ly(t) >= rd.offsetTop && ly(t) <= rd.offsetTop + rd.offsetHeight) { e.preventDefault(); Game.toggleMap(true); return; }
       const id = tbtn(t.target);
       if (id) {
         e.preventDefault();
@@ -4753,7 +4930,12 @@ const Sfx = (() => {
     const x = cv2.getContext('2d'); x.drawImage(Engine.TEX.gunskin(pat, 128), 0, 0, 32, 32);
     return (patCache[pat] = x.getImageData(0, 0, 32, 32).data);
   }
+  const WICON_IMG = { maverick: 'data:image/png;base64,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' };
   function weaponIcon(id, c, pat) {
+    if (WICON_IMG[id]) { // arma com modelo 3D: ícone pronto
+      c.width = 240; c.height = 110; const ctx = c.getContext('2d'), im = new Image();
+      im.onload = () => { ctx.clearRect(0, 0, 240, 110); ctx.drawImage(im, 0, 0, 240, 110); }; im.src = WICON_IMG[id]; return;
+    }
     const d = Assets.weaponGeo(id, !!pat), g = d.g, mg = d.mag, ctx = c.getContext('2d'), pd = pat ? patData(pat) : null;
     c.width = 240; c.height = 110; ctx.clearRect(0, 0, 240, 110);
     const tris = [];
@@ -4793,6 +4975,23 @@ const Sfx = (() => {
   // rosto do personagem visto de frente, desenhado a partir do modelo 3D
   // retratos dos personagens 3D da loja (o desenho de cabeça é só para os bonecos antigos)
   const PORTRAITS = {"ch3_cyber": "data:image/jpeg;base64,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", "ch3_carter": "data:image/jpeg;base64,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"};
+  // imagem do mapa vista de cima (para o radar e o mapa grande), feita uma vez por mapa
+  const MAPIMG = {};
+  function mapImage(map) {
+    if (MAPIMG[map.id]) return MAPIMG[map.id];
+    const k = map.sx > 100 ? 2 : 5, W = Math.round(map.sx * 2 * k), H = Math.round(map.sz * 2 * k);
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+    x.fillStyle = '#4f6a3a'; x.fillRect(0, 0, W, H);
+    const COL = { road: '#3b3c3f', gravel: '#6b655d', rail: '#4a4038', field: '#7a6a36', roof: '#7a4b38', brick: '#8a4a33', concrete: '#8f8f8a', metal: '#6d7178', crate: '#8b6a3e', sandbag: '#b5a27a', wood: '#7a5a3a', rock: '#7d7a74', tent: '#59603d', hay: '#c9a64a', prop: '#b8afa6', barrier: '#c98a3c', car: '#a03030' };
+    const boxes = map.deco.concat(map.solids).filter((b) => b[6] !== 'trunk' && b[6] !== 'pole' && b[6] !== 'tree').sort((a, b) => a[4] - b[4]);
+    for (const b of boxes) {
+      const col = b[6] === 'car' && b[7] ? `rgb(${b[7].map((v) => Math.round(v * 255)).join(',')})` : COL[b[6]] || '#888';
+      x.fillStyle = col; x.fillRect((b[0] + map.sx) * k, (b[2] + map.sz) * k, Math.max(1, (b[3] - b[0]) * k), Math.max(1, (b[5] - b[2]) * k));
+    }
+    x.fillStyle = '#2e4a22';
+    for (const b of map.deco) if (b[6] === 'tree') { x.beginPath(); x.arc(((b[0] + b[3]) / 2 + map.sx) * k, ((b[2] + b[5]) / 2 + map.sz) * k, (b[3] - b[0]) / 2 * k, 0, 6.3); x.fill(); }
+    return (MAPIMG[map.id] = { c, k });
+  }
   function headIcon(id, c) {
     if (PORTRAITS[id]) {
       c.width = 240; c.height = 110; const im = new Image();
@@ -5006,7 +5205,7 @@ const Sfx = (() => {
         if (!Game.active) return;
         const f = Game.buildFrame();
         R.render(f);
-        Game.overlay();
+        Game.overlay(); Game.radar();
       } else if (STORE_SCR.includes(curScreen) || curScreen === 'menu') {
         R.render(Preview.frame());
       } else {
