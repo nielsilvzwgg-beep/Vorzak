@@ -177,7 +177,7 @@ class Room {
     this.id = newRoomId(); nextRoomId++; this.name = S.sanitizeChat(o.name).slice(0, 28) || 'Sala ' + this.id;
     this.mode = S.isFFA(o.mode) || S.isRounds(o.mode) ? o.mode : 'tdm'; this.priv = !!o.priv; this.ranked = !!o.ranked; this.persistent = !!o.persistent;
     this.max = S.isRounds(this.mode) ? 2 * +this.mode[1] : this.mode === 'aberto' ? S.clamp(o.max | 0 || 30, 2, 30) : S.clamp(o.max | 0 || 10, 2, 12); this.code = String(this.id); this.owner = o.owner || 0;
-    this.sim = new S.GameSim({ mode: this.mode, ranked: this.ranked });
+    this.sim = new S.GameSim({ mode: this.mode, ranked: this.ranked, br: this.mode === 'aberto', brBusca: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0, brLobby: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0 }); // mapa aberto online: procurar jogadores -> lobby -> trem
     this.sim.onMatchEnd = (results, win) => this.onMatchEnd(results, win);
     this.members = new Map(); // pid -> client
     // sala criada por um jogador: começa numa sala de espera; só o criador inicia a partida

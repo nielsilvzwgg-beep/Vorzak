@@ -16,7 +16,7 @@
     DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
     MEDKITS_START: 2, MEDKITS_MAX: 3, SWITCH: 0.45, INTERP: 0.1,
-    SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20,
+    SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, BR_BUSCA: 15, BR_LOBBY: 20,
   };
   const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8 };
 
@@ -527,7 +527,7 @@
     for (let g = 0; g < 600 && weapons.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) weapons.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, WL[Math.floor(rnd() * WL.length)]]); }
     for (const m of houseM) medkits.push(m);
     houseW.forEach(([x, y, z], k) => weapons.push([x, y, z, ['maverick', 'ak47', 'm4a1', 'doze', 'smg', 'deagle', 'sniper', 'maverick'][(k * 5 + 3) % 8]]));
-    const train = { z: 0, x0: -146, x1: 209.5, speed: 5, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
+    const train = { z: 0, x0: -146, x1: 209.5, speed: 7, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
     return { id: 'aberto', solids, deco, spawns, medkits, weapons, props, sx: SX, sz: SZ, train };
   })();
   const MAPS = { base: MAP_BASE, aberto: MAP_OPEN };
@@ -912,6 +912,65 @@
       // armas no chão: as do mapa voltam depois de um tempo; as largadas somem
       this.wpicks = (this.map.weapons || []).map(([x, y, z, w]) => ({ x, y, z, w, active: true, t: 0 })); this.drops = []; this.dropSeq = 0;
       this.onMatchEnd = null;
+      // início estilo battle royale (mapa aberto online): procurar jogadores -> lobby -> trem -> pular
+      this.br = !!o.br && !!this.map.train; this.brT = [o.brBusca || C.BR_BUSCA, o.brLobby || C.BR_LOBBY];
+      if (this.br) this.brReset();
+    }
+    brReset() {
+      this.ph = 'busca'; this.phEnd = this.time + this.brT[0]; this.trainStartAt = 0; this.matchTime = 0;
+      for (const p of this.players.values()) { p.alive = false; p.respawnAt = Infinity; p.train = null; }
+    }
+    // pontos do lobby: todos juntos ao lado do trem parado no depósito
+    lobbySpot(i) {
+      const col = i % 6, row = Math.floor(i / 6) % 5;
+      return [-185 + col * 2.2, 0, 7 + row * 2.2];
+    }
+    lobbySpawn(p, i) {
+      this.spawn(p);
+      const [x, y, z] = this.lobbySpot(i); p.x = x + (Math.random() - 0.5) * 0.4; p.y = y; p.z = z; p.yaw = Math.PI / 2;
+      p.spawnProt = this.phEnd + 999; p.train = null;
+    }
+    // embarca: cada jogador num lugar dentro de um vagão (2 fileiras de 5 por vagão)
+    board(p, i) {
+      const tr = this.map.train, car = Math.floor(i / 10) % tr.cars, k = i % 10;
+      p.train = { off: car * (tr.len + tr.gap) + 3 + (k >> 1) * 3.4, dz: (k & 1 ? 0.55 : -0.55) };
+      p.x = this.trainX - p.train.off; p.y = tr.y0 + 0.02; p.z = tr.z + p.train.dz; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      p.spawnProt = Infinity; p.yaw = -Math.PI / 2;
+    }
+    // pula do trem: cai do lado (de acordo com o lado do lugar), sem ficar dentro de parede
+    leap(p) {
+      if (!p.train) return;
+      const tr = this.map.train, side = p.train.dz >= 0 ? 1 : -1;
+      p.train = null;
+      let best = null;
+      for (const dx of [0, 1.5, -1.5, 3, -3, 5, -5]) for (const sd of [side, -side]) {
+        const x = p.x + dx, z = tr.z + sd * (tr.hw + C.R + 0.6);
+        if (!collides(x, 0.6, z, C.R, C.H)) { best = [x, z, sd]; break; }
+      }
+      if (!best) best = [p.x, tr.z + side * (tr.hw + 1.2), side];
+      p.x = best[0]; p.z = best[1]; p.y = 0.6; p.vx = 0; p.vz = best[2] * 3; p.vy = 4; p.onGround = false;
+      p.spawnProt = this.time + 2.5;
+      this.events.push({ e: 'leap', id: p.id });
+    }
+    brTick() {
+      const n = this.players.size;
+      if (!n) { if (this.ph !== 'busca') this.brReset(); else this.phEnd = this.time + this.brT[0]; return; }
+      if (this.ph === 'busca' && this.time >= this.phEnd) {
+        this.ph = 'lobby'; this.phEnd = this.time + this.brT[1]; let i = 0;
+        for (const p of this.players.values()) this.lobbySpawn(p, i++);
+        this.events.push({ e: 'br', ph: 'lobby' });
+      } else if (this.ph === 'lobby' && this.time >= this.phEnd) {
+        this.ph = 'trem'; this.trainStartAt = this.time; let i = 0;
+        for (const p of this.players.values()) { if (!p.alive) this.spawn(p); this.board(p, i++); }
+        this.events.push({ e: 'br', ph: 'trem' });
+      } else if (this.ph === 'trem') {
+        const tr = this.map.train;
+        this.phEnd = this.time + Math.max(0, (tr.x1 - this.trainX) / tr.speed);
+        if (this.trainX >= tr.x1 - 0.01) { // chegou: quem não pulou desce na estação
+          for (const p of this.players.values()) if (p.train) this.leap(p);
+          this.ph = 'livre'; this.matchTime = 0; this.events.push({ e: 'br', ph: 'livre' });
+        }
+      }
     }
     teamCount(t) { let n = 0; for (const p of this.players.values()) if (p.team === t) n++; return n; }
     addPlayer(info = {}) {
@@ -931,7 +990,10 @@
       };
       p.baseW = p.weapons.slice(); // armas do equipamento (voltam ao renascer)
       this.players.set(id, p);
-      this.spawn(p);
+      if (this.br && this.ph === 'busca') { p.alive = false; p.respawnAt = Infinity; }
+      else if (this.br && this.ph === 'lobby') this.lobbySpawn(p, this.players.size - 1);
+      else if (this.br && this.ph === 'trem') { this.spawn(p); this.board(p, this.players.size - 1); }
+      else this.spawn(p);
       this.rosterDirty = true;
       return p;
     }
@@ -976,7 +1038,8 @@
         const inp = { dt: clamp(num(it[1]), 0, 0.05), f: it[2], s: it[3], yaw: it[4], pitch: it[5], b: it[6] };
         if (p.budget < inp.dt - 0.004) { p.ack = seq; continue; } // anti speed-hack
         p.budget -= inp.dt;
-        if (this.state === 'playing') applyInput(p, inp);
+        if (p.train) { p.yaw = num(inp.yaw, p.yaw); p.pitch = clamp(num(inp.pitch, p.pitch), -1.5, 1.5); }
+        else if (this.state === 'playing') applyInput(p, inp);
         p.ack = seq; p.lastInput = this.time;
       }
     }
@@ -984,6 +1047,7 @@
       useMap(this.map, this.dyn);
       const p = this.players.get(id);
       if (!p || !a || this.state !== 'playing') return;
+      if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'trem') this.leap(p); if (this.ph !== 'trem' || p.train) return; }
       switch (a.a) {
         case 'shoot': return this.shoot(p, a);
         case 'reload': return this.reload(p);
@@ -1010,7 +1074,7 @@
       if (old === best.w) { p.ammo[w.id] = { mag: w.mag, res: w.reserve }; }
       else {
         p.weapons = p.weapons.slice(); p.weapons[slot] = w.id; p.ammo[w.id] = { mag: w.mag, res: w.reserve };
-        if (old && WEAPONS[old]) { if (this.drops.length >= 24) this.drops.shift(); this.drops.push({ id: ++this.dropSeq, x: p.x, y: p.y, z: p.z, w: old, until: this.time + 40 }); }
+        if (old && WEAPONS[old]) { if (this.drops.length >= 24) this.drops.shift(); const sp = this.dropSpot(p.x, p.y, p.z); this.drops.push({ id: ++this.dropSeq, x: sp[0], y: p.y, z: sp[1], w: old, until: this.time + 40 }); }
       }
       p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
       if (best.until) this.drops.splice(this.drops.indexOf(best), 1); else { best.active = false; best.t = this.time + 30; }
@@ -1021,6 +1085,20 @@
       if (!p.alive || p.reloadUntil || p.medUntil || !am || am.mag >= w.mag || am.res <= 0) return;
       p.reloadUntil = this.time + w.reload;
       this.events.push({ e: 'reload', id: p.id });
+    }
+    // lugar para largar a arma sem ficar em cima de kit médico ou de outra arma
+    dropSpot(x, y, z) {
+      const near = (qx, qz) => {
+        for (const m of this.medkits) if (m.active && Math.abs(m.y - y) < 1.2 && Math.hypot(m.x - qx, m.z - qz) < 1.3) return true;
+        for (const o of this.wpicks) if (o.active && Math.abs(o.y - y) < 1.2 && Math.hypot(o.x - qx, o.z - qz) < 1.3) return true;
+        for (const d of this.drops) if (Math.abs(d.y - y) < 1.2 && Math.hypot(d.x - qx, d.z - qz) < 1.1) return true;
+        return false;
+      };
+      for (const r of [0, 1.2, 1.9]) for (let k = 0; k < (r ? 8 : 1); k++) {
+        const qx = x + Math.cos(k * Math.PI / 4) * r, qz = z + Math.sin(k * Math.PI / 4) * r;
+        if (!near(qx, qz) && !collides(qx, y + 0.05, qz, 0.25, 0.4)) return [qx, qz];
+      }
+      return [x, z];
     }
     shoot(p, a) {
       const w = weaponOf(p), am = p.ammo[w.id];
@@ -1149,20 +1227,22 @@
     }
     restart() {
       this.state = 'playing'; this.matchTime = 0; this.trainSt = 0; this.score = [0, 0]; this.firstBlood = false; this.round = 1; this.roundEndAt = 0; this.roundWinners = [];
-      for (const p of this.players.values()) { p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; this.spawn(p); }
+      for (const p of this.players.values()) { p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; if (!this.br) this.spawn(p); }
+      if (this.br) this.brReset();
       for (const m of this.medkits) m.active = true;
       for (const w of this.wpicks) w.active = true; this.drops = [];
       this.events.push({ e: 'start' });
     }
     // trem: anda pelo trilho conforme o tempo da partida e empurra quem estiver na frente para o lado
     trainTick() {
-      const tr = this.map.train, x = trainFront(tr, this.matchTime), moving = this.matchTime > tr.delay && x < tr.x1;
+      const tr = this.map.train, tt = this.br ? (this.trainStartAt ? this.time - this.trainStartAt + tr.delay : 0) : this.matchTime;
+      const x = trainFront(tr, tt), moving = tt > tr.delay && x < tr.x1;
       this.trainX = x; trainBoxes(tr, x, this.dyn, moving);
       const st = moving ? 1 : x >= tr.x1 ? 2 : 0;
       if (st !== this.trainSt) { this.trainSt = st; if (st) this.events.push({ e: 'train', s: st }); }
       const back = x - tr.cars * (tr.len + tr.gap);
       for (const p of this.players.values()) {
-        if (!p.alive || p.x + C.R < back || p.x - C.R > x || Math.abs(p.z - tr.z) > tr.hw + C.R || p.y > tr.y1 - 0.05) continue;
+        if (!p.alive || p.train || p.x + C.R < back || p.x - C.R > x || Math.abs(p.z - tr.z) > tr.hw + C.R || p.y > tr.y1 - 0.05) continue;
         const h = p.crouch ? C.HC : C.H, side = p.z >= tr.z ? 1 : -1;
         let nz = tr.z + side * (tr.hw + C.R + 0.03);
         if (collides(p.x, p.y, nz, C.R, h)) nz = tr.z - side * (tr.hw + C.R + 0.03);
@@ -1180,7 +1260,8 @@
       useMap(this.map, this.dyn);
       this.time += dt;
       if (this.state === 'ended') { if (this.time >= this.endAt) this.restart(); return; }
-      this.matchTime += dt;
+      if (this.br) this.brTick();
+      if (!this.br || this.ph === 'livre') this.matchTime += dt;
       if (this.map.train) this.trainTick();
       if (this.timeLimit && this.matchTime >= this.timeLimit) { this.endMatch(); return; }
       if (this.roundEndAt && this.time >= this.roundEndAt) this.nextRound();
@@ -1188,6 +1269,7 @@
         p.budget = Math.min(0.5, p.budget + dt);
         p.bloom = Math.max(0, p.bloom - dt * 0.12);
         if (!p.alive) { if (this.time >= p.respawnAt) this.spawn(p); continue; }
+        if (p.train) { p.x = this.trainX - p.train.off; p.z = this.map.train.z + p.train.dz; p.y = this.map.train.y0 + 0.02; p.vx = p.vy = p.vz = 0; continue; }
         if (p.reloadUntil && this.time >= p.reloadUntil) {
           p.reloadUntil = 0;
           const w = weaponOf(p), am = p.ammo[w.id];
@@ -1334,6 +1416,7 @@
       const mk = maskOf(this.medkits);
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
       if (this.map.train) s.tr = r2(this.trainX);
+      if (this.br) { s.ph = this.ph; s.pe = this.ph === 'livre' ? 0 : Math.max(0, Math.ceil(this.phEnd - this.time)); s.pn = this.players.size; }
       if (this.wpicks.length) s.wk = maskOf(this.wpicks);
       if (this.drops.length) s.dw = this.drops.map((d) => [d.id, r2(d.x), r2(d.y), r2(d.z), WEAPON_LIST.indexOf(d.w)]);
       return s;
@@ -1345,6 +1428,7 @@
         hp: p.hp, al: p.alive ? 1 : 0, cur: p.cur, w: p.weapons, mag: am.mag, res: am.res,
         rl: p.reloadUntil ? r2(p.reloadUntil - this.time) : 0, mu: p.medUntil ? r2(p.medUntil - this.time) : 0, mk: p.medkits,
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
+        tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
       };
     }
   }

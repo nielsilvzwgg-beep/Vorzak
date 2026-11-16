@@ -81,6 +81,28 @@ label{display:block;margin:10px 0 4px;color:var(--dim);font-size:15px;text-trans
 .hp .v small{font-size:12px;color:var(--dim)}
 .hp .hpbar{flex:1;margin:0}.hp .med{margin:0;white-space:nowrap}
 /* radar (minimapa) no canto de cima, à esquerda; toque abre o mapa grande */
+#brov{position:fixed;inset:0;display:none;z-index:6;pointer-events:none;align-items:flex-start;justify-content:center}
+#brov.brfull{display:flex;align-items:center;background:radial-gradient(circle at 50% 45%,rgba(30,40,30,.88),rgba(5,7,9,.97))}
+#brov .brx{display:none;pointer-events:auto;margin:22px auto 0;width:max-content;padding:9px 22px;border:1px solid rgba(255,255,255,.5);border-radius:6px;font-weight:700;letter-spacing:2px;font-size:13px;cursor:pointer;background:rgba(255,255,255,.08)}
+#brov.brfull .brx{display:block}
+#brov.brtop{display:flex}
+#brov .brbox{text-align:center;color:#fff;text-shadow:0 2px 8px #000}
+#brov.brtop .brbox{margin-top:calc(64px + var(--sat));white-space:nowrap;background:rgba(0,0,0,.5);padding:8px 26px 10px;border:1px solid rgba(255,138,31,.6);border-radius:8px}
+#brov .brt{font-weight:800;letter-spacing:4px;font-size:22px;color:var(--acc)}
+#brov.brtop .brt{font-size:15px;letter-spacing:2px}
+#brov .brn{font-weight:800;font-size:64px;line-height:1.05;margin:4px 0}
+#brov.brtop .brn{font-size:34px}
+#brov .brs{font-size:15px;opacity:.9}
+#brov .brbar{width:260px;height:6px;background:rgba(255,255,255,.15);border-radius:3px;margin:12px auto 0;overflow:hidden}
+#brov.brtop .brbar{width:200px;margin-top:6px}
+#brov .brbar i{display:block;height:100%;background:var(--acc);width:0}
+#brov .brscan{position:relative;width:120px;height:120px;margin:0 auto 18px;border-radius:50%;border:2px solid rgba(255,138,31,.55);overflow:hidden;background:repeating-radial-gradient(circle,rgba(255,138,31,.0) 0 18px,rgba(255,138,31,.25) 19px 20px)}
+#brov.brtop .brscan{display:none}
+#brov .brscan i{position:absolute;inset:0;background:conic-gradient(rgba(255,138,31,.55),rgba(255,138,31,0) 25%);animation:brspin 1.6s linear infinite}
+#brov .brscan b{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px var(--acc)}
+@keyframes brspin{to{transform:rotate(360deg)}}
+#brleap{position:fixed;left:50%;bottom:calc(90px + var(--sab));transform:translateX(-50%);display:none;z-index:7;pointer-events:auto;background:linear-gradient(#ff9a3c,#e06a00);color:#fff;font-weight:800;letter-spacing:2px;font-size:22px;padding:16px 34px;border-radius:40px;border:3px solid #fff;box-shadow:0 4px 18px rgba(0,0,0,.6);animation:brpulse 1s ease-in-out infinite;cursor:pointer;user-select:none}
+@keyframes brpulse{50%{transform:translateX(-50%) scale(1.07)}}
 #radar{position:fixed;left:calc(8px + var(--sal));top:calc(8px + var(--sat));width:150px;height:150px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.5);background:rgba(20,30,20,.55);box-shadow:0 2px 10px rgba(0,0,0,.55);pointer-events:auto;cursor:pointer}
 #radar canvas{width:100%;height:100%;display:block}
 #bigmap{position:fixed;inset:0;display:none;background:rgba(0,0,0,.62);align-items:center;justify-content:center;flex-direction:column;pointer-events:auto;z-index:999}
@@ -535,6 +557,8 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div id="medbar">Usando kit médico…<div class="bar"><i></i></div></div>
   <div class="hp"><div class="v"><span id="hpv">100</span> <small>HP</small></div><div class="hpbar"><b id="hpd"></b><i id="hpb"></i></div><div class="med">✚ <span id="medn">2</span></div></div>
   <div id="radar"><canvas id="radarc" width="220" height="220"></canvas></div>
+  <div id="brov"><div class="brbox"><div class="brscan"><i></i><b></b></div><div class="brt" id="brt">PROCURANDO JOGADORES</div><div class="brn" id="brn">15</div><div class="brs" id="brs"></div><div class="brbar"><i id="brbar"></i></div><div class="brx" id="brx">SAIR DA FILA</div></div></div>
+  <div id="brleap">PULAR DO TREM</div>
   <div id="grabtip" style="display:none"></div>
   <div class="ammo"><div class="w" id="wname">AK-47</div><div class="m" id="mag">30 <small>/ 120</small></div><div id="rld" style="color:var(--acc2);font-size:16px"></div></div>
   <div class="xp"><span id="xplv">Nível 1</span> · <span id="xpv">0 / 600 XP</span> · <span id="xpm" style="color:#ffd54a"></span><div class="bar"><i id="xpb" style="width:0"></i></div></div>
@@ -577,7 +601,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
     MEDKITS_START: 2, MEDKITS_MAX: 3, SWITCH: 0.45, INTERP: 0.1,
-    SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20,
+    SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, BR_BUSCA: 15, BR_LOBBY: 20,
   };
   const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8 };
 
@@ -1088,7 +1112,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     for (let g = 0; g < 600 && weapons.length < 31; g++) { const x = rr(-SX + 8, SX - 8), z = rr(-SZ + 8, SZ - 8); if (Math.abs(z) > 7 && freeAt(x, z, 1)) weapons.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, WL[Math.floor(rnd() * WL.length)]]); }
     for (const m of houseM) medkits.push(m);
     houseW.forEach(([x, y, z], k) => weapons.push([x, y, z, ['maverick', 'ak47', 'm4a1', 'doze', 'smg', 'deagle', 'sniper', 'maverick'][(k * 5 + 3) % 8]]));
-    const train = { z: 0, x0: -146, x1: 209.5, speed: 5, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
+    const train = { z: 0, x0: -146, x1: 209.5, speed: 7, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
     return { id: 'aberto', solids, deco, spawns, medkits, weapons, props, sx: SX, sz: SZ, train };
   })();
   const MAPS = { base: MAP_BASE, aberto: MAP_OPEN };
@@ -1473,6 +1497,65 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       // armas no chão: as do mapa voltam depois de um tempo; as largadas somem
       this.wpicks = (this.map.weapons || []).map(([x, y, z, w]) => ({ x, y, z, w, active: true, t: 0 })); this.drops = []; this.dropSeq = 0;
       this.onMatchEnd = null;
+      // início estilo battle royale (mapa aberto online): procurar jogadores -> lobby -> trem -> pular
+      this.br = !!o.br && !!this.map.train; this.brT = [o.brBusca || C.BR_BUSCA, o.brLobby || C.BR_LOBBY];
+      if (this.br) this.brReset();
+    }
+    brReset() {
+      this.ph = 'busca'; this.phEnd = this.time + this.brT[0]; this.trainStartAt = 0; this.matchTime = 0;
+      for (const p of this.players.values()) { p.alive = false; p.respawnAt = Infinity; p.train = null; }
+    }
+    // pontos do lobby: todos juntos ao lado do trem parado no depósito
+    lobbySpot(i) {
+      const col = i % 6, row = Math.floor(i / 6) % 5;
+      return [-185 + col * 2.2, 0, 7 + row * 2.2];
+    }
+    lobbySpawn(p, i) {
+      this.spawn(p);
+      const [x, y, z] = this.lobbySpot(i); p.x = x + (Math.random() - 0.5) * 0.4; p.y = y; p.z = z; p.yaw = Math.PI / 2;
+      p.spawnProt = this.phEnd + 999; p.train = null;
+    }
+    // embarca: cada jogador num lugar dentro de um vagão (2 fileiras de 5 por vagão)
+    board(p, i) {
+      const tr = this.map.train, car = Math.floor(i / 10) % tr.cars, k = i % 10;
+      p.train = { off: car * (tr.len + tr.gap) + 3 + (k >> 1) * 3.4, dz: (k & 1 ? 0.55 : -0.55) };
+      p.x = this.trainX - p.train.off; p.y = tr.y0 + 0.02; p.z = tr.z + p.train.dz; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      p.spawnProt = Infinity; p.yaw = -Math.PI / 2;
+    }
+    // pula do trem: cai do lado (de acordo com o lado do lugar), sem ficar dentro de parede
+    leap(p) {
+      if (!p.train) return;
+      const tr = this.map.train, side = p.train.dz >= 0 ? 1 : -1;
+      p.train = null;
+      let best = null;
+      for (const dx of [0, 1.5, -1.5, 3, -3, 5, -5]) for (const sd of [side, -side]) {
+        const x = p.x + dx, z = tr.z + sd * (tr.hw + C.R + 0.6);
+        if (!collides(x, 0.6, z, C.R, C.H)) { best = [x, z, sd]; break; }
+      }
+      if (!best) best = [p.x, tr.z + side * (tr.hw + 1.2), side];
+      p.x = best[0]; p.z = best[1]; p.y = 0.6; p.vx = 0; p.vz = best[2] * 3; p.vy = 4; p.onGround = false;
+      p.spawnProt = this.time + 2.5;
+      this.events.push({ e: 'leap', id: p.id });
+    }
+    brTick() {
+      const n = this.players.size;
+      if (!n) { if (this.ph !== 'busca') this.brReset(); else this.phEnd = this.time + this.brT[0]; return; }
+      if (this.ph === 'busca' && this.time >= this.phEnd) {
+        this.ph = 'lobby'; this.phEnd = this.time + this.brT[1]; let i = 0;
+        for (const p of this.players.values()) this.lobbySpawn(p, i++);
+        this.events.push({ e: 'br', ph: 'lobby' });
+      } else if (this.ph === 'lobby' && this.time >= this.phEnd) {
+        this.ph = 'trem'; this.trainStartAt = this.time; let i = 0;
+        for (const p of this.players.values()) { if (!p.alive) this.spawn(p); this.board(p, i++); }
+        this.events.push({ e: 'br', ph: 'trem' });
+      } else if (this.ph === 'trem') {
+        const tr = this.map.train;
+        this.phEnd = this.time + Math.max(0, (tr.x1 - this.trainX) / tr.speed);
+        if (this.trainX >= tr.x1 - 0.01) { // chegou: quem não pulou desce na estação
+          for (const p of this.players.values()) if (p.train) this.leap(p);
+          this.ph = 'livre'; this.matchTime = 0; this.events.push({ e: 'br', ph: 'livre' });
+        }
+      }
     }
     teamCount(t) { let n = 0; for (const p of this.players.values()) if (p.team === t) n++; return n; }
     addPlayer(info = {}) {
@@ -1492,7 +1575,10 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       };
       p.baseW = p.weapons.slice(); // armas do equipamento (voltam ao renascer)
       this.players.set(id, p);
-      this.spawn(p);
+      if (this.br && this.ph === 'busca') { p.alive = false; p.respawnAt = Infinity; }
+      else if (this.br && this.ph === 'lobby') this.lobbySpawn(p, this.players.size - 1);
+      else if (this.br && this.ph === 'trem') { this.spawn(p); this.board(p, this.players.size - 1); }
+      else this.spawn(p);
       this.rosterDirty = true;
       return p;
     }
@@ -1537,7 +1623,8 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         const inp = { dt: clamp(num(it[1]), 0, 0.05), f: it[2], s: it[3], yaw: it[4], pitch: it[5], b: it[6] };
         if (p.budget < inp.dt - 0.004) { p.ack = seq; continue; } // anti speed-hack
         p.budget -= inp.dt;
-        if (this.state === 'playing') applyInput(p, inp);
+        if (p.train) { p.yaw = num(inp.yaw, p.yaw); p.pitch = clamp(num(inp.pitch, p.pitch), -1.5, 1.5); }
+        else if (this.state === 'playing') applyInput(p, inp);
         p.ack = seq; p.lastInput = this.time;
       }
     }
@@ -1545,6 +1632,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       useMap(this.map, this.dyn);
       const p = this.players.get(id);
       if (!p || !a || this.state !== 'playing') return;
+      if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'trem') this.leap(p); if (this.ph !== 'trem' || p.train) return; }
       switch (a.a) {
         case 'shoot': return this.shoot(p, a);
         case 'reload': return this.reload(p);
@@ -1724,20 +1812,22 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     }
     restart() {
       this.state = 'playing'; this.matchTime = 0; this.trainSt = 0; this.score = [0, 0]; this.firstBlood = false; this.round = 1; this.roundEndAt = 0; this.roundWinners = [];
-      for (const p of this.players.values()) { p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; this.spawn(p); }
+      for (const p of this.players.values()) { p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; if (!this.br) this.spawn(p); }
+      if (this.br) this.brReset();
       for (const m of this.medkits) m.active = true;
       for (const w of this.wpicks) w.active = true; this.drops = [];
       this.events.push({ e: 'start' });
     }
     // trem: anda pelo trilho conforme o tempo da partida e empurra quem estiver na frente para o lado
     trainTick() {
-      const tr = this.map.train, x = trainFront(tr, this.matchTime), moving = this.matchTime > tr.delay && x < tr.x1;
+      const tr = this.map.train, tt = this.br ? (this.trainStartAt ? this.time - this.trainStartAt + tr.delay : 0) : this.matchTime;
+      const x = trainFront(tr, tt), moving = tt > tr.delay && x < tr.x1;
       this.trainX = x; trainBoxes(tr, x, this.dyn, moving);
       const st = moving ? 1 : x >= tr.x1 ? 2 : 0;
       if (st !== this.trainSt) { this.trainSt = st; if (st) this.events.push({ e: 'train', s: st }); }
       const back = x - tr.cars * (tr.len + tr.gap);
       for (const p of this.players.values()) {
-        if (!p.alive || p.x + C.R < back || p.x - C.R > x || Math.abs(p.z - tr.z) > tr.hw + C.R || p.y > tr.y1 - 0.05) continue;
+        if (!p.alive || p.train || p.x + C.R < back || p.x - C.R > x || Math.abs(p.z - tr.z) > tr.hw + C.R || p.y > tr.y1 - 0.05) continue;
         const h = p.crouch ? C.HC : C.H, side = p.z >= tr.z ? 1 : -1;
         let nz = tr.z + side * (tr.hw + C.R + 0.03);
         if (collides(p.x, p.y, nz, C.R, h)) nz = tr.z - side * (tr.hw + C.R + 0.03);
@@ -1755,7 +1845,8 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       useMap(this.map, this.dyn);
       this.time += dt;
       if (this.state === 'ended') { if (this.time >= this.endAt) this.restart(); return; }
-      this.matchTime += dt;
+      if (this.br) this.brTick();
+      if (!this.br || this.ph === 'livre') this.matchTime += dt;
       if (this.map.train) this.trainTick();
       if (this.timeLimit && this.matchTime >= this.timeLimit) { this.endMatch(); return; }
       if (this.roundEndAt && this.time >= this.roundEndAt) this.nextRound();
@@ -1763,6 +1854,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         p.budget = Math.min(0.5, p.budget + dt);
         p.bloom = Math.max(0, p.bloom - dt * 0.12);
         if (!p.alive) { if (this.time >= p.respawnAt) this.spawn(p); continue; }
+        if (p.train) { p.x = this.trainX - p.train.off; p.z = this.map.train.z + p.train.dz; p.y = this.map.train.y0 + 0.02; p.vx = p.vy = p.vz = 0; continue; }
         if (p.reloadUntil && this.time >= p.reloadUntil) {
           p.reloadUntil = 0;
           const w = weaponOf(p), am = p.ammo[w.id];
@@ -1909,6 +2001,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       const mk = maskOf(this.medkits);
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
       if (this.map.train) s.tr = r2(this.trainX);
+      if (this.br) { s.ph = this.ph; s.pe = this.ph === 'livre' ? 0 : Math.max(0, Math.ceil(this.phEnd - this.time)); s.pn = this.players.size; }
       if (this.wpicks.length) s.wk = maskOf(this.wpicks);
       if (this.drops.length) s.dw = this.drops.map((d) => [d.id, r2(d.x), r2(d.y), r2(d.z), WEAPON_LIST.indexOf(d.w)]);
       return s;
@@ -1920,6 +2013,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         hp: p.hp, al: p.alive ? 1 : 0, cur: p.cur, w: p.weapons, mag: am.mag, res: am.res,
         rl: p.reloadUntil ? r2(p.reloadUntil - this.time) : 0, mu: p.medUntil ? r2(p.medUntil - this.time) : 0, mk: p.medkits,
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
+        tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
       };
     }
   }
@@ -3805,6 +3899,8 @@ const Sfx = (() => {
       if (!this.timeOffInit || Math.abs(off - this.timeOff) > 0.5) { this.timeOff = off; this.timeOffInit = true; } else this.timeOff += (off - this.timeOff) * 0.05;
       this.score = s.sc; this.timeLeft = s.tl; this.round = s.rd; this.state = s.st; this.medMask = s.mk;
       this.wkMask = s.wk || 0; this.drops = s.dw || null;
+      if ((s.ph || null) !== this.brPh) { this.brPh = s.ph || null; this.brT0 = now(); this.brDur = Math.max(1, s.pe || 1); }
+      this.brPe = s.pe; this.brPn = s.pn;
       if (this.train && s.tr != null) { const tr = this.train; tr.moving = s.tr > tr.x + 0.001 || (tr.moving && s.tr < this.map.train.x1); if (s.tr < tr.x - 1) tr.moving = false; tr.x = s.tr; tr.t = now(); }
       if (s.me && this.myId !== s.me.id) this.myId = s.me.id;
       const seen = new Set();
@@ -3829,6 +3925,12 @@ const Sfx = (() => {
       L.weapons = me.w; L.medUntil = me.mu > 0 ? 1 : 0;
       if (now() - fw.switchAt > 0.6) L.cur = me.cur;
       L.alive = !!me.al;
+      const wasRiding = this.riding; this.riding = !!me.tn; this.rideOff = [me.to || 0, me.tz || 0];
+      if (me.al && (this.riding || wasRiding)) { // dentro do trem (ou acabou de pular): segue a posição do servidor
+        L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = false; this.pending = []; this.visOff = [0, 0, 0];
+        if (!wasAlive) { $('death').style.display = 'none'; this.prevHp = me.hp; }
+        this.me = me; return;
+      }
       if (!me.al) { L.x = me.x; L.y = me.y; L.z = me.z; this.pending = []; this.visOff = [0, 0, 0]; return; }
       if (!wasAlive) { // renasceu
         L.x = me.x; L.y = me.y; L.z = me.z; L.vx = L.vy = L.vz = 0; this.pending = []; this.visOff = [0, 0, 0];
@@ -3896,7 +3998,14 @@ const Sfx = (() => {
         }
         case 'medstart': if (e.id === me) { this.fw.medStart = now(); Sfx.med(); } break;
         case 'spawn': break;
+        case 'br':
+          if (e.ph === 'lobby') { center('👥 LOBBY — todos juntos! Prepare-se', 2.5); Sfx.horn(); }
+          else if (e.ph === 'trem') { center('🚆 TODOS NO TREM! Pule onde quiser para pegar armas e kits', 3.5); Sfx.horn(); }
+          else if (e.ph === 'livre') center('🚉 O trem chegou: todos desceram!', 2.5);
+          break;
+        case 'leap': if (e.id === me) { center('Boa sorte! Procure armas e kits médicos', 2); this.look.pitch = 0; } break;
         case 'train':
+          if (this.brPh) break;
           if (e.s === 1) { center('🚆 O TREM PARTIU DO DEPÓSITO!', 2.2); Sfx.horn(); }
           else if (e.s === 2) { center('🚉 O TREM CHEGOU À ESTAÇÃO', 2.2); Sfx.horn(); }
           break;
@@ -3998,12 +4107,17 @@ const Sfx = (() => {
         const step = Math.min(rem, 0.05); rem -= step;
         const inp = { seq: ++this.seq, dt: step, f, s, yaw: this.look.yaw, pitch: this.look.pitch, b };
         const wasG = L.onGround;
+        if (this.riding) { inp.f = inp.s = inp.b = 0; this.outbox.push([inp.seq, step, 0, 0, inp.yaw, inp.pitch, 0]); continue; }
         S.applyInput(L, inp);
         if (!wasG && L.onGround && this.lastVy < -6) Sfx.land();
         this.lastVy = L.vy;
         if (L.alive) { this.pending.push(inp); this.outbox.push([inp.seq, step, f, s, inp.yaw, inp.pitch, b]); }
       }
       if (this.pending.length > 120) this.pending.splice(0, this.pending.length - 120);
+      if (this.riding) { // no trem: acompanha o vagão; pular = descer do trem
+        const T = this.map.train; L.x = this.trainNow() - this.rideOff[0]; L.z = T.z + this.rideOff[1]; L.y = T.y0 + 0.02; L.vx = L.vy = L.vz = 0;
+        if (keys.Space || Touch.held.jump) this.leap();
+      }
       if (this.outbox.length && (this.conn.offline || t - this.lastSend > 0.033)) { this.conn.send({ t: 'in', l: this.outbox.splice(0, 20) }); this.lastSend = t; }
       // passos
       const spd = Math.hypot(L.vx, L.vz);
@@ -4229,7 +4343,8 @@ const Sfx = (() => {
       if (L.alive) {
         this.camRoll = lerp(this.camRoll, 0, 0.2); cam = { x: eye[0], y: eye[1], z: eye[2], yaw: this.look.yaw, pitch: this.look.pitch, roll: this.camRoll };
         const w0 = this.curW();
-        if (CFG.tps && fw.adsT < 0.6) cam = this.tpsCam(eye); // mirando (MIRA): vai para a visão da arma, como nos battle royale
+        if (this.riding) cam = this.trainCam(eye);
+        else if (CFG.tps && fw.adsT < 0.6) cam = this.tpsCam(eye); // mirando (MIRA): vai para a visão da arma, como nos battle royale
       }
       else {
         const dt0 = this.deathInfo ? Math.min(1, (t - this.deathInfo.t) / 0.7) : 1;
@@ -4261,6 +4376,31 @@ const Sfx = (() => {
       const cam = { x: px - f[0] * this.camD, y: Math.max(0.25, hy - f[1] * this.camD), z: pz - f[2] * this.camD, yaw, pitch, roll: 0 };
       this.tpsOn = true; this.camPos = [cam.x, cam.y, cam.z];
       return cam;
+    },
+    // no trem: câmera alta atrás do jogador, para ver o mapa e escolher onde pular
+    trainCam(eye) {
+      const f = S.aimDir(this.look.yaw, Math.min(-0.15, this.look.pitch - 0.35)), D = 9;
+      const cam = { x: eye[0] - f[0] * D, y: eye[1] + 3.2 - f[1] * D, z: eye[2] - f[2] * D, yaw: this.look.yaw, pitch: Math.min(-0.15, this.look.pitch - 0.35), roll: 0 };
+      this.tpsOn = true; this.camD = D; this.camPos = [cam.x, cam.y, cam.z];
+      return cam;
+    },
+    leap() { if (!this.riding || this.leapAt && now() - this.leapAt < 1) return; this.leapAt = now(); this.conn.send({ t: 'act', a: 'leap' }); Sfx.horn && Sfx.jump && Sfx.jump(); },
+    // mapa aberto online: procurando jogadores -> lobby -> trem
+    brHud() {
+      const ov = $('brov'), lp = $('brleap'), ph = this.active ? this.brPh : null;
+      const left = ph ? Math.max(0, Math.ceil((this.brDur || 1) - (now() - (this.brT0 || now())))) : 0;
+      const sec = ph === 'trem' ? this.brPe : Math.min(this.brPe != null ? this.brPe : left, left || this.brPe || 0);
+      const cls = ph === 'busca' ? 'brfull' : ph === 'lobby' || ph === 'trem' ? 'brtop' : '';
+      if (ov.className !== cls) ov.className = cls;
+      lp.style.display = ph === 'trem' && this.riding ? 'block' : 'none';
+      if (!cls) return;
+      const n = this.brPn || 1;
+      if (ph === 'busca') { setT($('brt'), 'PROCURANDO JOGADORES'); setT($('brs'), n + (n === 1 ? ' jogador encontrado' : ' jogadores encontrados') + ' · até 30'); }
+      else if (ph === 'lobby') { setT($('brt'), 'LOBBY · A PARTIDA COMEÇA EM'); setT($('brs'), n + (n === 1 ? ' jogador' : ' jogadores') + ' · depois todos entram no trem'); }
+      else { setT($('brt'), this.riding ? 'NO TREM · PULE ONDE QUISER' : 'O TREM CHEGA NA ESTAÇÃO EM'); setT($('brs'), this.riding ? 'Toque em PULAR DO TREM (ou espaço) — o trem para no fim da linha' : 'Procure armas e kits médicos!'); }
+      setT($('brn'), ph === 'trem' ? sec + 's' : String(sec));
+      const tot = ph === 'busca' ? 15 : ph === 'lobby' ? 20 : this.brDur || 50;
+      $('brbar').style.width = Math.max(0, Math.min(100, (1 - sec / tot) * 100)) + '%';
     },
     // o próprio personagem (3ª pessoa): mesmo boneco/animações dos outros jogadores
     selfItems(items) {
@@ -4755,7 +4895,8 @@ const Sfx = (() => {
     },
   };
   Touch.build($('touch'));
-  $('radar').addEventListener('click', () => Game.toggleMap(true)); $('bigmap').addEventListener('click', () => Game.toggleMap(false));
+  $('radar').addEventListener('click', () => Game.toggleMap(true));
+  $('brleap').addEventListener('click', () => Game.leap()); $('brx').addEventListener('click', () => pause()); $('brleap').addEventListener('touchstart', (e) => { e.preventDefault(); Game.leap(); }, { passive: false }); $('bigmap').addEventListener('click', () => Game.toggleMap(false));
   // ---- rotação de tela: converte coordenadas da tela para o espaço (possivelmente girado) do jogo
   let rotated = false, VK = null;
   const VW = () => (rotated ? innerHeight : innerWidth), VH = () => (rotated ? innerWidth : innerHeight);
@@ -5409,7 +5550,7 @@ const Sfx = (() => {
         if (!Game.active) return;
         const f = Game.buildFrame();
         R.render(f);
-        Game.overlay(); Game.radar();
+        Game.overlay(); Game.radar(); Game.brHud();
       } else if (STORE_SCR.includes(curScreen) || curScreen === 'menu') {
         R.render(Preview.frame());
       } else {
