@@ -12,6 +12,7 @@
   // ---------------------------------------------------------------- constantes
   const C = {
     GRAV: 22, JUMP: 7.2, WALK: 5.0, SPRINT: 7.4, CROUCH: 2.4,
+    SHOP_START: 800, SHOP_KILL: 150, SHOP_ROUND: 400, SHOP_MAX: 4000, SHOP_DIST: 3.4, // fichas da lojinha das arenas
     R: 0.38, H: 1.8, HC: 1.2, EYE: 1.62, EYEC: 1.05, STEP: 0.55,
     DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
@@ -816,9 +817,81 @@
     return { id: 'ilha', name: 'Ilha', solids, deco, spawns, medkits, weapons, ammo, props: [], sx: SX, sz: SZ, train, cars, zone, zoneW: NW, zoneH: NH, zoneG: ZG, sea: true };
   })();
 
-  const MAPS = { base: MAP_BASE, aberto: MAP_OPEN, ilha: MAP_ISLAND };
+  // ================================================================ ARENAS (mata-mata 4x4 e X1–X4)
+  // Recorte de um pedaço dos mapas do Mapa aberto (os originais ficam iguais): muralha em volta, base de cada
+  // equipe nos lados opostos e uma lojinha no chão em cada base (armas grátis; kit, capacete e colete com fichas).
+  function makeArena(src, id, name, cx, cz, hx, hz, wallT) {
+    const { solids, deco, add, bx } = builder();
+    const x0 = cx - hx, x1 = cx + hx, z0 = cz - hz, z1 = cz + hz;
+    const inside = (x, z) => x > x0 && x < x1 && z > z0 && z < z1;
+    const cut = (b, solid) => {
+      if (b[6] === 'tree' || b[6] === 'trunk') { if (!inside((b[0] + b[3]) / 2, (b[2] + b[5]) / 2)) return; }
+      if (b[3] <= x0 || b[0] >= x1 || b[5] <= z0 || b[2] >= z1) return;
+      const nb = [Math.max(b[0], x0) - cx, b[1], Math.max(b[2], z0) - cz, Math.min(b[3], x1) - cx, b[4], Math.min(b[5], z1) - cz, b[6], b[7]];
+      if (nb[3] - nb[0] < 0.05 || nb[5] - nb[2] < 0.05) return;
+      (solid ? solids : deco).push(nb);
+    };
+    for (const b of src.solids) cut(b, true);
+    for (const b of src.deco) cut(b, false);
+    const props = (src.props || []).filter((p) => inside(p[1], p[2])).map((p) => [p[0], p[1] - cx, p[2] - cz, p[3]]);
+    // muralha
+    const T = 1, H = 5;
+    bx(0, -hz - T / 2, 2 * hx + 2 * T, T, H, wallT); bx(0, hz + T / 2, 2 * hx + 2 * T, T, H, wallT);
+    bx(-hx - T / 2, 0, T, 2 * hz, H, wallT); bx(hx + T / 2, 0, T, 2 * hz, H, wallT);
+    let seed = id.length * 7919 + 13; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const hit = (x, z, r, h = 1.8) => solids.some((b) => x + r > b[0] && x - r < b[3] && z + r > b[2] && z - r < b[5] && b[1] < h && b[4] > 0.05);
+    // lojinha de cada base: balcão, toldo colorido, placa e caixotes
+    const shops = [];
+    for (const team of [0, 1]) {
+      const side = team === 0 ? -1 : 1, col = team === 0 ? [0.2, 0.45, 0.9] : [0.9, 0.25, 0.2];
+      let sx = side * (hx - 6), sz = 0;
+      for (let g = 0; g < 200 && hit(sx, sz, 2.6, 3); g++) { sx = side * (hx - 4 - rnd() * 12); sz = (rnd() * 2 - 1) * (hz - 6); }
+      // limpa o espaço da loja (tira árvores e caixas pequenas que sobraram ali)
+      for (let i = solids.length - 1; i >= 0; i--) { const b = solids[i]; if (b[4] < 4 && b[3] > sx - 3 && b[0] < sx + 3 && b[5] > sz - 3 && b[2] < sz + 3) solids.splice(i, 1); }
+      for (let i = deco.length - 1; i >= 0; i--) { const b = deco[i]; if (b[6] === 'tree' && b[3] > sx - 3 && b[0] < sx + 3 && b[5] > sz - 3 && b[2] < sz + 3) deco.splice(i, 1); }
+      add(sx - 1.3, 0, sz - 0.45, sx + 1.3, 1.0, sz + 0.45, 'shop', true, [0.55, 0.38, 0.22]); // balcão
+      add(sx - 1.35, 1.0, sz - 0.5, sx + 1.35, 1.06, sz + 0.5, 'shop', true, [0.85, 0.85, 0.82]); // tampo
+      for (const [px, pz] of [[-1.3, -0.45], [1.3, -0.45], [-1.3, 0.45], [1.3, 0.45]]) add(sx + px - 0.06, 1.06, sz + pz - 0.06, sx + px + 0.06, 2.6, sz + pz + 0.06, 'pole', true, [0.3, 0.3, 0.32]);
+      add(sx - 1.55, 2.6, sz - 0.75, sx + 1.55, 2.72, sz + 0.75, 'shop', false, col); // toldo
+      add(sx - 0.9, 2.72, sz - 0.04, sx + 0.9, 3.25, sz + 0.04, 'shop', false, [0.98, 0.82, 0.2]); // placa
+      bx(sx + 2.0, sz + 0.3, 0.8, 0.8, 0.8, 'crate'); bx(sx - 2.0, sz - 0.3, 0.8, 0.8, 0.8, 'crate');
+      shops.push([Math.round(sx * 10) / 10, Math.round(sz * 10) / 10, team]);
+    }
+    // nascimentos: cada equipe do seu lado, virada para o centro
+    const sp = { 0: [], 1: [] };
+    for (const team of [0, 1]) {
+      const side = team === 0 ? -1 : 1;
+      for (let g = 0; g < 4000 && sp[team].length < 10; g++) {
+        const x = side * (hx - 2.5 - rnd() * 13), z = (rnd() * 2 - 1) * (hz - 3);
+        if (hit(x, z, 0.8) || sp[team].some((s) => Math.hypot(s[0] - x, s[2] - z) < 3.5)) continue;
+        sp[team].push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, side < 0 ? -Math.PI / 2 : Math.PI / 2]);
+      }
+    }
+    const ffa = [];
+    for (let g = 0; g < 4000 && ffa.length < 24; g++) { const x = (rnd() * 2 - 1) * (hx - 3), z = (rnd() * 2 - 1) * (hz - 3); if (!hit(x, z, 0.8)) ffa.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, Math.atan2(x, z)]); }
+    const spawns = { 0: sp[0], 1: sp[1], x1: { 0: sp[0], 1: sp[1] }, ffa };
+    const medkits = (src.medkits || []).filter((m) => inside(m[0], m[2])).slice(0, 8).map((m) => [m[0] - cx, m[1], m[2] - cz]);
+    const out = { id, name, arena: true, solids, deco, spawns, medkits, weapons: [], ammo: [], props, sx: hx, sz: hz, shops, cars: [] };
+    if (src.zone) { // chão com as cores das regiões da Ilha (sem mar em volta: grama além da muralha)
+      const g = src.zoneG, NW = Math.round(2 * hx / g), NH = Math.round(2 * hz / g), zone = new Uint8Array(NW * NH);
+      for (let j = 0; j < NH; j++) for (let i = 0; i < NW; i++) {
+        const x = cx - hx + (i + 0.5) * g, z = cz - hz + (j + 0.5) * g, si = Math.floor((x + src.sx) / g), sj = Math.floor((z + src.sz) / g);
+        zone[j * NW + i] = Math.max(2, src.zone[sj * src.zoneW + si]);
+      }
+      Object.assign(out, { zone, zoneW: NW, zoneH: NH, zoneG: g, outside: 'grass' });
+    }
+    return out;
+  }
+  const ARENA_CIDADE = makeArena(MAP_OPEN, 'arena_cidade', 'Arena Cidade', -176, 142, 42, 30, 'concrete');
+  const ARENA_ILHA = makeArena(MAP_ISLAND, 'arena_ilha', 'Arena Ilha', -42, 64, 40, 32, 'stone');
+  const ARENAS = ['arena_cidade', 'arena_ilha'];
+  // lojinha das arenas: armas grátis; kit, capacete e colete custam fichas da partida
+  const SHOP = { kit: { name: 'Kit médico', price: 150 }, helmet: { name: 'Capacete', price: 250 }, vest: { name: 'Colete', price: 350 } };
+  const MAPS = { base: MAP_BASE, aberto: MAP_OPEN, ilha: MAP_ISLAND, arena_cidade: ARENA_CIDADE, arena_ilha: ARENA_ILHA };
   const OPEN_MAPS = ['aberto', 'ilha']; // mapas do modo Mapa aberto (o jogador escolhe)
-  const mapFor = (mode, id) => (mode === 'aberto' ? (id === 'ilha' ? MAP_ISLAND : MAP_OPEN) : MAP_BASE);
+  const isRoundsM = (m) => /^x[1-4]$/.test(m);
+  // Mapa aberto: Cidade ou Ilha · mata-mata e X1–X4: arenas · 1 contra todos e treino: mapa base
+  const mapFor = (mode, id) => (mode === 'aberto' ? (id === 'ilha' ? MAP_ISLAND : MAP_OPEN) : mode === 'tdm' || isRoundsM(mode) ? (id === 'arena_ilha' ? ARENA_ILHA : ARENA_CIDADE) : MAP_BASE);
   const isFFA = (mode) => mode === 'ffa' || mode === 'aberto';
   // grade espacial para colisão rápida (mapas grandes)
   function indexMap(m) {
@@ -1242,6 +1315,7 @@
     constructor(o = {}) {
       this.mode = isFFA(o.mode) || isRounds(o.mode) ? o.mode : 'tdm';
       this.map = indexMap(mapFor(this.mode, o.map)); this.mapId = this.map.id; this.dyn = [];
+      this.shop = !!this.map.shops && !o.training; // arenas: lojinha no chão
       this.cars = (this.map.cars || []).map(([x, z, yaw], id) => ({ id, x, z, yaw, v: 0, st: 0, seats: [0, 0], home: [x, z, yaw], idle: 0 })); this.trainX = this.map.train ? this.map.train.x0 : 0; this.trainSt = 0;
       this.rounds = isRounds(this.mode); this.teamSize = this.rounds ? +this.mode[1] : 0;
       this.training = !!o.training;
@@ -1428,9 +1502,18 @@
         }
       }
       p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
-      if (p.baseW) p.weapons = p.baseW.slice();
+      const keep = this.rounds && this.shop && p.alive && p.round === this.round - 1; // X1–X4: quem sobreviveu ao round mantém o que comprou
+      p.round = this.round;
+      if (p.money == null) p.money = this.shop ? C.SHOP_START : 0;
+      if (!keep) { p.helmet = 0; p.vest = 0; }
+      if (p.baseW && !keep) p.weapons = p.baseW.slice();
       p.hp = C.MAXHP; p.alive = true; p.streak = 0; p.cur = 0; p.bloom = 0;
       p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0;
+      if (this.shop && p.bot && !keep) { // bots também passam na lojinha
+        const w = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'maverick', 'sniper'][Math.floor(Math.random() * 8)]; p.weapons[0] = w;
+        if (p.money >= 350 && Math.random() < 0.7) { p.money -= 350; p.vest = 100; }
+        if (p.money >= 250 && Math.random() < 0.5) { p.money -= 250; p.helmet = 100; }
+      }
       p.medkits = C.MEDKITS_START + (p.upgrades.includes('medbag') ? 1 : 0);
       p.spawnProt = this.time + C.SPAWN_PROT;
       for (const w of p.weapons) p.ammo[w] = { mag: WEAPONS[w].mag, res: WEAPONS[w].reserve };
@@ -1466,6 +1549,7 @@
           return;
         }
         case 'grab': if (p.car) return; return this.grab(p, a);
+        case 'buy': return this.buy(p, String(a.it || ''));
         case 'car': return this.enterCar(p, a.id, a.seat);
         case 'carx': return this.leaveCar(p);
         case 'med':
@@ -1554,6 +1638,11 @@
     }
     damage(v, att, d, head, wid) {
       if (!v.alive || this.time < v.spawnProt || this.roundEndAt) return;
+      if (wid !== 'car') { // capacete protege a cabeça, colete o corpo (gastam com os tiros)
+        if (head && v.helmet > 0) { v.helmet = Math.max(0, v.helmet - d * 0.5); d *= 0.55; }
+        else if (!head && v.vest > 0) { v.vest = Math.max(0, v.vest - d * 0.5); d *= 0.6; }
+        d = Math.max(1, Math.round(d));
+      }
       v.hp = Math.max(0, v.hp - d);
       if (v.medUntil) v.medUntil = 0; // dano interrompe kit médico
       this.events.push({ e: 'hit', a: att.id, v: v.id, d, hs: head ? 1 : 0, x: r2(att.x), z: r2(att.z) });
@@ -1565,6 +1654,7 @@
       this.events.push({ e: 'kill', k: k.id, v: v.id, w: wid, hs: head ? 1 : 0 });
       if (this.rounds) return this.roundKill(v, k);
       if (k === v) return;
+      if (this.shop) k.money = Math.min(C.SHOP_MAX, (k.money | 0) + C.SHOP_KILL);
       k.kills++; k.streak++; k.stats.streakMax = Math.max(k.stats.streakMax, k.streak);
       if (head) k.stats.hs++;
       this.award(k, 100, 'Eliminação');
@@ -1581,6 +1671,7 @@
     roundKill(v, k) {
       v.respawnAt = Infinity;
       if (k !== v) {
+        if (this.shop) k.money = Math.min(C.SHOP_MAX, (k.money | 0) + C.SHOP_KILL);
         k.kills++; k.streak++; k.stats.streakMax = Math.max(k.stats.streakMax, k.streak);
         this.award(k, 100, 'Eliminação');
       }
@@ -1608,6 +1699,7 @@
     }
     nextRound() {
       this.roundEndAt = 0; this.round++;
+      if (this.shop) for (const p of this.players.values()) p.money = Math.min(C.SHOP_MAX, (p.money | 0) + C.SHOP_ROUND);
       for (const p of this.players.values()) this.spawn(p);
       for (const m of this.medkits) m.active = true;
       for (const w of this.wpicks) w.active = true; this.drops = []; for (const a of this.ammos) a.active = true;
@@ -1641,6 +1733,7 @@
     restart() {
       this.state = 'playing'; this.matchTime = 0; this.trainSt = 0; this.score = [0, 0]; this.firstBlood = false; this.round = 1; this.roundEndAt = 0; this.roundWinners = [];
       for (const p of this.players.values()) { if (p.car) this.leaveCar(p, true); p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; if (!this.br) this.spawn(p); }
+      for (const p of this.players.values()) { p.money = this.shop ? C.SHOP_START : 0; }
       for (const c of this.cars) { c.x = c.home[0]; c.z = c.home[1]; c.yaw = c.home[2]; c.v = 0; c.st = 0; c.seats = [0, 0]; }
       if (this.br) this.brReset();
       for (const m of this.medkits) m.active = true;
@@ -1725,6 +1818,20 @@
       if (this.history.length > 15) this.history.shift();
     }
     // ---------------- IA dos bots
+    // lojinha: comprar arma (grátis), kit, capacete ou colete perto do balcão
+    buy(p, it) {
+      if (!this.shop || !p.alive || p.car || !p.ai && !this.nearShop(p)) return;
+      const ok = (price) => { if ((p.money | 0) < price) { this.events.push({ e: 'buyno', id: p.id }); return false; } p.money -= price; return true; };
+      if (WEAPONS[it]) {
+        const w = WEAPONS[it], slot = w.slot ? 1 : 0;
+        p.weapons[slot] = it; p.ammo[it] = { mag: w.mag, res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
+      } else if (it === 'kit') { if (p.medkits >= C.MEDKITS_MAX || !ok(SHOP.kit.price)) return; p.medkits++; }
+      else if (it === 'helmet') { if (p.helmet >= 100 || !ok(SHOP.helmet.price)) return; p.helmet = 100; }
+      else if (it === 'vest') { if (p.vest >= 100 || !ok(SHOP.vest.price)) return; p.vest = 100; }
+      else return;
+      this.events.push({ e: 'buy', id: p.id, it });
+    }
+    nearShop(p) { for (const s of this.map.shops || []) if (Math.hypot(p.x - s[0], p.z - s[1]) < C.SHOP_DIST && p.y < 1.5) return true; return false; }
     addBot(team) {
       useMap(this.map, this.dyn, this.cars);
       const used = new Set([...this.players.values()].map((p) => p.name));
@@ -1837,7 +1944,7 @@
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
       }
       const mk = maskOf(this.medkits);
@@ -1859,6 +1966,7 @@
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
         tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
+        $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
       };
     }
   }
@@ -1868,7 +1976,7 @@
 
   return {
     isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
-    clamp, collides, applyInput, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, OPEN_MAPS, raycastWorld, rayPlayer, aimDir, weaponOf,
+    clamp, collides, applyInput, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,
   };

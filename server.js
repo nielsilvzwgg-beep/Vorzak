@@ -236,10 +236,10 @@ class Room {
   constructor(o) {
     this.id = newRoomId(); nextRoomId++; this.name = S.sanitizeChat(o.name).slice(0, 28) || 'Sala ' + this.id;
     this.mode = S.isFFA(o.mode) || S.isRounds(o.mode) ? o.mode : 'tdm'; this.priv = !!o.priv; this.ranked = !!o.ranked; this.persistent = !!o.persistent;
-    this.max = S.isRounds(this.mode) ? 2 * +this.mode[1] : this.mode === 'aberto' ? S.clamp(o.max | 0 || 30, 2, 30) : S.clamp(o.max | 0 || 10, 2, 12); this.code = String(this.id); this.owner = o.owner || 0;
+    this.max = S.isRounds(this.mode) ? 2 * +this.mode[1] : this.mode === 'aberto' ? S.clamp(o.max | 0 || 30, 2, 30) : this.mode === 'tdm' ? S.clamp(o.max | 0 || 8, 2, 8) : S.clamp(o.max | 0 || 10, 2, 12); this.code = String(this.id); this.owner = o.owner || 0; // mata-mata: 4 contra 4
     this.sqs = this.mode === 'aberto' ? ([1, 2, 4].includes(o.sqs) ? o.sqs : 1) : 1; // mapa aberto: solo (1), duo (2) ou squad (4)
     this.squads = new Map(); this.nextSq = 1; // equipes da sala: id -> { n, open }
-    this.mapId = this.mode === 'aberto' ? (S.OPEN_MAPS.includes(o.map) ? o.map : 'aberto') : 'base'; // mapa aberto: Cidade ou Ilha
+    this.mapId = this.mode === 'aberto' ? (S.OPEN_MAPS.includes(o.map) ? o.map : 'aberto') : this.mode === 'tdm' || S.isRounds(this.mode) ? (S.ARENAS.includes(o.map) ? o.map : 'arena_cidade') : 'base'; // mapa aberto: Cidade ou Ilha · mata-mata e X1–X4: arenas
     this.sim = new S.GameSim({ mode: this.mode, map: this.mapId, ranked: this.ranked, br: this.mode === 'aberto', brBusca: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0, brLobby: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0 }); // mapa aberto online: procurar jogadores -> lobby -> trem
     this.sim.onMatchEnd = (results, win) => this.onMatchEnd(results, win);
     this.members = new Map(); // pid -> client
@@ -365,7 +365,7 @@ class Room {
   }
 }
 // salas públicas permanentes
-new Room({ name: 'Mata-mata #1 (público)', mode: 'tdm', persistent: true, max: 12 });
+new Room({ name: 'Mata-mata #1 (público)', mode: 'tdm', map: 'arena_cidade', persistent: true, max: 8 });
 new Room({ name: 'Todos contra todos #1', mode: 'ffa', persistent: true, max: 10 });
 new Room({ name: 'Mapa aberto #1', mode: 'aberto', persistent: true, max: 30 });
 
@@ -546,8 +546,9 @@ function handle(c, m) {
       // mapa aberto: só entra em sala que ainda está procurando jogadores ou no lobby; senão abre outra sala
       // (assim todo mundo sempre passa por: procurar jogadores -> lobby -> trem)
       const brOk = (r) => mode !== 'aberto' || !r.sim.br || r.sim.ph === 'busca' || (r.sim.ph === 'lobby' && r.sim.phEnd - r.sim.time > 3);
-      for (const r of rooms.values()) if (!r.priv && r.mode === mode && r.ranked === ranked && !r.waiting && r.members.size < r.max && brOk(r) && (!best || r.members.size > best.members.size)) best = r;
-      if (!best) best = new Room({ name: ranked ? 'Ranqueado #' + nextRoomId : (mode === 'aberto' ? 'Mapa aberto #' + nextRoomId : mode === 'ffa' ? 'Todos contra todos' : S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata'), mode, ranked, max: ranked ? 10 : mode === 'aberto' ? 30 : 12 });
+      const arena = mode === 'tdm' || S.isRounds(mode) ? (S.ARENAS.includes(m.map) ? m.map : 'arena_cidade') : null;
+      for (const r of rooms.values()) if (!r.priv && r.mode === mode && r.ranked === ranked && !r.waiting && r.members.size < r.max && brOk(r) && (!arena || r.mapId === arena) && (!best || r.members.size > best.members.size)) best = r;
+      if (!best) best = new Room({ name: ranked ? 'Ranqueado #' + nextRoomId : (mode === 'aberto' ? 'Mapa aberto #' + nextRoomId : mode === 'ffa' ? 'Todos contra todos' : (S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata') + (arena === 'arena_ilha' ? ' · Arena Ilha' : ' · Arena Cidade')), mode, ranked, map: arena, max: mode === 'aberto' ? 30 : mode === 'tdm' ? 8 : 12 });
       return best.join(c);
     }
     case 'leave': if (room) room.leave(c); else if (c.wroom) c.wroom.wleave(c); return;

@@ -276,6 +276,17 @@ body.lshort #sttabs .btn{font-size:13px;padding:4px 8px}
 .ffbtn{background:#2a2e36;border:1px solid #555;color:#fff;font:700 14px Rajdhani,sans-serif;padding:8px 14px;text-transform:uppercase;margin:0;flex:none}
 .ffreset{width:100%;background:#1c1f25;border:1px solid #444;color:#fff;font:700 14px Rajdhani,sans-serif;padding:9px;margin-bottom:6px;text-transform:uppercase}
 body.setopen #hud,body.setopen #touch{display:none!important}
+/* lojinha das arenas */
+#armor{display:flex;gap:8px;margin-left:10px;font:700 14px Rajdhani,sans-serif;align-items:center}#armor span{opacity:.45}#armor span.on{opacity:1;color:#9fd2ff}#armor b{color:var(--y)}
+.tbtn.shopb{background:rgba(220,160,20,.5);border-color:#ffd23c}
+#shopm{position:fixed;inset:0;z-index:55;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45)}#shopm.on{display:flex}
+#shopbox{width:min(760px,94vw);max-height:88vh;overflow:auto;background:#141a24;border:1px solid rgba(255,255,255,.15);border-top:3px solid var(--y);padding:10px 12px}
+.shop-top{display:flex;align-items:center;gap:12px;font-size:20px}.shop-top>b{flex:1;color:var(--y)}.shop-top .money{color:var(--y)}
+.shop-sec{margin:8px 0 4px;color:var(--dim);font-size:13px;letter-spacing:1px;text-transform:uppercase}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.shop-it{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:7px 9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
+.shop-it b{font-size:15px}.shop-it small{color:var(--dim);font-size:11px}.shop-it em{font-style:normal;margin-top:3px;font-weight:800;font-size:13px;color:#5f5}
+.shop-it.eq em{color:var(--y)}.shop-it.own{border-color:#5ab0ff;background:rgba(90,176,255,.12)}.shop-it.own em{color:#9fd2ff}.shop-it.poor{opacity:.5}
 /* carro: botões de entrar/sair, pedais e velocímetro */
 .tbtn.carb{background:rgba(30,90,170,.45);border-color:#6fb6ff;font-weight:800;letter-spacing:.5px;font-size:13px}
 .tbtn.pedal{background:rgba(40,170,90,.35);border-color:#5f5;font-weight:800;border-radius:16px}
@@ -469,6 +480,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3.5 21c.8-4.3 4.2-6.5 8.5-6.5s7.7 2.2 8.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Perfil</span></button>
   </div>
   <div class="lb-play">
+    <div class="lb-map" id="lbarena" style="display:none"><button data-ar="arena_cidade"><b>🏙 Arena Cidade</b><small>bairro com casas · 84×60 m</small></button><button data-ar="arena_ilha"><b>🏰 Arena Ilha</b><small>castelo · 80×64 m</small></button></div>
     <div class="lb-map" id="lbmap" style="display:none"><button data-mp="aberto"><b>🚆 Cidade</b><small>trem, ruas e bairros</small></button><button data-mp="ilha"><b>🏝 Ilha</b><small>neve, floresta, deserto e mar</small></button></div>
     <div class="lb-sq" id="lbsq" style="display:none"><button data-sq="1"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Solo</button><button data-sq="2"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Duo</button><button data-sq="4"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Squad</button></div>
     <button class="lb-mode" data-go="play"><span class="lb-mi" id="lbmodei"></span><span class="lb-mt"><b id="lbmodet"></b><small id="lbmodes"></small></span><span class="lb-mc">⇄</span></button>
@@ -519,10 +531,11 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <h2>Jogar agora</h2>
   <div class="pmodes">
     <button class="pmode" data-pm="ffa"><b>1 contra todos</b><span>Cada um por si · vence quem fizer 20 eliminações</span></button>
-    <button class="pmode" data-pm="tdm"><b>Mata-mata em equipe</b><span>Azul × Vermelho · 40 eliminações ou 5 minutos</span></button>
+    <button class="pmode" data-pm="tdm"><b>Mata-mata em equipe</b><span>4 contra 4 · Arena Cidade ou Ilha · lojinha na base · 40 eliminações ou 5 min</span></button>
     <button class="pmode" data-pm="aberto"><b>🚆 Mapa aberto</b><span>Até 30 jogadores · Cidade ou Ilha · carros para dirigir · trem no começo</span></button>
     <button class="pmode" data-pm="training"><b>Modo treinamento</b><span>Bots fáceis para treinar a mira · XP reduzido</span></button>
   </div>
+  <div class="lb-map" id="parena" style="display:none;max-width:420px;margin:0 0 6px"><button data-ar="arena_cidade"><b>🏙 Arena Cidade</b><small>bairro com casas · 84×60 m</small></button><button data-ar="arena_ilha"><b>🏰 Arena Ilha</b><small>castelo · 80×64 m</small></button></div>
   <div class="lb-map" id="pmap" style="display:none;max-width:420px;margin:0 0 6px"><button data-mp="aberto"><b>🚆 Cidade</b><small>trem, ruas e bairros</small></button><button data-mp="ilha"><b>🏝 Ilha</b><small>neve, floresta, deserto e mar</small></button></div>
   <div class="lb-sq" id="psq" style="display:none;max-width:420px;margin:0 0 10px"><button data-sq="1"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Solo</button><button data-sq="2"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Duo</button><button data-sq="4"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Squad</button></div>
   <div class="card" id="pwho" style="display:none">
@@ -553,6 +566,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       <button class="btn sm mbtn" data-cm="tdm" style="font-size:16px">Mata-mata</button><button class="btn sm mbtn" data-cm="ffa" style="font-size:16px">Todos x todos</button><button class="btn sm mbtn" data-cm="aberto" style="font-size:16px">Mapa aberto</button>
     </div>
     <div id="cmdesc" style="color:var(--dim);margin:6px 0 4px"></div>
+    <div class="lb-map" id="carena" style="display:none;max-width:420px"><button data-ar="arena_cidade"><b>🏙 Arena Cidade</b><small>bairro com casas · 84×60 m</small></button><button data-ar="arena_ilha"><b>🏰 Arena Ilha</b><small>castelo · 80×64 m</small></button></div>
     <label>Nome da sala</label><input type="text" id="cname" maxlength="28" placeholder="Ex.: Sala do Vorzak" style="width:100%">
     <label style="margin-top:12px"><input type="checkbox" id="cpriv" checked> Sala privada (só entra quem tiver o ID)</label>
     <button class="btn pri" id="cgo" style="margin-top:12px;text-align:center">Criar sala</button>
@@ -686,7 +700,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div id="xppop"></div>
   <div id="center"></div>
   <div id="medbar">Usando kit médico…<div class="bar"><i></i></div></div>
-  <div class="hp"><div class="v"><span id="hpv">100</span> <small>HP</small></div><div class="hpbar"><b id="hpd"></b><i id="hpb"></i></div><div class="med">✚ <span id="medn">2</span></div></div>
+  <div class="hp"><div class="v"><span id="hpv">100</span> <small>HP</small></div><div class="hpbar"><b id="hpd"></b><i id="hpb"></i></div><div class="med">✚ <span id="medn">2</span></div><div id="armor" style="display:none"></div></div>
   <div id="radar"><canvas id="radarc" width="220" height="220"></canvas></div>
   <div id="sqlist" style="display:none"></div>
   <div id="brov"><div class="brbox"><div class="brscan"><i></i><b></b></div><div class="brt" id="brt">PROCURANDO JOGADORES</div><div class="brn" id="brn">15</div><div class="brs" id="brs"></div><div class="brbar"><i id="brbar"></i></div><div class="brx" id="brx">SAIR DA FILA</div></div></div>
@@ -709,6 +723,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div id="joy"><i></i></div>
 </div>
 <div id="bigmap"><canvas id="bigmapc"></canvas><div class="bmh">MAPA · toque (ou M) para fechar</div></div>
+<div id="shopm"><div id="shopbox"></div></div>
 <div id="pinvm"><div class="pinv-box"><div class="pinv-top"><b>Convidar amigos</b><button class="btn sm" id="pinvx">Fechar</button></div><div class="stat" style="margin:-4px 0 8px">Seus amigos online recebem o convite na hora. Juntos, vocês buscam a partida do Mapa aberto na mesma equipe.</div><div id="pinvlist"></div></div></div>
 <div id="edit"><div id="editbar"><b>Arraste os botões</b><span>Tamanho</span><input type="range" id="esize" min="0.6" max="1.8" step="0.05" style="width:120px"><button class="btn sm" id="ereset">Padrão</button><button class="btn sm" id="esave">Salvar</button></div></div>
 <div id="vkb"><div id="vkp"><span id="vkl"></span><div id="vkt"></div><div class="vk vkx" data-k="close">✕</div></div><div id="vkk"></div></div>
@@ -730,6 +745,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   // ---------------------------------------------------------------- constantes
   const C = {
     GRAV: 22, JUMP: 7.2, WALK: 5.0, SPRINT: 7.4, CROUCH: 2.4,
+    SHOP_START: 800, SHOP_KILL: 150, SHOP_ROUND: 400, SHOP_MAX: 4000, SHOP_DIST: 3.4, // fichas da lojinha das arenas
     R: 0.38, H: 1.8, HC: 1.2, EYE: 1.62, EYEC: 1.05, STEP: 0.55,
     DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
@@ -1534,9 +1550,81 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     return { id: 'ilha', name: 'Ilha', solids, deco, spawns, medkits, weapons, ammo, props: [], sx: SX, sz: SZ, train, cars, zone, zoneW: NW, zoneH: NH, zoneG: ZG, sea: true };
   })();
 
-  const MAPS = { base: MAP_BASE, aberto: MAP_OPEN, ilha: MAP_ISLAND };
+  // ================================================================ ARENAS (mata-mata 4x4 e X1–X4)
+  // Recorte de um pedaço dos mapas do Mapa aberto (os originais ficam iguais): muralha em volta, base de cada
+  // equipe nos lados opostos e uma lojinha no chão em cada base (armas grátis; kit, capacete e colete com fichas).
+  function makeArena(src, id, name, cx, cz, hx, hz, wallT) {
+    const { solids, deco, add, bx } = builder();
+    const x0 = cx - hx, x1 = cx + hx, z0 = cz - hz, z1 = cz + hz;
+    const inside = (x, z) => x > x0 && x < x1 && z > z0 && z < z1;
+    const cut = (b, solid) => {
+      if (b[6] === 'tree' || b[6] === 'trunk') { if (!inside((b[0] + b[3]) / 2, (b[2] + b[5]) / 2)) return; }
+      if (b[3] <= x0 || b[0] >= x1 || b[5] <= z0 || b[2] >= z1) return;
+      const nb = [Math.max(b[0], x0) - cx, b[1], Math.max(b[2], z0) - cz, Math.min(b[3], x1) - cx, b[4], Math.min(b[5], z1) - cz, b[6], b[7]];
+      if (nb[3] - nb[0] < 0.05 || nb[5] - nb[2] < 0.05) return;
+      (solid ? solids : deco).push(nb);
+    };
+    for (const b of src.solids) cut(b, true);
+    for (const b of src.deco) cut(b, false);
+    const props = (src.props || []).filter((p) => inside(p[1], p[2])).map((p) => [p[0], p[1] - cx, p[2] - cz, p[3]]);
+    // muralha
+    const T = 1, H = 5;
+    bx(0, -hz - T / 2, 2 * hx + 2 * T, T, H, wallT); bx(0, hz + T / 2, 2 * hx + 2 * T, T, H, wallT);
+    bx(-hx - T / 2, 0, T, 2 * hz, H, wallT); bx(hx + T / 2, 0, T, 2 * hz, H, wallT);
+    let seed = id.length * 7919 + 13; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const hit = (x, z, r, h = 1.8) => solids.some((b) => x + r > b[0] && x - r < b[3] && z + r > b[2] && z - r < b[5] && b[1] < h && b[4] > 0.05);
+    // lojinha de cada base: balcão, toldo colorido, placa e caixotes
+    const shops = [];
+    for (const team of [0, 1]) {
+      const side = team === 0 ? -1 : 1, col = team === 0 ? [0.2, 0.45, 0.9] : [0.9, 0.25, 0.2];
+      let sx = side * (hx - 6), sz = 0;
+      for (let g = 0; g < 200 && hit(sx, sz, 2.6, 3); g++) { sx = side * (hx - 4 - rnd() * 12); sz = (rnd() * 2 - 1) * (hz - 6); }
+      // limpa o espaço da loja (tira árvores e caixas pequenas que sobraram ali)
+      for (let i = solids.length - 1; i >= 0; i--) { const b = solids[i]; if (b[4] < 4 && b[3] > sx - 3 && b[0] < sx + 3 && b[5] > sz - 3 && b[2] < sz + 3) solids.splice(i, 1); }
+      for (let i = deco.length - 1; i >= 0; i--) { const b = deco[i]; if (b[6] === 'tree' && b[3] > sx - 3 && b[0] < sx + 3 && b[5] > sz - 3 && b[2] < sz + 3) deco.splice(i, 1); }
+      add(sx - 1.3, 0, sz - 0.45, sx + 1.3, 1.0, sz + 0.45, 'shop', true, [0.55, 0.38, 0.22]); // balcão
+      add(sx - 1.35, 1.0, sz - 0.5, sx + 1.35, 1.06, sz + 0.5, 'shop', true, [0.85, 0.85, 0.82]); // tampo
+      for (const [px, pz] of [[-1.3, -0.45], [1.3, -0.45], [-1.3, 0.45], [1.3, 0.45]]) add(sx + px - 0.06, 1.06, sz + pz - 0.06, sx + px + 0.06, 2.6, sz + pz + 0.06, 'pole', true, [0.3, 0.3, 0.32]);
+      add(sx - 1.55, 2.6, sz - 0.75, sx + 1.55, 2.72, sz + 0.75, 'shop', false, col); // toldo
+      add(sx - 0.9, 2.72, sz - 0.04, sx + 0.9, 3.25, sz + 0.04, 'shop', false, [0.98, 0.82, 0.2]); // placa
+      bx(sx + 2.0, sz + 0.3, 0.8, 0.8, 0.8, 'crate'); bx(sx - 2.0, sz - 0.3, 0.8, 0.8, 0.8, 'crate');
+      shops.push([Math.round(sx * 10) / 10, Math.round(sz * 10) / 10, team]);
+    }
+    // nascimentos: cada equipe do seu lado, virada para o centro
+    const sp = { 0: [], 1: [] };
+    for (const team of [0, 1]) {
+      const side = team === 0 ? -1 : 1;
+      for (let g = 0; g < 4000 && sp[team].length < 10; g++) {
+        const x = side * (hx - 2.5 - rnd() * 13), z = (rnd() * 2 - 1) * (hz - 3);
+        if (hit(x, z, 0.8) || sp[team].some((s) => Math.hypot(s[0] - x, s[2] - z) < 3.5)) continue;
+        sp[team].push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, side < 0 ? -Math.PI / 2 : Math.PI / 2]);
+      }
+    }
+    const ffa = [];
+    for (let g = 0; g < 4000 && ffa.length < 24; g++) { const x = (rnd() * 2 - 1) * (hx - 3), z = (rnd() * 2 - 1) * (hz - 3); if (!hit(x, z, 0.8)) ffa.push([Math.round(x * 10) / 10, 0, Math.round(z * 10) / 10, Math.atan2(x, z)]); }
+    const spawns = { 0: sp[0], 1: sp[1], x1: { 0: sp[0], 1: sp[1] }, ffa };
+    const medkits = (src.medkits || []).filter((m) => inside(m[0], m[2])).slice(0, 8).map((m) => [m[0] - cx, m[1], m[2] - cz]);
+    const out = { id, name, arena: true, solids, deco, spawns, medkits, weapons: [], ammo: [], props, sx: hx, sz: hz, shops, cars: [] };
+    if (src.zone) { // chão com as cores das regiões da Ilha (sem mar em volta: grama além da muralha)
+      const g = src.zoneG, NW = Math.round(2 * hx / g), NH = Math.round(2 * hz / g), zone = new Uint8Array(NW * NH);
+      for (let j = 0; j < NH; j++) for (let i = 0; i < NW; i++) {
+        const x = cx - hx + (i + 0.5) * g, z = cz - hz + (j + 0.5) * g, si = Math.floor((x + src.sx) / g), sj = Math.floor((z + src.sz) / g);
+        zone[j * NW + i] = Math.max(2, src.zone[sj * src.zoneW + si]);
+      }
+      Object.assign(out, { zone, zoneW: NW, zoneH: NH, zoneG: g, outside: 'grass' });
+    }
+    return out;
+  }
+  const ARENA_CIDADE = makeArena(MAP_OPEN, 'arena_cidade', 'Arena Cidade', -176, 142, 42, 30, 'concrete');
+  const ARENA_ILHA = makeArena(MAP_ISLAND, 'arena_ilha', 'Arena Ilha', -42, 64, 40, 32, 'stone');
+  const ARENAS = ['arena_cidade', 'arena_ilha'];
+  // lojinha das arenas: armas grátis; kit, capacete e colete custam fichas da partida
+  const SHOP = { kit: { name: 'Kit médico', price: 150 }, helmet: { name: 'Capacete', price: 250 }, vest: { name: 'Colete', price: 350 } };
+  const MAPS = { base: MAP_BASE, aberto: MAP_OPEN, ilha: MAP_ISLAND, arena_cidade: ARENA_CIDADE, arena_ilha: ARENA_ILHA };
   const OPEN_MAPS = ['aberto', 'ilha']; // mapas do modo Mapa aberto (o jogador escolhe)
-  const mapFor = (mode, id) => (mode === 'aberto' ? (id === 'ilha' ? MAP_ISLAND : MAP_OPEN) : MAP_BASE);
+  const isRoundsM = (m) => /^x[1-4]$/.test(m);
+  // Mapa aberto: Cidade ou Ilha · mata-mata e X1–X4: arenas · 1 contra todos e treino: mapa base
+  const mapFor = (mode, id) => (mode === 'aberto' ? (id === 'ilha' ? MAP_ISLAND : MAP_OPEN) : mode === 'tdm' || isRoundsM(mode) ? (id === 'arena_ilha' ? ARENA_ILHA : ARENA_CIDADE) : MAP_BASE);
   const isFFA = (mode) => mode === 'ffa' || mode === 'aberto';
   // grade espacial para colisão rápida (mapas grandes)
   function indexMap(m) {
@@ -1960,6 +2048,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     constructor(o = {}) {
       this.mode = isFFA(o.mode) || isRounds(o.mode) ? o.mode : 'tdm';
       this.map = indexMap(mapFor(this.mode, o.map)); this.mapId = this.map.id; this.dyn = [];
+      this.shop = !!this.map.shops && !o.training; // arenas: lojinha no chão
       this.cars = (this.map.cars || []).map(([x, z, yaw], id) => ({ id, x, z, yaw, v: 0, st: 0, seats: [0, 0], home: [x, z, yaw], idle: 0 })); this.trainX = this.map.train ? this.map.train.x0 : 0; this.trainSt = 0;
       this.rounds = isRounds(this.mode); this.teamSize = this.rounds ? +this.mode[1] : 0;
       this.training = !!o.training;
@@ -2146,9 +2235,18 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         }
       }
       p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
-      if (p.baseW) p.weapons = p.baseW.slice();
+      const keep = this.rounds && this.shop && p.alive && p.round === this.round - 1; // X1–X4: quem sobreviveu ao round mantém o que comprou
+      p.round = this.round;
+      if (p.money == null) p.money = this.shop ? C.SHOP_START : 0;
+      if (!keep) { p.helmet = 0; p.vest = 0; }
+      if (p.baseW && !keep) p.weapons = p.baseW.slice();
       p.hp = C.MAXHP; p.alive = true; p.streak = 0; p.cur = 0; p.bloom = 0;
       p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0;
+      if (this.shop && p.bot && !keep) { // bots também passam na lojinha
+        const w = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'maverick', 'sniper'][Math.floor(Math.random() * 8)]; p.weapons[0] = w;
+        if (p.money >= 350 && Math.random() < 0.7) { p.money -= 350; p.vest = 100; }
+        if (p.money >= 250 && Math.random() < 0.5) { p.money -= 250; p.helmet = 100; }
+      }
       p.medkits = C.MEDKITS_START + (p.upgrades.includes('medbag') ? 1 : 0);
       p.spawnProt = this.time + C.SPAWN_PROT;
       for (const w of p.weapons) p.ammo[w] = { mag: WEAPONS[w].mag, res: WEAPONS[w].reserve };
@@ -2184,6 +2282,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
           return;
         }
         case 'grab': if (p.car) return; return this.grab(p, a);
+        case 'buy': return this.buy(p, String(a.it || ''));
         case 'car': return this.enterCar(p, a.id, a.seat);
         case 'carx': return this.leaveCar(p);
         case 'med':
@@ -2272,6 +2371,11 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     }
     damage(v, att, d, head, wid) {
       if (!v.alive || this.time < v.spawnProt || this.roundEndAt) return;
+      if (wid !== 'car') { // capacete protege a cabeça, colete o corpo (gastam com os tiros)
+        if (head && v.helmet > 0) { v.helmet = Math.max(0, v.helmet - d * 0.5); d *= 0.55; }
+        else if (!head && v.vest > 0) { v.vest = Math.max(0, v.vest - d * 0.5); d *= 0.6; }
+        d = Math.max(1, Math.round(d));
+      }
       v.hp = Math.max(0, v.hp - d);
       if (v.medUntil) v.medUntil = 0; // dano interrompe kit médico
       this.events.push({ e: 'hit', a: att.id, v: v.id, d, hs: head ? 1 : 0, x: r2(att.x), z: r2(att.z) });
@@ -2283,6 +2387,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       this.events.push({ e: 'kill', k: k.id, v: v.id, w: wid, hs: head ? 1 : 0 });
       if (this.rounds) return this.roundKill(v, k);
       if (k === v) return;
+      if (this.shop) k.money = Math.min(C.SHOP_MAX, (k.money | 0) + C.SHOP_KILL);
       k.kills++; k.streak++; k.stats.streakMax = Math.max(k.stats.streakMax, k.streak);
       if (head) k.stats.hs++;
       this.award(k, 100, 'Eliminação');
@@ -2299,6 +2404,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     roundKill(v, k) {
       v.respawnAt = Infinity;
       if (k !== v) {
+        if (this.shop) k.money = Math.min(C.SHOP_MAX, (k.money | 0) + C.SHOP_KILL);
         k.kills++; k.streak++; k.stats.streakMax = Math.max(k.stats.streakMax, k.streak);
         this.award(k, 100, 'Eliminação');
       }
@@ -2326,6 +2432,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     }
     nextRound() {
       this.roundEndAt = 0; this.round++;
+      if (this.shop) for (const p of this.players.values()) p.money = Math.min(C.SHOP_MAX, (p.money | 0) + C.SHOP_ROUND);
       for (const p of this.players.values()) this.spawn(p);
       for (const m of this.medkits) m.active = true;
       for (const w of this.wpicks) w.active = true; this.drops = []; for (const a of this.ammos) a.active = true;
@@ -2359,6 +2466,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     restart() {
       this.state = 'playing'; this.matchTime = 0; this.trainSt = 0; this.score = [0, 0]; this.firstBlood = false; this.round = 1; this.roundEndAt = 0; this.roundWinners = [];
       for (const p of this.players.values()) { if (p.car) this.leaveCar(p, true); p.kills = 0; p.deaths = 0; p.xp = 0; p.stats = { hs: 0, medUsed: 0, picks: 0, streakMax: 0 }; if (!this.br) this.spawn(p); }
+      for (const p of this.players.values()) { p.money = this.shop ? C.SHOP_START : 0; }
       for (const c of this.cars) { c.x = c.home[0]; c.z = c.home[1]; c.yaw = c.home[2]; c.v = 0; c.st = 0; c.seats = [0, 0]; }
       if (this.br) this.brReset();
       for (const m of this.medkits) m.active = true;
@@ -2443,6 +2551,20 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       if (this.history.length > 15) this.history.shift();
     }
     // ---------------- IA dos bots
+    // lojinha: comprar arma (grátis), kit, capacete ou colete perto do balcão
+    buy(p, it) {
+      if (!this.shop || !p.alive || p.car || !p.ai && !this.nearShop(p)) return;
+      const ok = (price) => { if ((p.money | 0) < price) { this.events.push({ e: 'buyno', id: p.id }); return false; } p.money -= price; return true; };
+      if (WEAPONS[it]) {
+        const w = WEAPONS[it], slot = w.slot ? 1 : 0;
+        p.weapons[slot] = it; p.ammo[it] = { mag: w.mag, res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
+      } else if (it === 'kit') { if (p.medkits >= C.MEDKITS_MAX || !ok(SHOP.kit.price)) return; p.medkits++; }
+      else if (it === 'helmet') { if (p.helmet >= 100 || !ok(SHOP.helmet.price)) return; p.helmet = 100; }
+      else if (it === 'vest') { if (p.vest >= 100 || !ok(SHOP.vest.price)) return; p.vest = 100; }
+      else return;
+      this.events.push({ e: 'buy', id: p.id, it });
+    }
+    nearShop(p) { for (const s of this.map.shops || []) if (Math.hypot(p.x - s[0], p.z - s[1]) < C.SHOP_DIST && p.y < 1.5) return true; return false; }
     addBot(team) {
       useMap(this.map, this.dyn, this.cars);
       const used = new Set([...this.players.values()].map((p) => p.name));
@@ -2555,7 +2677,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
       }
       const mk = maskOf(this.medkits);
@@ -2577,6 +2699,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
         tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
+        $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
       };
     }
   }
@@ -2586,7 +2709,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
 
   return {
     isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
-    clamp, collides, applyInput, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, OPEN_MAPS, raycastWorld, rayPlayer, aimDir, weaponOf,
+    clamp, collides, applyInput, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,
   };
@@ -3322,7 +3445,7 @@ const Assets = (() => {
 
   // ------------------------------------------------------------ mapa
   // tipos de caixa -> textura usada
-  const TEXOF = { pole: 'metal', road: 'asphalt', rock: 'concrete', car: 'metal', hay: 'wood', tent: 'sandbag', field: 'grass', stone: 'concrete', plaster: 'concrete', sand: 'plain', cactus: 'plain' };
+  const TEXOF = { pole: 'metal', road: 'asphalt', rock: 'concrete', car: 'metal', hay: 'wood', tent: 'sandbag', field: 'grass', stone: 'concrete', plaster: 'concrete', sand: 'plain', cactus: 'plain', shop: 'plain' };
   function buildMap(MAP) {
     MAP = MAP || S.MAP;
     const groups = {};
@@ -3385,9 +3508,9 @@ const Assets = (() => {
       else if (FLAT[z]) flat.quad([x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], [0, 1, 0], uv, FLAT[z].map((c) => c * v));
       else grass.quad([x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], [0, 1, 0], uv, TINT[z].map((c) => c * v));
     }
-    // mar até o horizonte (fora da área do mapa)
-    const sea = [0.12, 0.34, 0.5], y = 0.04, X = M.sx, Zm = M.sz;
-    for (const [a, b, c, d] of [[-GX, -GZ, GX, -Zm], [-GX, Zm, GX, GZ], [-GX, -Zm, -X, Zm], [X, -Zm, GX, Zm]]) water.quad([a, y, d], [c, y, d], [c, y, b], [a, y, b], [0, 1, 0], [0, 1, 1, 1, 1, 0, 0, 0], sea);
+    // fora da área do mapa: mar até o horizonte (Ilha) ou grama (arena)
+    const sea = [0.12, 0.34, 0.5], y = M.outside === 'grass' ? 0 : 0.04, X = M.sx, Zm = M.sz, out = M.outside === 'grass' ? grass : water;
+    for (const [a, b, c, d] of [[-GX, -GZ, GX, -Zm], [-GX, Zm, GX, GZ], [-GX, -Zm, -X, Zm], [X, -Zm, GX, Zm]]) out.quad([a, y, d], [c, y, d], [c, y, b], [a, y, b], [0, 1, 0], M.outside === 'grass' ? [a / 8.3, d / 8.3, c / 8.3, d / 8.3, c / 8.3, b / 8.3, a / 8.3, b / 8.3] : [0, 1, 1, 1, 1, 0, 0, 0], M.outside === 'grass' ? [1, 1, 1] : sea);
   }
 
   // ------------------------------------------------------------ soldado
@@ -4583,10 +4706,10 @@ const Voice = (() => {
       const p = Prof.local;
       this.me = this.sim.addPlayer({ name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p), team: 0 });
       S.buildNav();
-      const nb = S.isRounds(o.mode) ? 2 * +o.mode[1] - 1 : o.mode === 'aberto' ? 15 : o.bots;
+      const nb = S.isRounds(o.mode) ? 2 * +o.mode[1] - 1 : o.mode === 'aberto' ? 15 : o.mode === 'tdm' ? 7 : o.bots; // mata-mata: 4 contra 4
       for (let i = 0; i < nb; i++) this.sim.addBot();
       this.acc = 0;
-      setTimeout(() => { this.onMsg({ t: 'joined', pid: this.me.id, room: { name: S.MODE_NAMES[o.mode] + (o.mode === 'aberto' ? ' · ' + this.sim.map.name : ''), mode: this.sim.mode, map: this.sim.mapId, offline: true, training: o.mode === 'training' } }); this.flush(); }, 0);
+      setTimeout(() => { this.onMsg({ t: 'joined', pid: this.me.id, room: { name: S.MODE_NAMES[o.mode] + (this.sim.map.name ? ' · ' + this.sim.map.name : ''), mode: this.sim.mode, map: this.sim.mapId, offline: true, training: o.mode === 'training' } }); this.flush(); }, 0);
     }
     send(m) {
       const sim = this.sim, id = this.me.id;
@@ -4768,7 +4891,7 @@ const Voice = (() => {
       const L = this.local, fw = this.fw;
       const wasAlive = L.alive;
       this.me = me;
-      L.weapons = me.w; L.medUntil = me.mu > 0 ? 1 : 0;
+      L.weapons = me.w; L.medUntil = me.mu > 0 ? 1 : 0; L.money = me.$; L.helmet = me.hm || 0; L.vest = me.vs || 0;
       if (now() - fw.switchAt > 0.6) L.cur = me.cur;
       L.alive = !!me.al;
       const wasRiding = this.riding; this.riding = !!me.tn; this.rideOff = [me.to || 0, me.tz || 0];
@@ -4884,6 +5007,8 @@ const Voice = (() => {
           else if (e.ph === 'trem') Sfx.horn();
           else if (e.ph === 'livre') center('🚉 O trem chegou: todos desceram!', 2.5);
           break;
+        case 'buy': if (e.id === me) { Sfx.pick(); xpPop('Comprou ' + (W[e.it] ? W[e.it].name : S.SHOP[e.it] ? S.SHOP[e.it].name : e.it)); } break;
+        case 'buyno': if (e.id === me) toast('Fichas insuficientes.', 1500); break;
         case 'ammo': if (e.id === me) { Sfx.pick(); xpPop('+30 munição · ' + (W[e.w] ? W[e.w].name : '')); } break;
         case 'leap': if (e.id === me) { center('Boa sorte! Procure armas e kits médicos', 2); this.look.pitch = 0; } break;
         case 'train':
@@ -5185,6 +5310,28 @@ const Voice = (() => {
       }
     },
 
+    // ------------------------------------------------ lojinha das arenas
+    shopNear() { const L = this.local, sh = this.map && this.map.shops; if (!sh || !L.alive || L.car || !(L.money >= 0)) return false; for (const s of sh) if (Math.hypot(L.x - s[0], L.z - s[1]) < C.SHOP_DIST && L.y < 1.5) return true; return false; },
+    shopHud() {
+      const E = Touch.els, near = this.shopNear(), sh = this.map && this.map.shops;
+      if (E.shop && (E.shop.style.display === 'none') === near) E.shop.style.display = near ? '' : 'none';
+      if (!near && $('shopm').classList.contains('on')) $('shopm').classList.remove('on');
+      const box = $('armor'), L = this.local;
+      if (sh && L.money >= 0) { const h = `<span class="${L.helmet > 0 ? 'on' : ''}">⛑ ${L.helmet | 0}</span><span class="${L.vest > 0 ? 'on' : ''}">🦺 ${L.vest | 0}</span><b>$ ${L.money | 0}</b>`; if (box._h !== h) { box._h = h; box.innerHTML = h; } box.style.display = ''; }
+      else if (box.style.display !== 'none') box.style.display = 'none';
+      if ($('shopm').classList.contains('on')) this.renderShop();
+    },
+    openShop() { if (!this.shopNear()) return; Sfx.ui(); $('shopm').classList.add('on'); this._shopH = ''; this.renderShop(); },
+    renderShop() {
+      const L = this.local, cur = L.weapons || [], m = L.money | 0;
+      const ws = S.WEAPON_LIST.map((id) => { const w = W[id]; return `<button class="shop-it${cur.includes(id) ? ' own' : ''}" data-buy="${id}"><b>${esc(w.name)}</b><small>${w.slot ? 'Pistola' : w.scope ? 'Sniper' : w.pellets > 1 ? 'Escopeta' : w.auto ? 'Automática' : 'Arma'} · dano ${w.dmg * w.pellets}</small><em>${cur.includes(id) ? 'NA MÃO · recarregar' : 'GRÁTIS'}</em></button>`; }).join('');
+      const eq = [['kit', '✚', 'Kit médico', `você tem ${this.me ? this.me.mk : 0}`], ['helmet', '⛑', 'Capacete', 'protege a cabeça'], ['vest', '🦺', 'Colete', 'protege o corpo']].map(([id, ic, nm, sub]) => { const p = S.SHOP[id].price, have = (id === 'helmet' && L.helmet >= 100) || (id === 'vest' && L.vest >= 100); return `<button class="shop-it eq${m < p ? ' poor' : ''}${have ? ' own' : ''}" data-buy="${id}"><b>${ic} ${nm}</b><small>${sub}</small><em>${have ? 'EQUIPADO' : '$ ' + p}</em></button>`; }).join('');
+      const h = `<div class="shop-top"><b>🛒 LOJINHA</b><span>Fichas: <b class="money">$ ${m}</b></span><button class="btn sm" id="shopx">Fechar</button></div><div class="shop-sec">Equipamento</div><div class="shop-grid">${eq}</div><div class="shop-sec">Armas (grátis)</div><div class="shop-grid">${ws}</div><div class="stat" style="margin-top:6px">Ganhe fichas eliminando inimigos (+$${C.SHOP_KILL})${S.isRounds(this.mode) ? ` e a cada round (+$${C.SHOP_ROUND})` : ''}. Morreu, perde capacete e colete${S.isRounds(this.mode) ? '; quem sobrevive ao round fica com tudo' : ''}.</div>`;
+      if (this._shopH === h) return; this._shopH = h;
+      const box = $('shopbox'); box.innerHTML = h;
+      box.querySelectorAll('[data-buy]').forEach((b) => (b.onclick = () => { this.conn.send({ t: 'act', a: 'buy', it: b.dataset.buy }); vibrate(15); }));
+      $('shopx').onclick = () => $('shopm').classList.remove('on');
+    },
     // ------------------------------------------------ carros
     carObj(id) { return (this.carList || [])[id] || { id, x: 0, z: 0, yaw: 0, v: 0, st: 0, seats: [0, 0] }; },
     updCars(dt) {
@@ -5668,6 +5815,12 @@ const Voice = (() => {
       octx.clearRect(0, 0, wv, hv);
       octx.font = '600 14px Rajdhani, sans-serif'; octx.textAlign = 'center';
       const eye = this.eye();
+      if (this.map && this.map.shops && this.local.money >= 0) for (const sh of this.map.shops) { // placa flutuante da lojinha
+        const d = Math.hypot(sh[0] - eye[0], sh[1] - eye[2]); if (d > 60) continue;
+        const p = R.project(sh[0], 3.7, sh[1]); if (!p) continue;
+        octx.font = '800 16px Rajdhani, sans-serif'; octx.lineWidth = 3; octx.strokeStyle = 'rgba(0,0,0,.7)'; octx.fillStyle = sh[2] === this.teamOf(this.myId) ? '#ffd23c' : '#ff8a7a';
+        octx.strokeText('🛒 LOJA', p[0], p[1]); octx.fillText('🛒 LOJA', p[0], p[1]); octx.font = '600 14px Rajdhani, sans-serif';
+      }
       for (const rp of this.remote.values()) {
         const c = rp.cur; if (!c || !(c.fl & 1)) continue;
         const ro = this.roster.get(rp.id); if (!ro) continue;
@@ -5796,6 +5949,7 @@ const Voice = (() => {
     if (e.code === 'KeyV' && Game.active && !chatOpen) Game.toggleCam();
     if (e.code === 'KeyY' && Game.active && !chatOpen && Game.voiceOn()) toggleMic(); // Y: microfone da equipe
     if (e.code === 'KeyF' && Game.active && !chatOpen) Game.carAct(Game.local.car ? -1 : 0); // F: dirigir / sair do carro
+    if (e.code === 'KeyB' && Game.active && !chatOpen) { if ($('shopm').classList.contains('on')) $('shopm').classList.remove('on'); else Game.openShop(); } // B: lojinha
     if (e.code === 'KeyG' && Game.active && !chatOpen && !Game.local.car) Game.carAct(1); // G: entrar de passageiro
     if (e.code === 'KeyE' || e.code === 'KeyF') keys._grab = true;
     if (e.code === 'KeyH' || e.code === 'Digit4') keys._med = true;
@@ -5872,6 +6026,7 @@ const Voice = (() => {
     { id: 'gear', label: '⚙', x: 0.94, y: 0.08, s: 50, cls: 'gear' }, // configurações (substitui o pausar)
     { id: 'mic', label: '🎤', x: 0.815, y: 0.08, s: 46, cls: 'vbtn' }, // microfone da equipe (liga/desliga)
     { id: 'spk', label: '🔊', x: 0.87, y: 0.08, s: 46, cls: 'vbtn' }, // ouvir a equipe (liga/desliga)
+    { id: 'shop', label: '🛒 LOJA', x: 0.53, y: 0.7, s: 66, cls: 'carb shopb' }, // abre a lojinha (perto do balcão)
     { id: 'cdrive', label: '🚗 DIRIGIR', x: 0.53, y: 0.7, s: 66, cls: 'carb' }, // entrar no carro como motorista
     { id: 'cpass', label: '💺 CARONA', x: 0.53, y: 0.86, s: 58, cls: 'carb' }, // entrar como passageiro
     { id: 'cexit', label: 'SAIR', x: 0.72, y: 0.22, s: 56, cls: 'carb' }, // sair do carro
@@ -6094,6 +6249,7 @@ const Voice = (() => {
           case 'fire': case 'fire2': Touch.held[id] = true; Touch.look.set(t.identifier, [lx(t), ly(t), id]); break;
           case 'cgas': case 'cbrk': Touch.held[id] = true; break;
           case 'cdrive': Game.carAct(0); break;
+          case 'shop': Game.openShop(); break;
           case 'cpass': Game.carAct(1); break;
           case 'cexit': Game.carAct(-1); break;
           case 'jump': Touch.held.jump = true; break;
@@ -6281,6 +6437,8 @@ const Voice = (() => {
   // ---- JOGAR AGORA: 1 contra todos · mata-mata em equipe · treinamento (botões do próprio jogo, giram com a tela)
   const PL = Object.assign({ mode: 'ffa', who: 'online', diff: 1, bots: 7, ranked: false, map: 'aberto' }, store.get('vz_play', {}));
   if (!S.OPEN_MAPS.includes(PL.map)) PL.map = 'aberto';
+  if (!S.ARENAS.includes(PL.arena)) PL.arena = 'arena_cidade';
+  const mapOf = (mode) => (mode === 'aberto' ? PL.map : mode === 'tdm' || S.isRounds(mode) ? PL.arena : undefined);
   if (!['ffa', 'tdm', 'training', 'aberto'].includes(PL.mode)) PL.mode = 'ffa';
   let lastOnline = null;
   const playOnline = () => !!serverUrl() && PL.mode !== 'training' && PL.who === 'online';
@@ -6295,7 +6453,7 @@ const Voice = (() => {
     $('pdiffbox').style.display = train ? 'none' : '';
     $('prankl').style.display = on && PL.mode === 'tdm' ? '' : 'none';
     $('pranked').checked = !!PL.ranked;
-    $('pbots').value = PL.bots; $('pbotsv').textContent = PL.mode === 'aberto' ? '15 (mapa aberto)' : PL.bots; $('pbots').style.display = PL.mode === 'aberto' ? 'none' : '';
+    $('pbots').value = PL.bots; $('pbotsv').textContent = PL.mode === 'aberto' ? '15 (mapa aberto)' : PL.mode === 'tdm' ? '7 (4 contra 4)' : PL.bots; $('pbots').style.display = PL.mode === 'aberto' || PL.mode === 'tdm' ? 'none' : '';
     const n = lastOnline ? lastOnline.filter((u) => u.uid !== Net.uid).length : 0;
     $('ponline').textContent = !on ? '' : !Net.ok ? 'Conectando ao servidor…' : n ? `${n} ${n > 1 ? 'jogadores' : 'jogador'} online agora` : 'Nenhum outro jogador online agora: você entra na sala e espera alguém chegar.';
     $('mprank').style.display = on ? '' : 'none';
@@ -6312,8 +6470,8 @@ const Voice = (() => {
   $('pstart').onclick = () => {
     Sfx.init();
     FS.auto();
-    if (playOnline()) { online(() => Net.send({ t: 'quick', mode: PL.mode === 'tdm' && PL.ranked ? 'ranked' : PL.mode, sq: PL.mode === 'aberto' ? Party.size() : 1, map: PL.map }), $('pstatus')); return; }
-    const conn = new LocalConn({ mode: PL.mode, map: PL.map, diff: PL.mode === 'training' ? 0 : PL.diff, bots: PL.bots }, (m) => Game.onMsg(m));
+    if (playOnline()) { online(() => Net.send({ t: 'quick', mode: PL.mode === 'tdm' && PL.ranked ? 'ranked' : PL.mode, sq: PL.mode === 'aberto' ? Party.size() : 1, map: mapOf(PL.mode) }), $('pstatus')); return; }
+    const conn = new LocalConn({ mode: PL.mode, map: mapOf(PL.mode), diff: PL.mode === 'training' ? 0 : PL.diff, bots: PL.bots }, (m) => Game.onMsg(m));
     Game.start(conn, {});
   };
   $('lbgo').onclick = () => $('pstart').onclick();
@@ -6351,6 +6509,8 @@ const Voice = (() => {
     const ab = PL.mode === 'aberto', st = Party.st, size = Party.size();
     $('lbsq').style.display = ab ? '' : 'none'; $('psq').style.display = ab ? '' : 'none';
     $('lbmap').style.display = ab ? '' : 'none'; $('pmap').style.display = ab ? '' : 'none';
+    const ar = PL.mode === 'tdm'; $('lbarena').style.display = ar ? '' : 'none'; $('parena').style.display = ar ? '' : 'none';
+    document.querySelectorAll('[data-ar]').forEach((b) => b.classList.toggle('sel', b.dataset.ar === PL.arena));
     document.querySelectorAll('[data-mp]').forEach((b) => b.classList.toggle('sel', b.dataset.mp === PL.map));
     document.querySelectorAll('[data-sq]').forEach((b) => b.classList.toggle('sel', +b.dataset.sq === size));
     const show = ab && size > 1;
@@ -6380,6 +6540,7 @@ const Voice = (() => {
     renderParty();
   }));
   $('lbpleave').onclick = () => { Sfx.ui(); Net.send({ t: 'pleave' }); };
+  document.querySelectorAll('[data-ar]').forEach((b) => (b.onclick = () => { Sfx.ui(); PL.arena = b.dataset.ar; store.set('vz_play', PL); renderParty(); }));
   // escolha do mapa do Mapa aberto: Cidade (trem) ou Ilha
   document.querySelectorAll('[data-mp]').forEach((b) => (b.onclick = () => {
     Sfx.ui(); if (Party.st && !Party.leader()) return toast('Só o líder do grupo escolhe o mapa.');
@@ -6746,7 +6907,7 @@ const Voice = (() => {
         if (!Game.active) return;
         const f = Game.buildFrame();
         R.render(f);
-        Game.overlay(); Game.radar(); Game.brHud(); Game.voiceHud(); Game.carHud();
+        Game.overlay(); Game.radar(); Game.brHud(); Game.voiceHud(); Game.carHud(); Game.shopHud();
       } else if (STORE_SCR.includes(curScreen) || curScreen === 'menu') {
         R.render(Preview.frame()); Preview.labels();
       } else {
@@ -6844,8 +7005,8 @@ const Voice = (() => {
   renderSession(); Auth.initGoogle();
   // ---- criar sala / procurar sala (ID numérico)
   let cmode = 'x1';
-  const CDESC = { x1: '1 contra 1 · rounds · primeiro a vencer 7', x2: '2 contra 2 · rounds · primeiro a vencer 7', x3: '3 contra 3 · rounds · primeiro a vencer 7', x4: '4 contra 4 · rounds · primeiro a vencer 7', tdm: 'Equipes · até 6 por time · 5 min', ffa: 'Cada um por si · até 10 jogadores', aberto: 'Mapa aberto com trem · cada um por si · até 30 jogadores' };
-  function renderCreate() { document.querySelectorAll('[data-cm]').forEach((b) => b.classList.toggle('sel', b.dataset.cm === cmode)); $('cmdesc').textContent = CDESC[cmode]; $('cstatus').innerHTML = ''; }
+  const CDESC = { x1: '1 contra 1 · rounds · primeiro a vencer 7 · lojinha na base', x2: '2 contra 2 · rounds · primeiro a vencer 7 · lojinha na base', x3: '3 contra 3 · rounds · primeiro a vencer 7 · lojinha na base', x4: '4 contra 4 · rounds · primeiro a vencer 7 · lojinha na base', tdm: 'Equipes · 4 contra 4 · 5 min · lojinha na base', ffa: 'Cada um por si · até 10 jogadores', aberto: 'Mapa aberto com trem · cada um por si · até 30 jogadores' };
+  function renderCreate() { $('carena').style.display = cmode === 'tdm' || S.isRounds(cmode) ? '' : 'none'; document.querySelectorAll('[data-ar]').forEach((b) => b.classList.toggle('sel', b.dataset.ar === PL.arena)); document.querySelectorAll('[data-cm]').forEach((b) => b.classList.toggle('sel', b.dataset.cm === cmode)); $('cmdesc').textContent = CDESC[cmode]; $('cstatus').innerHTML = ''; }
   document.querySelectorAll('[data-cm]').forEach((b) => (b.onclick = () => { cmode = b.dataset.cm; renderCreate(); }));
   function online(fn, stEl) {
     if (Net.ok && Prof.online) return fn();
@@ -6854,7 +7015,7 @@ const Voice = (() => {
     stEl.innerHTML = 'Conectando ao servidor…'; Net.after = () => { stEl.innerHTML = ''; fn(); };
     if (!Net.ws) Net.connect(u);
   }
-  $('cgo').onclick = () => { Sfx.init(); FS.auto(); online(() => Net.send({ t: 'create', name: $('cname').value || 'Sala de ' + Prof.cur.name, mode: cmode, priv: $('cpriv').checked, max: cmode === 'aberto' ? 30 : cmode === 'ffa' ? 10 : 12 }), $('cstatus')); };
+  $('cgo').onclick = () => { Sfx.init(); FS.auto(); online(() => Net.send({ t: 'create', name: $('cname').value || 'Sala de ' + Prof.cur.name, mode: cmode, map: mapOf(cmode), priv: $('cpriv').checked, max: cmode === 'aberto' ? 30 : cmode === 'ffa' ? 10 : 8 }), $('cstatus')); };
   const doFind = () => {
     const id = $('fid').value.replace(/\D/g, '');
     if (id.length !== 6) { $('fres').innerHTML = '<span style="color:var(--red)">O ID da sala tem 6 números.</span>'; return; }
