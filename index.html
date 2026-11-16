@@ -103,7 +103,8 @@ label{display:block;margin:10px 0 4px;color:var(--dim);font-size:15px;text-trans
 @keyframes brspin{to{transform:rotate(360deg)}}
 #brleap{position:fixed;left:50%;bottom:calc(90px + var(--sab));transform:translateX(-50%);display:none;z-index:7;pointer-events:auto;background:linear-gradient(#ff9a3c,#e06a00);color:#fff;font-weight:800;letter-spacing:2px;font-size:22px;padding:16px 34px;border-radius:40px;border:3px solid #fff;box-shadow:0 4px 18px rgba(0,0,0,.6);animation:brpulse 1s ease-in-out infinite;cursor:pointer;user-select:none}
 @keyframes brpulse{50%{transform:translateX(-50%) scale(1.07)}}
-body.brhide #hud>:not(#brov):not(#brleap):not(#center){visibility:hidden!important}
+body.brhide #hud>:not(#brov):not(#brleap):not(#center):not(#sqlist){visibility:hidden!important}
+body.brhide #touch .tbtn.vbtn{visibility:visible!important}
 body.brhide #touch,body.brhide .tbtn{visibility:hidden!important}
 #radar{position:fixed;left:calc(8px + var(--sal));top:calc(8px + var(--sat));width:150px;height:150px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.5);background:rgba(20,30,20,.55);box-shadow:0 2px 10px rgba(0,0,0,.55);pointer-events:auto;cursor:pointer}
 #radar canvas{width:100%;height:100%;display:block}
@@ -275,6 +276,39 @@ body.lshort #sttabs .btn{font-size:13px;padding:4px 8px}
 .ffbtn{background:#2a2e36;border:1px solid #555;color:#fff;font:700 14px Rajdhani,sans-serif;padding:8px 14px;text-transform:uppercase;margin:0;flex:none}
 .ffreset{width:100%;background:#1c1f25;border:1px solid #444;color:#fff;font:700 14px Rajdhani,sans-serif;padding:9px;margin-bottom:6px;text-transform:uppercase}
 body.setopen #hud,body.setopen #touch{display:none!important}
+/* grupo do mapa aberto (Solo/Duo/Squad) */
+.lb-sq{display:flex;gap:4px;background:rgba(8,10,16,.82);border:1px solid rgba(255,255,255,.12);padding:4px}
+.lb-sq button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:2px solid transparent;padding:5px 2px 4px;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#dfe6f0}
+.lb-sq button i{display:flex;gap:0;height:22px;align-items:flex-end}.lb-sq button i svg{width:15px;height:20px;margin:0 -2px}
+.lb-sq button.sel{border-color:var(--y);background:rgba(255,201,60,.16);color:var(--y)}
+.lb-party{margin-top:4px;width:230px;background:linear-gradient(90deg,rgba(10,12,18,.9),rgba(10,12,18,.6));border:1px solid rgba(255,255,255,.1);border-left:3px solid #5ab0ff;padding:6px 8px}
+.lbp-h{display:flex;align-items:center;gap:8px;font-size:15px;letter-spacing:1px;margin-bottom:4px}.lbp-h b{color:#9fd2ff}.lbp-h span{color:var(--dim);flex:1}
+.lbp-x,.lbp-mic{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);padding:2px 8px;font-size:13px}
+.lbp-mic{position:relative;font-size:15px}.lbp-mic:not(.on)::after{content:'';position:absolute;left:4px;right:4px;top:50%;height:2px;background:#ff4b3e;transform:rotate(-35deg)}.lbp-mic.on{background:rgba(60,220,120,.35);border-color:#5f5}
+.lbp-m{display:flex;align-items:center;gap:8px;width:100%;padding:4px 2px;font-size:15px;text-align:left;background:none;border:0;border-top:1px solid rgba(255,255,255,.06)}
+.lbp-m span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lbp-m small{display:block;font-size:11px;color:var(--acc2)}
+.lbp-m.me span{color:var(--y)}.lbp-c{color:var(--y)}
+.lbp-av{width:28px;height:28px;flex:none;border-radius:50%;background:#26324a;border:2px solid #5ab0ff;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700}
+.lbp-add{color:#9fd2ff}.lbp-add .lbp-av{border-style:dashed;background:rgba(90,176,255,.12);font-size:20px}
+.lbp-t{font-style:normal;opacity:0;transition:opacity .15s}.lbp-m.talk .lbp-t{opacity:1}.lbp-m.talk .lbp-av{border-color:#5f5;box-shadow:0 0 10px #5f5}
+.lbp-k{background:none;border:0;color:var(--red);font-size:15px;padding:0 4px}
+body.lshort .lb-party{width:200px;padding:4px 6px}body.lshort .lbp-m{font-size:13px;padding:2px}body.lshort .lbp-av{width:22px;height:22px}body.lshort .lb-sq button{font-size:12px;padding:3px 2px}body.lshort .lb-sq button i{height:16px}body.lshort .lb-sq button i svg{width:11px;height:15px}
+#pinvm{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55)}#pinvm.on{display:flex}
+.pinv-box{width:min(460px,92vw);max-height:84vh;overflow:auto;background:#141a24;border:1px solid rgba(255,255,255,.15);border-top:3px solid var(--y);padding:12px 14px}
+.pinv-top{display:flex;justify-content:space-between;align-items:center;font-size:20px;margin-bottom:8px}
+.pinv-r{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.pinv-r span{flex:1;display:flex;flex-direction:column}.pinv-r small{color:var(--dim)}
+/* voz na partida */
+.tbtn.vbtn{font-size:20px;letter-spacing:0;background:rgba(60,200,120,.25);border-color:rgba(90,220,140,.75)}
+.tbtn.vbtn.off{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35)}
+.tbtn.vbtn.off::after{content:'';position:absolute;left:18%;right:18%;top:50%;height:3px;background:#ff4b3e;transform:rotate(-40deg);border-radius:2px}
+.tbtn.vbtn.talk{box-shadow:0 0 14px #5f5}
+#sqlist{position:fixed;left:calc(168px + var(--sal));top:calc(70px + var(--sat));width:170px;pointer-events:none;font:600 13px Rajdhani,sans-serif}
+body.touchui #sqlist,body.lshort #sqlist{left:calc(130px + var(--sal))}
+.sq-r{display:flex;align-items:center;gap:5px;flex-wrap:wrap;background:rgba(10,14,20,.55);margin-bottom:2px;padding:1px 5px;color:#e8eef6}
+.sq-r b{background:#5ab0ff;color:#06121f;padding:0 5px;font-size:12px}.sq-r.me span{color:var(--y)}.sq-r span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sq-r em{font-style:normal;font-size:12px}
+.sq-r i{display:block;width:100%;height:3px;background:rgba(255,255,255,.18)}.sq-r i u{display:block;height:100%;background:#4cd964;text-decoration:none}
+.sq-r.dead{opacity:.5}.sq-r.dead span{text-decoration:line-through}
+
 body.endmin #hud,body.endmin #touch,body.endmin #lvlup,body.endmin #roundban{display:none!important}
 body.endmin #s-end{background:rgba(8,12,18,.35)}
 .endmin{text-align:center;margin-top:calc(4px + var(--sat))}
@@ -405,6 +439,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div class="lb-left">
     <button class="lb-side" data-go="shop"><svg viewBox="0 0 24 24"><path d="M2 3h3l2.6 11.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L22 7H6.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.7" fill="currentColor"/><circle cx="18" cy="20" r="1.7" fill="currentColor"/></svg><span>Loja</span></button>
     <button class="lb-side" data-go="events"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3 6.5l9 6.5 9-6.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Eventos</span><em id="lbevdot"></em></button>
+    <div class="lb-party" id="lbparty" style="display:none"><div class="lbp-h"><b>EQUIPE</b><span id="lbpn"></span><button class="lbp-mic" id="lbpmic" title="Microfone do grupo">🎤</button><button class="lbp-x" id="lbpleave">Sair</button></div><div id="lbpslots"></div></div>
   </div>
   <div class="lb-right">
     <button class="lb-room" data-go="create"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><span>Criar sala</span></button>
@@ -416,6 +451,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3.5 21c.8-4.3 4.2-6.5 8.5-6.5s7.7 2.2 8.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Perfil</span></button>
   </div>
   <div class="lb-play">
+    <div class="lb-sq" id="lbsq" style="display:none"><button data-sq="1"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Solo</button><button data-sq="2"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Duo</button><button data-sq="4"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Squad</button></div>
     <button class="lb-mode" data-go="play"><span class="lb-mi" id="lbmodei"></span><span class="lb-mt"><b id="lbmodet"></b><small id="lbmodes"></small></span><span class="lb-mc">⇄</span></button>
     <button class="lb-go" id="lbgo">Jogar agora</button>
   </div>
@@ -468,6 +504,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     <button class="pmode" data-pm="aberto"><b>🚆 Mapa aberto</b><span>Até 30 jogadores · cada um por si · o trem atravessa o mapa</span></button>
     <button class="pmode" data-pm="training"><b>Modo treinamento</b><span>Bots fáceis para treinar a mira · XP reduzido</span></button>
   </div>
+  <div class="lb-sq" id="psq" style="display:none;max-width:420px;margin:0 0 10px"><button data-sq="1"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Solo</button><button data-sq="2"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Duo</button><button data-sq="4"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3.6" fill="currentColor"/><path d="M5 22v-5.5C5 12.9 8 11 12 11s7 1.9 7 5.5V22z" fill="currentColor"/></svg></i>Squad</button></div>
   <div class="card" id="pwho" style="display:none">
     <label style="margin-top:0">Jogar contra</label>
     <div><button class="btn sm" data-pw="online">Jogadores online</button><button class="btn sm" data-pw="bots">Bots</button></div>
@@ -631,6 +668,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div id="medbar">Usando kit médico…<div class="bar"><i></i></div></div>
   <div class="hp"><div class="v"><span id="hpv">100</span> <small>HP</small></div><div class="hpbar"><b id="hpd"></b><i id="hpb"></i></div><div class="med">✚ <span id="medn">2</span></div></div>
   <div id="radar"><canvas id="radarc" width="220" height="220"></canvas></div>
+  <div id="sqlist" style="display:none"></div>
   <div id="brov"><div class="brbox"><div class="brscan"><i></i><b></b></div><div class="brt" id="brt">PROCURANDO JOGADORES</div><div class="brn" id="brn">15</div><div class="brs" id="brs"></div><div class="brbar"><i id="brbar"></i></div><div class="brx" id="brx">SAIR DA FILA</div></div></div>
   <div id="brleap">PULAR DO TREM</div>
   <div id="grabtip" style="display:none"></div>
@@ -651,6 +689,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div id="joy"><i></i></div>
 </div>
 <div id="bigmap"><canvas id="bigmapc"></canvas><div class="bmh">MAPA · toque (ou M) para fechar</div></div>
+<div id="pinvm"><div class="pinv-box"><div class="pinv-top"><b>Convidar amigos</b><button class="btn sm" id="pinvx">Fechar</button></div><div class="stat" style="margin:-4px 0 8px">Seus amigos online recebem o convite na hora. Juntos, vocês buscam a partida do Mapa aberto na mesma equipe.</div><div id="pinvlist"></div></div></div>
 <div id="edit"><div id="editbar"><b>Arraste os botões</b><span>Tamanho</span><input type="range" id="esize" min="0.6" max="1.8" step="0.05" style="width:120px"><button class="btn sm" id="ereset">Padrão</button><button class="btn sm" id="esave">Salvar</button></div></div>
 <div id="vkb"><div id="vkp"><span id="vkl"></span><div id="vkt"></div><div class="vk vkx" data-k="close">✕</div></div><div id="vkk"></div></div>
 <div id="toast"></div>
@@ -1650,7 +1689,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       useMap(this.map, this.dyn);
       const id = this.nextId++;
       const lo = info.loadout || {};
-      const team = isFFA(this.mode) ? id : (info.team === 0 || info.team === 1 ? info.team : (this.teamCount(0) <= this.teamCount(1) ? 0 : 1));
+      const team = isFFA(this.mode) ? (this.mode === 'aberto' && info.sq ? 100000 + (info.sq | 0) : id) : (info.team === 0 || info.team === 1 ? info.team : (this.teamCount(0) <= this.teamCount(1) ? 0 : 1));
       const p = {
         id, name: sanitizeName(info.name), bot: !!info.bot, team, uniform: UNIFORMS[info.uniform] ? info.uniform : 'woodland',
         skin: info.skin != null ? info.skin : id % 4, level: info.level || 1, upgrades: info.upgrades || [], look: sanitizeLook(info.look),
@@ -1686,11 +1725,20 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       let best = list[0], bestD = -1;
       for (const s of list) {
         let md = 1e9;
-        for (const o of this.players.values()) if (o !== p && o.alive && (isFFA(this.mode) || this.rounds || o.team !== p.team)) md = Math.min(md, Math.hypot(o.x - s[0], o.z - s[2]));
+        for (const o of this.players.values()) if (o !== p && o.alive && (this.rounds || o.team !== p.team)) md = Math.min(md, Math.hypot(o.x - s[0], o.z - s[2]));
         md += Math.random() * 6;
         if (md > bestD) { bestD = md; best = s; }
       }
       p.x = best[0] + (Math.random() - 0.5); p.y = best[1]; p.z = best[2] + (Math.random() - 0.5); p.yaw = best[3]; p.pitch = 0;
+      // mapa aberto em equipe: renasce perto de um companheiro vivo
+      if (this.mode === 'aberto' && p.team >= 100000 && this.ph === 'livre') {
+        const mates = [...this.players.values()].filter((o) => o !== p && o.alive && o.team === p.team && !o.train && o.onGround);
+        for (const m of mates) {
+          let ok = false;
+          for (let k = 0; k < 8 && !ok; k++) { const a = Math.random() * 6.283, x = m.x + Math.cos(a) * 3, z = m.z + Math.sin(a) * 3; if (!collides(x, m.y + 0.05, z, C.R, C.H)) { p.x = x; p.y = m.y; p.z = z; p.yaw = m.yaw; ok = true; } }
+          if (ok) break;
+        }
+      }
       p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
       if (p.baseW) p.weapons = p.baseW.slice();
       p.hp = C.MAXHP; p.alive = true; p.streak = 0; p.cur = 0; p.bloom = 0;
@@ -1805,7 +1853,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
           if (h && h.t < tw) { tw = h.t; victim = o; head = h.head; }
         }
         if (!firstEnd) firstEnd = [ex + dx * tw, ey + dy * tw, ez + dz * tw];
-        if (victim && (isFFA(this.mode) || victim.team !== p.team)) {
+        if (victim && victim.team !== p.team) { // no FFA cada um tem o próprio time; no mapa aberto a equipe (duo/squad) não se fere
           const e = dmgMap.get(victim) || { head: false };
           e.head = e.head || head; dmgMap.set(victim, e);
         }
@@ -1878,6 +1926,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     winnerOf() {
       if (!isFFA(this.mode)) return this.score[0] === this.score[1] ? -1 : this.score[0] > this.score[1] ? 0 : 1;
       let best = null; for (const p of this.players.values()) if (!best || p.kills > best.kills) best = p;
+      if (best && this.mode === 'aberto') return best.team; // mapa aberto: vence a equipe (solo = o próprio jogador) de quem fez mais eliminações
       return best ? best.id : -1;
     }
     endMatch() {
@@ -1887,7 +1936,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       let mvp = null; for (const p of this.players.values()) if (!mvp || p.kills > mvp.kills) mvp = p;
       const results = [];
       for (const p of this.players.values()) {
-        const won = !isFFA(this.mode) ? p.team === win : p.id === win;
+        const won = !isFFA(this.mode) || this.mode === 'aberto' ? p.team === win : p.id === win;
         if (won) this.award(p, 500, 'Vitória'); else this.award(p, 150, 'Partida concluída');
         if (mvp === p && p.kills > 0) this.award(p, 150, 'Objetivo: MVP da partida');
         let mmr = 0;
@@ -2017,7 +2066,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         ai.scan = 0.2;
         let best = null, bd = 1e9;
         for (const o of this.players.values()) {
-          if (o === p || !o.alive || (!isFFA(this.mode) && o.team === p.team)) continue;
+          if (o === p || !o.alive || o.team === p.team) continue;
           const d = Math.hypot(o.x - p.x, o.z - p.z);
           if (d < bd && this.canSee(p, o)) { bd = d; best = o; }
         }
@@ -2057,7 +2106,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
           if (ai.lastSeen && Math.random() < 0.6) { [gx, gz] = ai.lastSeen; ai.lastSeen = null; }
           else {
             // ir em direção aos inimigos (área central / inimigo aleatório)
-            const enemies = [...this.players.values()].filter((o) => o.alive && o !== p && (isFFA(this.mode) || o.team !== p.team));
+            const enemies = [...this.players.values()].filter((o) => o.alive && o !== p && o.team !== p.team);
             enemies.sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z));
             if (!NAV) buildNav();
             if (enemies.length && Math.random() < 0.65) { const e = enemies[Math.floor(Math.random() * Math.min(3, enemies.length))]; gx = e.x; gz = e.z; }
@@ -3718,7 +3767,135 @@ const Sfx = (() => {
       o.connect(lp); lp.connect(g); g.connect(master); o.start(t + d); o.stop(t + d + 0.85);
     }
   }
-  return { init, music, setMusicVolume, setVolume, horn, shot, reload, pump, empty, hit, hurt, step, land, med, heal, ui, pick, levelUp };
+  return { ctx: () => ctx, init, music, setMusicVolume, setVolume, horn, shot, reload, pump, empty, hit, hurt, step, land, med, heal, ui, pick, levelUp };
+})();
+
+</script>
+<script>
+/* client/voice.js */
+/* Voz da equipe (VORZAK)
+   O microfone é gravado, reduzido para 12 kHz e comprimido (IMA ADPCM, 4 bits por amostra ≈ 6 KB/s).
+   Os pedaços (80 ms) vão pelo servidor do jogo só para os companheiros de equipe — funciona em qualquer distância
+   e em qualquer rede (não depende de conexão direta entre os celulares). Cada pedaço se decodifica sozinho:
+   se um se perder, o próximo toca normalmente. */
+const Voice = (() => {
+  'use strict';
+  const RATE = 12000, FRAME = 960; // 80 ms por pacote
+  const STEP = [7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767];
+  const IDX = [-1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8];
+
+  function encode(pcm) { // Float32 [-1,1] -> bytes: [pred lo, pred hi, idx, n lo, n hi, ...nibbles]
+    let pred = Math.max(-32768, Math.min(32767, Math.round(pcm[0] * 32767))), idx = 0;
+    const out = new Uint8Array(5 + Math.ceil(pcm.length / 2));
+    out[0] = pred & 255; out[1] = (pred >> 8) & 255; out[2] = idx; out[3] = pcm.length & 255; out[4] = pcm.length >> 8;
+    for (let i = 0; i < pcm.length; i++) {
+      const s = Math.max(-32768, Math.min(32767, Math.round(pcm[i] * 32767)));
+      let step = STEP[idx], diff = s - pred, code = 0;
+      if (diff < 0) { code = 8; diff = -diff; }
+      let dq = step >> 3;
+      if (diff >= step) { code |= 4; diff -= step; dq += step; }
+      step >>= 1; if (diff >= step) { code |= 2; diff -= step; dq += step; }
+      step >>= 1; if (diff >= step) { code |= 1; dq += step; }
+      pred += code & 8 ? -dq : dq; pred = Math.max(-32768, Math.min(32767, pred));
+      idx = Math.max(0, Math.min(88, idx + IDX[code]));
+      if (i & 1) out[5 + (i >> 1)] |= code << 4; else out[5 + (i >> 1)] = code;
+    }
+    return out;
+  }
+  function decode(b) {
+    if (b.length < 6) return null;
+    let pred = (b[0] | (b[1] << 8)) << 16 >> 16, idx = Math.min(88, b[2]);
+    const n = Math.min(b[3] | (b[4] << 8), (b.length - 5) * 2), out = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const code = i & 1 ? b[5 + (i >> 1)] >> 4 : b[5 + (i >> 1)] & 15, step = STEP[idx];
+      let dq = step >> 3; if (code & 4) dq += step; if (code & 2) dq += step >> 1; if (code & 1) dq += step >> 2;
+      pred += code & 8 ? -dq : dq; pred = Math.max(-32768, Math.min(32767, pred));
+      idx = Math.max(0, Math.min(88, idx + IDX[code]));
+      out[i] = pred / 32768;
+    }
+    return out;
+  }
+  const b64e = (u8) => { let s = ''; for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]); return btoa(s); };
+  const b64d = (s) => { const t = atob(s), u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i); return u; };
+
+  const V = {
+    mic: false, spk: true, busy: false, send: null, canSend: () => false, onChange: null,
+    stream: null, src: null, proc: null, sink: null, out: null, peers: new Map(), selfAt: 0,
+    acc: new Float32Array(FRAME), accN: 0, pos: 0, sum: 0, cnt: 0, gateUntil: 0,
+    ctx() { return Sfx.ctx(); },
+    output() {
+      const ctx = this.ctx(); if (!ctx) return null;
+      if (!this.out) { this.out = ctx.createGain(); this.out.gain.value = this.spk ? 1.6 : 0; this.out.connect(ctx.destination); }
+      return this.out;
+    },
+    setSpk(on) { this.spk = !!on; if (this.out) this.out.gain.value = this.spk ? 1.6 : 0; if (this.onChange) this.onChange(); },
+    async setMic(on) {
+      if (on === this.mic || this.busy) return this.mic;
+      if (!on) { this.stopMic(); if (this.onChange) this.onChange(); return false; }
+      Sfx.init(); const ctx = this.ctx();
+      if (!ctx || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Este navegador não deixa usar o microfone (abra pelo endereço https do jogo).');
+      this.busy = true;
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+      } catch (e) {
+        this.busy = false;
+        throw new Error(e && e.name === 'NotAllowedError' ? 'Permissão do microfone negada. Libere o microfone para este site nas configurações do navegador.' : 'Não foi possível abrir o microfone.');
+      }
+      this.busy = false;
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      this.src = ctx.createMediaStreamSource(this.stream);
+      this.proc = ctx.createScriptProcessor(4096, 1, 1);
+      this.sink = ctx.createGain(); this.sink.gain.value = 0; // o processador precisa estar ligado à saída (mudo)
+      const ratio = ctx.sampleRate / RATE;
+      this.proc.onaudioprocess = (ev) => {
+        if (!this.mic) return;
+        const inp = ev.inputBuffer.getChannelData(0);
+        for (let i = 0; i < inp.length; i++) { // média por janela = filtro passa-baixa + reamostragem para 12 kHz
+          this.sum += inp[i]; this.cnt++; this.pos += 1;
+          if (this.pos >= ratio) {
+            this.pos -= ratio; this.acc[this.accN++] = this.sum / this.cnt; this.sum = 0; this.cnt = 0;
+            if (this.accN === FRAME) { this.flush(); this.accN = 0; }
+          }
+        }
+      };
+      this.src.connect(this.proc); this.proc.connect(this.sink); this.sink.connect(ctx.destination);
+      this.mic = true; if (this.onChange) this.onChange();
+      return true;
+    },
+    stopMic() {
+      this.mic = false;
+      try { if (this.proc) this.proc.disconnect(); if (this.src) this.src.disconnect(); if (this.sink) this.sink.disconnect(); } catch (e) {}
+      if (this.stream) for (const t of this.stream.getTracks()) t.stop();
+      this.stream = this.src = this.proc = this.sink = null; this.accN = 0;
+    },
+    flush() {
+      let e = 0; for (let i = 0; i < FRAME; i++) e += this.acc[i] * this.acc[i];
+      const rms = Math.sqrt(e / FRAME), t = performance.now();
+      if (rms > 0.012) this.gateUntil = t + 450; // só envia quando tem voz (economiza internet)
+      if (t > this.gateUntil || !this.send || !this.canSend()) return;
+      // ganho leve: voz baixa fica audível sem estourar
+      const k = Math.min(4, 0.25 / Math.max(rms, 0.02)), f = new Float32Array(FRAME);
+      for (let i = 0; i < FRAME; i++) f[i] = Math.max(-1, Math.min(1, this.acc[i] * k));
+      this.selfAt = t; this.send(b64e(encode(f)));
+    },
+    recv(uid, d) {
+      const ctx = this.ctx(); if (!ctx || typeof d !== 'string') return;
+      let pcm; try { pcm = decode(b64d(d)); } catch (e) { return; }
+      if (!pcm || !pcm.length) return;
+      const p = this.peers.get(uid) || { next: 0, at: 0 }; this.peers.set(uid, p); p.at = performance.now();
+      if (!this.spk) return;
+      const out = this.output(); if (!out) return;
+      const buf = ctx.createBuffer(1, pcm.length, RATE); buf.getChannelData(0).set(pcm);
+      const s = ctx.createBufferSource(); s.buffer = buf; s.connect(out);
+      const now = ctx.currentTime;
+      if (p.next < now + 0.02 || p.next > now + 0.7) p.next = now + 0.16; // pequeno atraso guarda pacotes que chegam fora de hora
+      s.start(p.next); p.next += buf.duration;
+    },
+    talking(uid) { const p = this.peers.get(uid); return !!p && performance.now() - p.at < 350; },
+    selfTalking() { return this.mic && performance.now() - this.selfAt < 350; },
+    _test: { encode, decode },
+  };
+  return V;
 })();
 
 </script>
@@ -3937,9 +4114,12 @@ const Sfx = (() => {
         case 'wclosed': Wait.st = null; if (curScreen === 'wait') go('menu'); if (!m.self) toast('⚠ ' + esc(m.m), 6000); break;
         case 'autherr': Auth.pending = null; Auth.onWelcome = null; toast('⚠ ' + esc(m.m)); go('login'); try { this.ws.close(); } catch (e) {} break;
         case 'online': renderOnline(m.list); break;
-        case 'social': Social.st = m; updBadges(); if (curScreen === 'friends') renderFriends(); break;
+        case 'social': Social.st = m; updBadges(); if (curScreen === 'friends') renderFriends(); if ($('pinvm').classList.contains('on')) renderInvite(); break;
         case 'fresults': Social.res = m.list; if (curScreen === 'friends' && Social.tab === 'search') renderFriends(); break;
         case 'fnote': toast(esc(m.m)); break;
+        case 'party': Party.set(m); break;
+        case 'pinvite': Party.invited(m); break;
+        case 'vc': Voice.recv(m.u, m.d); if (m.p) Game.talk[m.p] = performance.now(); if (curScreen === 'menu') Party.talkUpd(); break;
         case 'profile':
           Prof.online = S.fixProfile(m.profile); refreshMenu(); renderLobbyRank(); if (curScreen === 'mail') renderMail();
           if (m.result) Game.onProfileResult(m.result);
@@ -3987,7 +4167,7 @@ const Sfx = (() => {
     },
     stop() {
       if (!this.active) return;
-      this.active = false; if (this.conn) this.conn.close(); this.conn = null;
+      this.active = false; if (this.conn) this.conn.close(); this.conn = null; document.body.classList.remove('endmin'); this.talk = {};
       setTimeout(menuMusic, 300);
       $('hud').classList.remove('on'); showTouch(false); $('s-end').classList.remove('on'); $('s-pause').classList.remove('on'); $('sb').style.display = 'none';
       if (document.pointerLockElement) document.exitPointerLock();
@@ -4071,7 +4251,33 @@ const Sfx = (() => {
     },
     name(id) { const r = this.roster.get(id); return r ? r.name : '?'; },
     teamOf(id) { const r = this.roster.get(id); return r ? r.team : -1; },
-    isEnemy(id) { return S.isFFA(this.mode) ? id !== this.myId : this.teamOf(id) !== this.teamOf(this.myId); },
+    isEnemy(id) { return S.isFFA(this.mode) && this.mode !== 'aberto' ? id !== this.myId : this.teamOf(id) !== this.teamOf(this.myId); },
+    talk: {},
+    // voz da equipe: só online, fora do 1 contra todos, e no mapa aberto só em duo/squad com companheiro
+    voiceOn() {
+      if (!this.active || !this.conn || this.conn.offline || this.mode === 'ffa') return false;
+      const mt = this.teamOf(this.myId); if (this.mode === 'aberto' && !(mt >= 100000)) return false;
+      for (const [id, r] of this.roster) if (id !== this.myId && r.team === mt && !r.bot) return true;
+      return false;
+    },
+    voiceHud() {
+      const t = now(); if (t - (this._vh || 0) < 0.25) return; this._vh = t;
+      const on = this.voiceOn(), E = Touch.els;
+      if (E.mic) { E.mic.style.display = on ? '' : 'none'; E.mic.classList.toggle('off', !Voice.mic); E.mic.classList.toggle('talk', Voice.selfTalking()); }
+      if (E.spk) { E.spk.style.display = on ? '' : 'none'; E.spk.classList.toggle('off', !Voice.spk); }
+      // lista da equipe (duo/squad do mapa aberto) embaixo do radar
+      const box = $('sqlist'), mt = this.teamOf(this.myId);
+      if (this.mode !== 'aberto' || !(mt >= 100000)) { box.style.display = 'none'; return; }
+      const rows = []; let i = 0;
+      for (const [id, r] of this.roster) {
+        if (r.team !== mt) continue; i++;
+        const me = id === this.myId, rp = this.remote.get(id), hp = me ? this.local.hp : rp ? rp.hp : 0, alive = me ? this.local.alive : rp && rp.cur && rp.cur.fl & 1;
+        const talk = me ? Voice.selfTalking() : performance.now() - (this.talk[id] || 0) < 400;
+        rows.push(`<div class="sq-r${me ? ' me' : ''}${alive ? '' : ' dead'}"><b>${i}</b><span>${esc(r.name)}</span>${talk ? '<em>🔊</em>' : ''}<i><u style="width:${alive ? Math.max(0, Math.min(100, hp)) : 0}%"></u></i></div>`);
+      }
+      box.style.display = rows.length > 1 ? '' : 'none';
+      const h = rows.join(''); if (box._h !== h) { box._h = h; box.innerHTML = h; }
+    },
     remotePos(id) { const rp = this.remote.get(id); return rp && rp.cur ? rp.cur : null; },
     onEvent(e) {
       const me = this.myId;
@@ -4170,7 +4376,7 @@ const Sfx = (() => {
       let winTxt;
       if (S.isRounds(e.mode)) winTxt = me && me.won ? '<span style="color:var(--grn)">VOCÊ VENCEU</span>' : '<span style="color:var(--red)">VOCÊ PERDEU</span>';
       else if (!S.isFFA(e.mode)) winTxt = e.win === -1 ? 'EMPATE' : (me && e.win === me.team ? '<span style="color:var(--grn)">VITÓRIA</span>' : '<span style="color:var(--red)">DERROTA</span>');
-      else winTxt = me && me.won ? '<span style="color:var(--grn)">VOCÊ VENCEU!</span>' : `Vencedor: <b>${esc((e.results.find((r) => r.id === e.win) || {}).name || '?')}</b>`;
+      else winTxt = me && me.won ? '<span style="color:var(--grn)">VOCÊ VENCEU!</span>' : `Vencedor: <b>${esc((e.results.find((r) => (e.mode === 'aberto' ? r.team : r.id) === e.win) || {}).name || '?')}</b>`;
       let rows = '';
       for (const r of e.results) rows += `<tr class="${r.id === this.myId ? 'me' : ''}"><td class="${!S.isFFA(e.mode) ? (r.team === 0 ? 'ta' : 'tb') : ''}">${esc(r.name)}${r.bot ? ' <span class="tag">bot</span>' : ''}</td><td>${r.kills}</td><td>${r.deaths}</td><td>${r.hs}</td><td>${r.xp}</td></tr>`;
       let res = '';
@@ -4957,6 +5163,7 @@ const Sfx = (() => {
     if (e.code === 'KeyQ') keys._swap = 'next';
     if (e.code === 'KeyM' && Game.active && !chatOpen) Game.toggleMap();
     if (e.code === 'KeyV' && Game.active && !chatOpen) Game.toggleCam();
+    if (e.code === 'KeyY' && Game.active && !chatOpen && Game.voiceOn()) toggleMic(); // Y: microfone da equipe
     if (e.code === 'KeyE' || e.code === 'KeyF') keys._grab = true;
     if (e.code === 'KeyH' || e.code === 'Digit4') keys._med = true;
     if (e.code === 'Enter' || e.code === 'KeyT') { e.preventDefault(); openChat(); }
@@ -5030,6 +5237,8 @@ const Sfx = (() => {
     { id: 'grab', label: 'PEGAR', x: 0.62, y: 0.62, s: 66, cls: 'grab' },
     { id: 'cam', label: '👁 CÂM', x: 0.94, y: 0.22, s: 50 },
     { id: 'gear', label: '⚙', x: 0.94, y: 0.08, s: 50, cls: 'gear' }, // configurações (substitui o pausar)
+    { id: 'mic', label: '🎤', x: 0.30, y: 0.18, s: 44, cls: 'vbtn' }, // microfone da equipe (liga/desliga)
+    { id: 'spk', label: '🔊', x: 0.345, y: 0.18, s: 44, cls: 'vbtn' }, // ouvir a equipe (liga/desliga)
   ];
   const Touch = {
     joy: [0, 0], sprintLock: false, held: {}, score: false, joyId: null, joyO: [0, 0], look: new Map(), els: {},
@@ -5259,6 +5468,8 @@ const Sfx = (() => {
           case 'rotate': cycleOrientation(); break;
           case 'fs': FS.toggle(); break;
           case 'cam': Game.toggleCam(); break;
+          case 'mic': toggleMic(); break;
+          case 'spk': Voice.setSpk(!Voice.spk); vibrate(15); break;
         }
         continue;
       }
@@ -5417,6 +5628,7 @@ const Sfx = (() => {
     setT($('lbmodet'), mt[0]); setT($('lbmodei'), mt[1]);
     setT($('lbmodes'), PL.mode === 'training' ? 'Bots fáceis · XP reduzido' : playOnline() ? (PL.mode === 'tdm' && PL.ranked ? 'Online · ranqueado' : 'Online · jogadores reais') : 'Contra bots');
     $('lbevdot').classList.toggle('on', p.missions.some((m) => m.prog > 0));
+    if (typeof renderParty === 'function') try { renderParty(); } catch (e) {}
   }
   // eventos: missões da semana e recompensas de nível
   function renderEvents() {
@@ -5457,11 +5669,90 @@ const Sfx = (() => {
   $('pstart').onclick = () => {
     Sfx.init();
     FS.auto();
-    if (playOnline()) { online(() => Net.send({ t: 'quick', mode: PL.mode === 'tdm' && PL.ranked ? 'ranked' : PL.mode }), $('pstatus')); return; }
+    if (playOnline()) { online(() => Net.send({ t: 'quick', mode: PL.mode === 'tdm' && PL.ranked ? 'ranked' : PL.mode, sq: PL.mode === 'aberto' ? Party.size() : 1 }), $('pstatus')); return; }
     const conn = new LocalConn({ mode: PL.mode, diff: PL.mode === 'training' ? 0 : PL.diff, bots: PL.bots }, (m) => Game.onMsg(m));
     Game.start(conn, {});
   };
   $('lbgo').onclick = () => $('pstart').onclick();
+  // ---- GRUPO do mapa aberto (Solo / Duo / Squad) + convite de amigos + voz no menu
+  const Party = {
+    st: null,
+    size() { return this.st ? this.st.size : [1, 2, 4].includes(PL.sq) ? PL.sq : 1; },
+    set(m) { this.st = m && m.id ? m : null; if (this.st) { PL.sq = this.st.size; store.set('vz_play', PL); } renderParty(); if (curScreen === 'friends') renderFriends(); },
+    leader() { return !this.st || this.st.leader === Net.uid; },
+    invited(m) {
+      Sfx.ui(); vibrate([30, 60, 30]);
+      const d = toast(`<b>${esc(m.from)}</b> convidou você para o <b>Mapa aberto · ${m.size === 4 ? 'Squad' : 'Duo'}</b><div style="margin-top:6px"><button class="btn sm" data-a="1">Aceitar</button> <button class="btn sm" data-a="0">Recusar</button></div>`, 20000);
+      d.querySelectorAll('button').forEach((b) => (b.onclick = () => {
+        d.remove(); if (b.dataset.a !== '1') return;
+        if (Game.active) { Game.stop(); go('menu'); }
+        PL.mode = 'aberto'; PL.who = 'online'; PL.sq = m.size; store.set('vz_play', PL);
+        Net.send({ t: 'pjoin', party: m.party }); if (curScreen !== 'menu') go('menu'); refreshMenu();
+      }));
+    },
+    talkUpd() {
+      document.querySelectorAll('#lbpslots [data-u]').forEach((el) => { const u = +el.dataset.u; el.classList.toggle('talk', u === Net.uid ? Voice.selfTalking() : Voice.talking(u)); });
+    },
+  };
+  setInterval(() => { if (curScreen === 'menu' && Party.st) Party.talkUpd(); }, 300);
+  async function toggleMic() {
+    vibrate(15);
+    try { const on = await Voice.setMic(!Voice.mic); toast(on ? '🎤 Microfone ligado: sua equipe te escuta' : '🎤 Microfone desligado', 1800); }
+    catch (e) { toast('⚠ ' + esc(e.message), 7000); }
+  }
+  Voice.send = (d) => Net.send({ t: 'vc', d });
+  Voice.canSend = () => Net.ok && (Game.active ? Game.voiceOn() : !!(Party.st && Party.st.members.length > 1));
+  Voice.onChange = () => { renderParty(); if (Game.active) { Game._vh = 0; Game.voiceHud(); } };
+  function renderParty() {
+    const ab = PL.mode === 'aberto', st = Party.st, size = Party.size();
+    $('lbsq').style.display = ab ? '' : 'none'; $('psq').style.display = ab ? '' : 'none';
+    document.querySelectorAll('[data-sq]').forEach((b) => b.classList.toggle('sel', +b.dataset.sq === size));
+    const show = ab && size > 1;
+    $('lbparty').style.display = show ? '' : 'none';
+    if (!show) return;
+    const mem = st ? st.members : [{ uid: Net.uid, name: Prof.cur.name, level: Prof.cur.level }];
+    setT($('lbpn'), `${mem.length}/${size}`);
+    let h = '';
+    for (let i = 0; i < size; i++) {
+      const x = mem[i];
+      if (x) h += `<div class="lbp-m${x.uid === Net.uid ? ' me' : ''}" data-u="${x.uid}"><i class="lbp-av">${esc((x.name || '?').charAt(0).toUpperCase())}</i><span>${esc(x.name)}${st && st.leader === x.uid ? ' <b class="lbp-c" title="Líder">★</b>' : ''}${x.playing ? '<small>em partida</small>' : ''}</span><em class="lbp-t">🔊</em>${st && st.leader === Net.uid && x.uid !== Net.uid ? `<button class="lbp-k" data-kick="${x.uid}" title="Remover">✕</button>` : ''}</div>`;
+      else h += `<button class="lbp-m lbp-add" data-inv="1"><i class="lbp-av">+</i><span>Convidar amigo</span></button>`;
+    }
+    $('lbpslots').innerHTML = h;
+    $('lbpslots').querySelectorAll('[data-inv]').forEach((b) => (b.onclick = () => { Sfx.ui(); openInvite(); }));
+    $('lbpslots').querySelectorAll('[data-kick]').forEach((b) => (b.onclick = () => Net.send({ t: 'pkick', uid: +b.dataset.kick })));
+    $('lbpleave').style.display = st && st.members.length > 1 ? '' : 'none';
+    $('lbpmic').classList.toggle('on', Voice.mic); $('lbpmic').style.display = st && st.members.length > 1 ? '' : 'none';
+    Party.talkUpd();
+  }
+  document.querySelectorAll('[data-sq]').forEach((b) => (b.onclick = () => {
+    Sfx.ui(); const n = +b.dataset.sq;
+    if (Party.st && !Party.leader()) return toast('Só o líder do grupo escolhe Solo, Duo ou Squad.');
+    if (Party.st && Party.st.members.length > n) return toast(`Seu grupo tem ${Party.st.members.length} jogadores. Remova alguém ou escolha um modo maior.`);
+    PL.sq = n; store.set('vz_play', PL);
+    if (Net.ok && (Party.st || n > 1)) Net.send({ t: 'psize', size: n });
+    renderParty();
+  }));
+  $('lbpleave').onclick = () => { Sfx.ui(); Net.send({ t: 'pleave' }); };
+  $('lbpmic').onclick = () => toggleMic();
+  function openInvite() {
+    if (!serverUrl()) return toast('Configure o servidor online para convidar amigos.');
+    if (!Net.ok) { autoConnect(); return toast('Conectando ao servidor… tente de novo em instantes.'); }
+    if (!Party.leader()) return toast('Só o líder do grupo pode convidar.');
+    if (!Party.st) Net.send({ t: 'psize', size: Party.size() > 1 ? Party.size() : 4 });
+    Net.send({ t: 'social' });
+    $('pinvm').classList.add('on'); renderInvite();
+  }
+  function renderInvite() {
+    const fr = (Social.st && Social.st.friends) || [], inParty = new Set(Party.st ? Party.st.members.map((x) => x.pid) : []);
+    const list = fr.slice().sort((a, b) => b.online - a.online || a.name.localeCompare(b.name));
+    $('pinvlist').innerHTML = list.length ? list.map((f) => `<div class="pinv-r"><i class="lbp-av">${esc(f.name.charAt(0).toUpperCase())}</i><span><b>${esc(f.name)}</b><small>Nível ${f.level} · ${inParty.has(f.id) ? 'no seu grupo' : f.online ? (f.playing ? 'em partida' : 'online') : 'offline'}</small></span><button class="btn sm" data-pi="${f.id}" ${!f.online || inParty.has(f.id) ? 'disabled' : ''}>Convidar</button></div>`).join('')
+      : `<div class="stat" style="padding:10px 0">Você ainda não tem amigos. Adicione pelo nome ou pelo ID no botão de amigos.</div><button class="btn sm" id="pinvfr">Adicionar amigos</button>`;
+    $('pinvlist').querySelectorAll('[data-pi]').forEach((b) => (b.onclick = () => { Sfx.ui(); Net.send({ t: 'pinv', id: b.dataset.pi }); b.disabled = true; b.textContent = 'Enviado'; }));
+    const g = $('pinvfr'); if (g) g.onclick = () => { $('pinvm').classList.remove('on'); go('friends'); };
+  }
+  $('pinvx').onclick = () => $('pinvm').classList.remove('on');
+  $('pinvm').onclick = (e) => { if (e.target === $('pinvm')) $('pinvm').classList.remove('on'); };
   // ---- servidor online (endereço em Configurações) e salas públicas (em Procurar sala)
   $('mpurl').value = serverUrl();
   $('mpgo').onclick = () => { const u = $('mpurl').value.trim(); if (!u) return; store.set('fps_server', u); Net.connect(u); };
@@ -5779,7 +6070,7 @@ const Sfx = (() => {
         if (!Game.active) return;
         const f = Game.buildFrame();
         R.render(f);
-        Game.overlay(); Game.radar(); Game.brHud();
+        Game.overlay(); Game.radar(); Game.brHud(); Game.voiceHud();
       } else if (STORE_SCR.includes(curScreen) || curScreen === 'menu') {
         R.render(Preview.frame());
       } else {
@@ -5790,7 +6081,7 @@ const Sfx = (() => {
       }
     } catch (e) { console.error(e); }
   }
-  window.__game = { Store, Preview, PL, VK, FS, setOrientation, Game, CFG, Prof, Net, S, R, go, keys, mouse, Touch };
+  window.__game = { Store, Preview, PL, VK, FS, setOrientation, Game, CFG, Prof, Net, S, R, go, keys, mouse, Touch, Party, Voice };
   applyQuality();
   applyRotation();
   refreshMenu();

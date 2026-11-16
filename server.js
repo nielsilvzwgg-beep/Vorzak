@@ -220,6 +220,7 @@ class Client {
     if (!this.alive) return; this.alive = false;
     if (this.wroom) this.wroom.wleave(this);
     if (this.room) this.room.leave(this);
+    partyLeave(this);
     clients.delete(this.uid);
     broadcastOnline();
     if (this.hello && this.profile) friendsOnlineChanged(this.profile);
@@ -236,6 +237,8 @@ class Room {
     this.id = newRoomId(); nextRoomId++; this.name = S.sanitizeChat(o.name).slice(0, 28) || 'Sala ' + this.id;
     this.mode = S.isFFA(o.mode) || S.isRounds(o.mode) ? o.mode : 'tdm'; this.priv = !!o.priv; this.ranked = !!o.ranked; this.persistent = !!o.persistent;
     this.max = S.isRounds(this.mode) ? 2 * +this.mode[1] : this.mode === 'aberto' ? S.clamp(o.max | 0 || 30, 2, 30) : S.clamp(o.max | 0 || 10, 2, 12); this.code = String(this.id); this.owner = o.owner || 0;
+    this.sqs = this.mode === 'aberto' ? ([1, 2, 4].includes(o.sqs) ? o.sqs : 1) : 1; // mapa aberto: solo (1), duo (2) ou squad (4)
+    this.squads = new Map(); this.nextSq = 1; // equipes da sala: id -> { n, open }
     this.sim = new S.GameSim({ mode: this.mode, ranked: this.ranked, br: this.mode === 'aberto', brBusca: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0, brLobby: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0 }); // mapa aberto online: procurar jogadores -> lobby -> trem
     this.sim.onMatchEnd = (results, win) => this.onMatchEnd(results, win);
     this.members = new Map(); // pid -> client
@@ -296,14 +299,24 @@ class Room {
     while (bots.length > want) { const b = bots.pop(); this.sim.removePlayer(b.id); }
     for (let i = bots.length; i < want; i++) this.sim.addBot();
   }
-  info() { const tc = [0, 0]; if (this.waiting) { for (const w of this.wait.values()) tc[w.team]++; } else for (const p of this.sim.players.values()) if (p.team === 0 || p.team === 1) tc[p.team]++; return { waiting: this.waiting, msLeft: this.waiting ? Math.max(0, this.expiresAt - Date.now()) : 0, id: this.id, name: this.name, mode: this.mode, ranked: this.ranked, n: this.waiting ? this.wait.size : this.members.size, max: this.max, priv: this.priv, teams: S.isFFA(this.mode) ? null : tc }; }
-  join(c, team) {
+  info() { const tc = [0, 0]; if (this.waiting) { for (const w of this.wait.values()) tc[w.team]++; } else for (const p of this.sim.players.values()) if (p.team === 0 || p.team === 1) tc[p.team]++; return { sqs: this.sqs, waiting: this.waiting, msLeft: this.waiting ? Math.max(0, this.expiresAt - Date.now()) : 0, id: this.id, name: this.name, mode: this.mode, ranked: this.ranked, n: this.waiting ? this.wait.size : this.members.size, max: this.max, priv: this.priv, teams: S.isFFA(this.mode) ? null : tc }; }
+  // equipe para quem entra sozinho no duo/squad: completa uma equipe aberta (formada por jogadores sozinhos)
+  openSquad() {
+    if (this.sqs <= 1) return 0;
+    for (const [id, q] of this.squads) if (q.open && q.n < this.sqs) return id;
+    const id = this.nextSq++; this.squads.set(id, { n: 0, open: true }); return id;
+  }
+  newSquad() { const id = this.nextSq++; this.squads.set(id, { n: 0, open: false }); return id; }
+  join(c, team, sq) {
     if (this.waiting) return this.wjoin(c);
     if (this.members.size >= this.max) return c.send({ t: 'err', m: 'Sala cheia' });
     if (c.room) c.room.leave(c);
     if (c.wroom) c.wroom.wleave(c, true);
     const p = c.profile;
-    const pl = this.sim.addPlayer({ team, name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p) });
+    if (this.mode === 'aberto' && this.sqs > 1 && !sq) sq = this.openSquad();
+    if (sq) { const q = this.squads.get(sq); if (q) q.n++; }
+    c.sq = sq || 0;
+    const pl = this.sim.addPlayer({ sq, team, name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p) });
     c.room = this; c.pid = pl.id; this.members.set(pl.id, c);
     c.send({ t: 'joined', pid: pl.id, room: { id: this.id, name: this.name, mode: this.mode, code: this.code, priv: this.priv, ranked: this.ranked } });
     this.system(`${p.name} entrou na sala`);
@@ -313,6 +326,7 @@ class Room {
   leave(c) {
     if (c.room !== this) return;
     this.sim.removePlayer(c.pid); this.members.delete(c.pid);
+    if (c.sq) { const q = this.squads.get(c.sq); if (q && --q.n <= 0) this.squads.delete(c.sq); c.sq = 0; }
     this.system(`${c.profile ? c.profile.name : 'Jogador'} saiu`);
     c.room = null; c.pid = 0;
     if (c.alive) c.send({ t: 'left' });
@@ -363,6 +377,49 @@ function broadcastOnline() {
     const s = JSON.stringify({ t: 'online', list });
     for (const c of clients.values()) if (c.hello) c.sendRaw(s);
   }, 300);
+}
+
+// ------------------------------------------------------------ grupo (solo / duo / squad) do mapa aberto
+let nextParty = 1;
+const parties = new Map();
+function newParty(c, size) { partyLeave(c); const p = { id: nextParty++, leader: c.uid, size, members: [c], invited: new Set() }; c.party = p; parties.set(p.id, p); return p; }
+function partyState(p) {
+  return { t: 'party', id: p.id, leader: p.leader, size: p.size, members: p.members.map((m) => ({ uid: m.uid, pid: m.profile.pid, name: m.profile.name, level: m.profile.level, char: S.lookOf(m.profile).c, playing: m.room ? 1 : 0 })) };
+}
+function pushParty(p) { const s = JSON.stringify(partyState(p)); for (const m of p.members) m.sendRaw(s); }
+function partyLeave(c) {
+  const p = c.party; if (!p) return;
+  p.members = p.members.filter((m) => m !== c); c.party = null;
+  if (c.alive) c.send({ t: 'party', id: 0, size: p.size });
+  if (!p.members.length) { parties.delete(p.id); return; }
+  if (p.leader === c.uid) p.leader = p.members[0].uid;
+  pushParty(p);
+}
+// busca do mapa aberto: o grupo inteiro entra na mesma sala e na mesma equipe
+function quickOpen(c, m) {
+  const pt = c.party && c.party.members.length > 1 ? c.party : null;
+  const size = pt ? pt.size : [1, 2, 4].includes(m.sq) ? m.sq : c.party ? c.party.size : 1;
+  if (pt && pt.leader !== c.uid) return c.send({ t: 'err', m: 'Só o líder do grupo pode buscar partida.' });
+  const group = pt ? pt.members.slice() : [c];
+  const busy = group.find((o) => o !== c && o.room);
+  if (busy) return c.send({ t: 'err', m: busy.profile.name + ' ainda está em uma partida. Espere ele voltar ao menu.' });
+  const brOk = (r) => !r.sim.br || r.sim.ph === 'busca' || (r.sim.ph === 'lobby' && r.sim.phEnd - r.sim.time > 3);
+  let best = null;
+  for (const r of rooms.values()) if (!r.priv && r.mode === 'aberto' && r.sqs === size && !r.waiting && r.members.size + group.length <= r.max && brOk(r) && (!best || r.members.size > best.members.size)) best = r;
+  if (!best) best = new Room({ name: 'Mapa aberto ' + (size === 4 ? 'Squad' : size === 2 ? 'Duo' : 'Solo') + ' #' + nextRoomId, mode: 'aberto', max: 30, sqs: size });
+  const sq = size > 1 ? (pt ? best.newSquad() : best.openSquad()) : 0;
+  for (const o of group) { if (o.wroom) o.wroom.wleave(o, true); best.join(o, undefined, sq); }
+  if (pt) pushParty(pt);
+}
+// quem escuta a voz: companheiros da mesma equipe na partida; no menu, os outros membros do grupo
+function voiceGroup(c) {
+  const out = [];
+  if (c.room) {
+    const r = c.room, me = r.sim.players.get(c.pid);
+    if (!me || r.mode === 'ffa' || (r.mode === 'aberto' && !(me.team >= 100000))) return out;
+    for (const [pid, o] of r.members) { if (o === c) continue; const p = r.sim.players.get(pid); if (p && p.team === me.team) out.push(o); }
+  } else if (c.party) for (const o of c.party.members) if (o !== c && !o.room) out.push(o);
+  return out;
 }
 
 // ------------------------------------------------------------ mensagens
@@ -470,6 +527,7 @@ function handle(c, m) {
     }
     case 'quick': {
       const ranked = m.mode === 'ranked', mode = ranked ? 'tdm' : S.isFFA(m.mode) || S.isRounds(m.mode) ? m.mode : 'tdm';
+      if (mode === 'aberto') return quickOpen(c, m);
       let best = null;
       // mapa aberto: só entra em sala que ainda está procurando jogadores ou no lobby; senão abre outra sala
       // (assim todo mundo sempre passa por: procurar jogadores -> lobby -> trem)
@@ -479,6 +537,55 @@ function handle(c, m) {
       return best.join(c);
     }
     case 'leave': if (room) room.leave(c); else if (c.wroom) c.wroom.wleave(c); return;
+    // ---------------- grupo do mapa aberto (solo / duo / squad)
+    case 'psize': {
+      const size = [1, 2, 4].includes(m.size) ? m.size : 1;
+      if (!c.party) { if (size > 1) { newParty(c, size); pushParty(c.party); } else c.send({ t: 'party', id: 0, size: 1 }); return; }
+      const pt = c.party;
+      if (pt.leader !== c.uid) return c.send({ t: 'err', m: 'Só o líder do grupo escolhe Solo, Duo ou Squad.' });
+      if (pt.members.length > size) return c.send({ t: 'err', m: `Seu grupo tem ${pt.members.length} jogadores: escolha um modo maior ou remova alguém.` });
+      pt.size = size; return pushParty(pt);
+    }
+    case 'pinv': {
+      const id = String(m.id || ''), me = c.profile;
+      if (!me.friends.includes(id)) return c.send({ t: 'err', m: 'Você só pode convidar amigos.' });
+      const oc = clientByPid(id); if (!oc) return c.send({ t: 'err', m: 'Seu amigo não está online.' });
+      if (!c.party) newParty(c, 4);
+      const pt = c.party;
+      if (pt.leader !== c.uid) return c.send({ t: 'err', m: 'Só o líder do grupo pode convidar.' });
+      if (pt.size < 2) pt.size = 4;
+      if (pt.members.includes(oc)) return c.send({ t: 'err', m: oc.profile.name + ' já está no seu grupo.' });
+      if (pt.members.length >= pt.size) return c.send({ t: 'err', m: 'Seu grupo está cheio.' });
+      if (Date.now() - (c.lastPinv || 0) < 1000) return; c.lastPinv = Date.now();
+      pt.invited.add(oc.uid); pushParty(pt);
+      oc.send({ t: 'pinvite', party: pt.id, from: me.name, pid: me.pid, size: pt.size });
+      return c.send({ t: 'fnote', m: 'Convite enviado para ' + oc.profile.name });
+    }
+    case 'pjoin': {
+      const pt = parties.get(m.party | 0);
+      if (!pt || !pt.invited.has(c.uid)) return c.send({ t: 'err', m: 'Esse convite não vale mais.' });
+      if (pt.members.length >= pt.size) return c.send({ t: 'err', m: 'O grupo já está cheio.' });
+      if (room) room.leave(c);
+      if (c.wroom) c.wroom.wleave(c, true);
+      partyLeave(c);
+      pt.invited.delete(c.uid); pt.members.push(c); c.party = pt; pushParty(pt);
+      for (const o of pt.members) if (o !== c) o.send({ t: 'fnote', m: c.profile.name + ' entrou no grupo!' });
+      return;
+    }
+    case 'pleave': return partyLeave(c);
+    case 'pkick': {
+      const pt = c.party; if (!pt || pt.leader !== c.uid) return;
+      const o = pt.members.find((x) => x.uid === (m.uid | 0)); if (!o || o === c) return;
+      partyLeave(o); o.send({ t: 'fnote', m: 'Você saiu do grupo.' }); return;
+    }
+    // ---------------- voz da equipe: o servidor só repassa para os companheiros (qualquer distância)
+    case 'vc': {
+      if (typeof m.d !== 'string' || m.d.length > 2400) return;
+      const t = Date.now(); if (t - (c.vcWin || 0) > 1000) { c.vcWin = t; c.vcN = 0; } if (++c.vcN > 20) return;
+      const out = JSON.stringify({ t: 'vc', u: c.uid, p: c.room ? c.pid : 0, d: m.d });
+      for (const o of voiceGroup(c)) o.sendRaw(out);
+      return;
+    }
     case 'wteam': if (c.wroom) c.wroom.wteam(c, m.team); return;
     case 'wstart': if (c.wroom) c.wroom.wstart(c); return;
     case 'in': if (room) room.sim.handleInputs(c.pid, m.l); return;

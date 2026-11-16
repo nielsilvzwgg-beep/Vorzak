@@ -991,7 +991,7 @@
       useMap(this.map, this.dyn);
       const id = this.nextId++;
       const lo = info.loadout || {};
-      const team = isFFA(this.mode) ? id : (info.team === 0 || info.team === 1 ? info.team : (this.teamCount(0) <= this.teamCount(1) ? 0 : 1));
+      const team = isFFA(this.mode) ? (this.mode === 'aberto' && info.sq ? 100000 + (info.sq | 0) : id) : (info.team === 0 || info.team === 1 ? info.team : (this.teamCount(0) <= this.teamCount(1) ? 0 : 1));
       const p = {
         id, name: sanitizeName(info.name), bot: !!info.bot, team, uniform: UNIFORMS[info.uniform] ? info.uniform : 'woodland',
         skin: info.skin != null ? info.skin : id % 4, level: info.level || 1, upgrades: info.upgrades || [], look: sanitizeLook(info.look),
@@ -1027,11 +1027,20 @@
       let best = list[0], bestD = -1;
       for (const s of list) {
         let md = 1e9;
-        for (const o of this.players.values()) if (o !== p && o.alive && (isFFA(this.mode) || this.rounds || o.team !== p.team)) md = Math.min(md, Math.hypot(o.x - s[0], o.z - s[2]));
+        for (const o of this.players.values()) if (o !== p && o.alive && (this.rounds || o.team !== p.team)) md = Math.min(md, Math.hypot(o.x - s[0], o.z - s[2]));
         md += Math.random() * 6;
         if (md > bestD) { bestD = md; best = s; }
       }
       p.x = best[0] + (Math.random() - 0.5); p.y = best[1]; p.z = best[2] + (Math.random() - 0.5); p.yaw = best[3]; p.pitch = 0;
+      // mapa aberto em equipe: renasce perto de um companheiro vivo
+      if (this.mode === 'aberto' && p.team >= 100000 && this.ph === 'livre') {
+        const mates = [...this.players.values()].filter((o) => o !== p && o.alive && o.team === p.team && !o.train && o.onGround);
+        for (const m of mates) {
+          let ok = false;
+          for (let k = 0; k < 8 && !ok; k++) { const a = Math.random() * 6.283, x = m.x + Math.cos(a) * 3, z = m.z + Math.sin(a) * 3; if (!collides(x, m.y + 0.05, z, C.R, C.H)) { p.x = x; p.y = m.y; p.z = z; p.yaw = m.yaw; ok = true; } }
+          if (ok) break;
+        }
+      }
       p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
       if (p.baseW) p.weapons = p.baseW.slice();
       p.hp = C.MAXHP; p.alive = true; p.streak = 0; p.cur = 0; p.bloom = 0;
@@ -1146,7 +1155,7 @@
           if (h && h.t < tw) { tw = h.t; victim = o; head = h.head; }
         }
         if (!firstEnd) firstEnd = [ex + dx * tw, ey + dy * tw, ez + dz * tw];
-        if (victim && (isFFA(this.mode) || victim.team !== p.team)) {
+        if (victim && victim.team !== p.team) { // no FFA cada um tem o próprio time; no mapa aberto a equipe (duo/squad) não se fere
           const e = dmgMap.get(victim) || { head: false };
           e.head = e.head || head; dmgMap.set(victim, e);
         }
@@ -1219,6 +1228,7 @@
     winnerOf() {
       if (!isFFA(this.mode)) return this.score[0] === this.score[1] ? -1 : this.score[0] > this.score[1] ? 0 : 1;
       let best = null; for (const p of this.players.values()) if (!best || p.kills > best.kills) best = p;
+      if (best && this.mode === 'aberto') return best.team; // mapa aberto: vence a equipe (solo = o próprio jogador) de quem fez mais eliminações
       return best ? best.id : -1;
     }
     endMatch() {
@@ -1228,7 +1238,7 @@
       let mvp = null; for (const p of this.players.values()) if (!mvp || p.kills > mvp.kills) mvp = p;
       const results = [];
       for (const p of this.players.values()) {
-        const won = !isFFA(this.mode) ? p.team === win : p.id === win;
+        const won = !isFFA(this.mode) || this.mode === 'aberto' ? p.team === win : p.id === win;
         if (won) this.award(p, 500, 'Vitória'); else this.award(p, 150, 'Partida concluída');
         if (mvp === p && p.kills > 0) this.award(p, 150, 'Objetivo: MVP da partida');
         let mmr = 0;
@@ -1358,7 +1368,7 @@
         ai.scan = 0.2;
         let best = null, bd = 1e9;
         for (const o of this.players.values()) {
-          if (o === p || !o.alive || (!isFFA(this.mode) && o.team === p.team)) continue;
+          if (o === p || !o.alive || o.team === p.team) continue;
           const d = Math.hypot(o.x - p.x, o.z - p.z);
           if (d < bd && this.canSee(p, o)) { bd = d; best = o; }
         }
@@ -1398,7 +1408,7 @@
           if (ai.lastSeen && Math.random() < 0.6) { [gx, gz] = ai.lastSeen; ai.lastSeen = null; }
           else {
             // ir em direção aos inimigos (área central / inimigo aleatório)
-            const enemies = [...this.players.values()].filter((o) => o.alive && o !== p && (isFFA(this.mode) || o.team !== p.team));
+            const enemies = [...this.players.values()].filter((o) => o.alive && o !== p && o.team !== p.team);
             enemies.sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z));
             if (!NAV) buildNav();
             if (enemies.length && Math.random() < 0.65) { const e = enemies[Math.floor(Math.random() * Math.min(3, enemies.length))]; gx = e.x; gz = e.z; }
