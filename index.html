@@ -468,6 +468,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     <div><button class="btn sm" data-q="low">Baixa</button><button class="btn sm" data-q="medium">Média</button><button class="btn sm" data-q="high">Alta</button></div>
     <label><input type="checkbox" id="oshadow"> Sombras</label>
     <label><input type="checkbox" id="oeffects"> Efeitos e partículas</label>
+    <label><input type="checkbox" id="otps"> Câmera em 3ª pessoa — ver o personagem inteiro (tecla V ou botão 👁 CÂM)</label>
     <label><input type="checkbox" id="oreal"> Personagens 3D realistas (desligue se o celular travar)</label>
     <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0. Casas "Casa Dúplex" por alecsvaldez, "Casas" por Allvis e "Tokyo Japanese House / Casa Japonesa [Low Poly]" por SitoNyaa (Sketchfab), licença CC BY 4.0 (portas retiradas e janelas abertas para o jogo). Arma "Maverick 88" por Alex_Sandro (Sketchfab), licença CC BY 4.0.</div>
     <label>Resolução: <span id="oscalev"></span></label><input type="range" id="oscale" min="0.4" max="1" step="0.05">
@@ -3437,8 +3438,23 @@ const Sfx = (() => {
   };
   const lowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 4) || (isTouch && Math.min(screen.width, screen.height) < 500);
   const defQ = isTouch ? (lowEnd ? 'low' : 'medium') : 'high';
-  const CFG = Object.assign({ quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, real: true, btns: {} }, store.get('fps_settings', {}));
+  const CFG = Object.assign({ quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, real: true, tps: true, btns: {} }, store.get('fps_settings', {}));
   const saveSet = () => store.set('fps_settings', CFG);
+  // animação de andar: pernas viram para o lado do movimento (o tronco continua mirando), de costas anda para trás
+  function moveAnim(an, yaw, dt) {
+    const sp = Math.hypot(an.vx || 0, an.vz || 0);
+    let legYaw = 0, back = an.back || false;
+    if (sp > 0.6) {
+      let rel = Math.atan2(-(an.vx || 0), -(an.vz || 0)) - yaw;
+      rel = Math.atan2(Math.sin(rel), Math.cos(rel));
+      back = Math.abs(rel) > 1.75;
+      const lr = back ? Math.atan2(Math.sin(rel - Math.PI), Math.cos(rel - Math.PI)) : rel;
+      legYaw = Math.max(-0.95, Math.min(0.95, lr)) * Math.min(1, sp / 2);
+    }
+    an.back = back;
+    an.legYaw = (an.legYaw || 0) + (legYaw - (an.legYaw || 0)) * Math.min(1, dt * 8);
+    an.ph += dt * an.speed * 1.7 * (back ? -1 : 1);
+  }
 
   // ================================================================ perfil
   const Prof = {
@@ -3973,7 +3989,8 @@ const Sfx = (() => {
     fire(w) {
       const fw = this.fw, L = this.local, t = now();
       fw.last = t; fw.semi = false; fw.shots.push(++fw.shotSeq);
-      this.conn.send({ t: 'act', a: 'shoot', w: w.id, yaw: this.look.yaw, pitch: this.look.pitch, seq: fw.shotSeq });
+      const [sYaw, sPitch] = this.shotAngles();
+      this.conn.send({ t: 'act', a: 'shoot', w: w.id, yaw: sYaw, pitch: sPitch, seq: fw.shotSeq });
       Sfx.shot(w.id);
       fw.flash = 0.05; fw.kick = Math.min(1.4, fw.kick + (w.id === 'sniper' || w.pump || w.id === 'deagle' ? 1.2 : 0.5));
       if (w.pump || w.id === 'sniper') { fw.pumpT = 0; setTimeout(() => Sfx.pump(), 250); }
@@ -3981,7 +3998,7 @@ const Sfx = (() => {
       this.look.pitch = Math.min(1.5, this.look.pitch + rk); fw.recoilAcc += rk;
       this.look.yaw += (Math.random() - 0.5) * 2 * w.recoilYaw;
       // traçante e impacto locais (visual)
-      const eye = this.eye(), d = S.aimDir(this.look.yaw, this.look.pitch);
+      const eye = this.eye(), d = S.aimDir(sYaw, sPitch);
       const spread = (fw.adsT > 0.5 ? w.adsSpread : w.spread) * (Math.hypot(L.vx, L.vz) > 1.5 || !L.onGround ? w.moveMul : 1);
       for (let k = 0; k < Math.min(w.pellets, 4); k++) {
         const dx = d[0] + (Math.random() - 0.5) * spread * 1.5, dy = d[1] + (Math.random() - 0.5) * spread * 1.5, dz = d[2] + (Math.random() - 0.5) * spread * 1.5;
@@ -4029,7 +4046,9 @@ const Sfx = (() => {
       const an = rp.anim;
       const sp = px === undefined ? 0 : Math.hypot(c.x - px, c.z - pz) / Math.max(dt, 1e-3);
       an.speed = lerp(an.speed || 0, Math.min(sp, 9), Math.min(1, dt * 10));
-      an.ph += dt * an.speed * 1.7;
+      if (px !== undefined && dt > 0) { const kv = Math.min(1, dt * 10); an.vx = lerp(an.vx || 0, (c.x - px) / dt, kv); an.vz = lerp(an.vz || 0, (c.z - pz) / dt, kv); an.vy = lerp(an.vy || 0, (c.y - (an.py == null ? c.y : an.py)) / dt, kv); }
+      an.py = c.y;
+      moveAnim(an, c.yaw, dt);
       const alive = !!(c.fl & 1);
       if (an.alive && !alive && !an.deadAt) an.deadAt = now();
       if (alive) an.deadAt = 0;
@@ -4092,7 +4111,12 @@ const Sfx = (() => {
       // câmera
       const eye = this.eye();
       let cam;
-      if (L.alive) { this.camRoll = lerp(this.camRoll, 0, 0.2); cam = { x: eye[0], y: eye[1], z: eye[2], yaw: this.look.yaw, pitch: this.look.pitch, roll: this.camRoll }; }
+      this.tpsOn = false;
+      if (L.alive) {
+        this.camRoll = lerp(this.camRoll, 0, 0.2); cam = { x: eye[0], y: eye[1], z: eye[2], yaw: this.look.yaw, pitch: this.look.pitch, roll: this.camRoll };
+        const w0 = this.curW();
+        if (CFG.tps && fw.adsT < 0.6) cam = this.tpsCam(eye); // mirando (MIRA): vai para a visão da arma, como nos battle royale
+      }
       else {
         const dt0 = this.deathInfo ? Math.min(1, (t - this.deathInfo.t) / 0.7) : 1;
         this.camRoll = lerp(0, 0.6, dt0);
@@ -4100,6 +4124,7 @@ const Sfx = (() => {
         const k = this.deathInfo && this.remotePos(this.deathInfo.by);
         if (k && dt0 >= 1) { const want = Math.atan2(-(k.x - L.x), -(k.z - L.z)); this.look.yaw = angLerp(this.look.yaw, want, 0.05); }
       }
+      if (this.tpsOn) this.selfItems(items);
       const w = this.curW(), zoom = lerp(1, w.zoom, fw.adsT);
       cam.fov = (CFG.fov * Math.PI / 180) / zoom;
       this.camFov = cam.fov;
@@ -4107,9 +4132,51 @@ const Sfx = (() => {
       // arma em 1ª pessoa
       const vm = [], vmAdd = [];
       const scoped = w.scope && fw.adsT > 0.85;
-      if (L.alive && !scoped) this.viewmodel(cam, vm, vmAdd, dt0Frame);
+      if (L.alive && !scoped && !this.tpsOn) this.viewmodel(cam, vm, vmAdd, dt0Frame);
       return { items, vm, vmAdd, vmFov: 1.2, particles: Parts.buf, pCount: Parts.n, lines: Trace.buf, lineCount: Trace.n, scoped };
     },
+    // câmera em 3ª pessoa (estilo battle royale): atrás do ombro direito, encosta nas paredes
+    tpsCam(eye) {
+      const L = this.local, fw = this.fw, yaw = this.look.yaw, pitch = this.look.pitch, f = S.aimDir(yaw, pitch), rx = Math.cos(yaw), rz = -Math.sin(yaw);
+      const ads = fw.adsT, side = lerp(0.62, 0.42, ads), back = lerp(2.5, 1.3, ads), up = lerp(0.3, 0.16, ads);
+      const hx = eye[0], hz = eye[2], hy = eye[1] + up;
+      let s1 = side; const t1 = S.raycastWorld(hx, hy, hz, rx, 0, rz, side + 0.3); if (t1 < side + 0.3) s1 = Math.max(0, t1 - 0.3);
+      const px = hx + rx * s1, pz = hz + rz * s1;
+      const tb = S.raycastWorld(px, hy, pz, -f[0], -f[1], -f[2], back + 0.3), bd = Math.max(0.12, Math.min(back, tb - 0.3));
+      this.camD = this.camD == null || bd < this.camD ? bd : lerp(this.camD, bd, 0.1);
+      const cam = { x: px - f[0] * this.camD, y: Math.max(0.25, hy - f[1] * this.camD), z: pz - f[2] * this.camD, yaw, pitch, roll: 0 };
+      this.tpsOn = true; this.camPos = [cam.x, cam.y, cam.z];
+      return cam;
+    },
+    // o próprio personagem (3ª pessoa): mesmo boneco/animações dos outros jogadores
+    selfItems(items) {
+      const L = this.local, t = now();
+      let rp = this._self; if (!rp) rp = this._self = { id: this.myId, cur: {}, anim: { ph: 0, speed: 0, alive: true, deadAt: 0 }, mats: null, lt: t };
+      rp.id = this.myId;
+      const dt = Math.min(0.1, Math.max(0.001, t - rp.lt)); rp.lt = t;
+      const c = rp.cur, an = rp.anim;
+      c.x = L.x + this.visOff[0]; c.y = L.y + this.visOff[1]; c.z = L.z + this.visOff[2]; c.yaw = this.look.yaw; c.pitch = this.look.pitch;
+      c.fl = 1 | (L.crouch ? 2 : 0) | (this.reloading() ? 8 : 0) | (L.medUntil ? 16 : 0) | (L.onGround ? 32 : 0);
+      const sp = Math.hypot(L.vx, L.vz), kv = Math.min(1, dt * 12);
+      an.speed = lerp(an.speed, Math.min(sp, 9), kv); an.vx = lerp(an.vx || 0, L.vx, kv); an.vz = lerp(an.vz || 0, L.vz, kv); an.vy = L.vy || 0; an.alive = true; an.deadAt = 0;
+      moveAnim(an, c.yaw, dt);
+      rp.w = L.weapons[L.cur];
+      if (this.camD < 0.45) return; // câmera colada (parede atrás): não desenha o próprio corpo
+      this.soldierItems(rp, items);
+      if (rp.mats) { const wm = Assets.weapon(rp.w), mz = wm.muzzle; this.muzzleWorld = Engine.xform(rp.mats[11], mz[0], mz[1], mz[2]);
+        if (this.fw.flash > 0) { const fl = Assets.flash(), FM = this._fm3 || (this._fm3 = M4.create()), tmp = this._fm3t || (this._fm3t = M4.create()); M4.compose(tmp, mz[0], mz[1], mz[2], 0, 0, Math.random() * 6); M4.mul(FM, rp.mats[11], tmp); items.push({ mesh: fl.mesh, tex: fl.tex, model: FM, emis: 1, tint: [1, 0.7, 0.3, 0.9] }); } }
+    },
+    // direção do tiro: em 3ª pessoa, do olho até o ponto que a mira (centro da câmera) acerta
+    shotAngles() {
+      if (!this.tpsOn || !this.camPos) return [this.look.yaw, this.look.pitch];
+      const cp = this.camPos, f = S.aimDir(this.look.yaw, this.look.pitch);
+      let tw = S.raycastWorld(cp[0], cp[1], cp[2], f[0], f[1], f[2], 250);
+      for (const rp of this.remote.values()) { const c = rp.cur; if (!c || !(c.fl & 1)) continue; const h = S.rayPlayer(cp[0], cp[1], cp[2], f[0], f[1], f[2], c.x, c.y, c.z, !!(c.fl & 2)); if (h && h.t < tw) tw = h.t; }
+      const e = this.eye(), dx = cp[0] + f[0] * tw - e[0], dy = cp[1] + f[1] * tw - e[1], dz = cp[2] + f[2] * tw - e[2], l = Math.hypot(dx, dy, dz);
+      if (l < 1.5) return [this.look.yaw, this.look.pitch];
+      return [Math.atan2(-dx, -dz), Math.asin(Math.max(-1, Math.min(1, dy / l)))];
+    },
+    toggleCam() { CFG.tps = !CFG.tps; saveSet(); center(CFG.tps ? 'Câmera: 3ª pessoa' : 'Câmera: 1ª pessoa', 1); if ($('otps')) $('otps').checked = CFG.tps; },
     soldierItems(rp, items, roFixed) {
       const c = rp.cur, ro = roFixed || this.roster.get(rp.id); if (!ro) return;
       const an = rp.anim, t = now();
@@ -4121,11 +4188,12 @@ const Sfx = (() => {
       let fall = 0;
       if (an.deadAt) fall = Math.min(1, (t - an.deadAt) / 0.55);
       if (!an.alive && !an.deadAt) return;
-      const sp = Math.min(1, an.speed / 5), ph = an.ph;
-      const hipY = (crouch ? 0.62 : 0.98) + (onG ? Math.abs(Math.sin(ph)) * 0.03 * sp : 0);
-      // raiz
-      M4.compose(m[0], c.x, c.y + (fall ? -0.05 * fall : 0), c.z, c.yaw, fall * 1.45, 0);
-      M4.compose(tmp, 0, hipY, 0, 0, (crouch ? -0.25 : -0.05 * sp) + c.pitch * 0.35 * (1 - fall), 0); M4.mul(m[1], m[0], tmp); // tronco
+      const sp = Math.min(1, an.speed / 5), ph = an.ph, run = crouch ? 0 : Math.max(0, Math.min(1, (an.speed - 5.3) / 1.8));
+      const legYaw = fall ? 0 : an.legYaw || 0;
+      const hipY = (crouch ? 0.62 : 0.98) + (onG ? Math.abs(Math.sin(ph)) * (0.03 + 0.03 * run) * sp - 0.03 * run : 0) + (onG ? 0 : 0.04);
+      // raiz (quadril vira para onde está andando)
+      M4.compose(m[0], c.x, c.y + (fall ? -0.05 * fall : 0), c.z, c.yaw + legYaw, fall * 1.45, 0);
+      M4.compose(tmp, 0, hipY, 0, -legYaw, (crouch ? -0.25 : -0.05 * sp - 0.16 * run) + c.pitch * 0.35 * (1 - fall), 0); M4.mul(m[1], m[0], tmp); // tronco
       M4.compose(tmp, 0, 0.52, 0, 0, c.pitch * 0.45 * (1 - fall), 0); M4.mul(m[2], m[1], tmp); // cabeça
       const pistol = wm.kind === 'pistol', reload = !!(c.fl & 8), med = !!(c.fl & 16);
       let rU = pistol ? 1.45 : 1.0, rF = pistol ? 0.05 : 0.55, lU = pistol ? 1.45 : 1.35, lF = pistol ? 0.05 : 0.25;
@@ -4139,9 +4207,16 @@ const Sfx = (() => {
       M4.compose(tmp, 0, -0.29, 0, 0, lF, 0); M4.mul(m[6], m[5], tmp);
       // pernas
       let tl, tr, sl, sr;
-      if (crouch) { tl = 1.3; tr = 1.1; sl = -1.9; sr = -1.6; }
-      else if (!onG) { tl = 0.6; tr = 0.2; sl = -0.9; sr = -0.5; }
-      else { const a = 0.6 * sp; tl = Math.sin(ph) * a; tr = -Math.sin(ph) * a; sl = -(0.05 + Math.max(0, Math.sin(ph + 1.3))) * a * 1.2; sr = -(0.05 + Math.max(0, -Math.sin(ph + 1.3))) * a * 1.2; }
+      if (crouch) { const a = 0.32 * sp; tl = 1.3 + Math.sin(ph) * a; tr = 1.1 - Math.sin(ph) * a; sl = -1.9 + Math.max(0, Math.sin(ph + 1.3)) * a; sr = -1.6 + Math.max(0, -Math.sin(ph + 1.3)) * a; }
+      else if (!onG) { // pulo: sobe encolhendo uma perna, desce esticando para pousar
+        const up = Math.max(0, Math.min(1, ((an.vy || 0) + 2) / 6));
+        tl = lerp(0.35, 0.95, up); sl = lerp(-0.45, -1.55, up); tr = lerp(0.15, 0.25, up); sr = lerp(-0.35, -0.7, up);
+      } else {
+        const a = 0.6 * sp + 0.28 * run, kb = 1.2 + 0.6 * run;
+        tl = Math.sin(ph) * a; tr = -Math.sin(ph) * a;
+        sl = -(0.05 + Math.max(0, Math.sin(ph + 1.3))) * a * kb; sr = -(0.05 + Math.max(0, -Math.sin(ph + 1.3))) * a * kb;
+        if (sp < 0.15) { const br = Math.sin(t * 1.7) * 0.012; tl += br; tr -= br; } // parado: respiração
+      }
       if (fall) { tl = lerp(tl, 0.3, fall); tr = lerp(tr, -0.1, fall); sl = lerp(sl, -0.2, fall); sr = lerp(sr, -0.1, fall); }
       M4.compose(tmp, 0.105, hipY, 0, 0, tr, 0); M4.mul(m[7], m[0], tmp);
       M4.compose(tmp, 0, -0.46, 0, 0, sr, 0); M4.mul(m[8], m[7], tmp);
@@ -4159,7 +4234,7 @@ const Sfx = (() => {
       const pm3 = look.p && S.COSMETICS[look.p] && S.COSMETICS[look.p].model, cm3 = look.c && S.COSMETICS[look.c] && S.COSMETICS[look.c].model;
       if (RM && CFG.real !== false && (cm3 || ((!look.c || look.c === 'ch_soldado') && !look.s && (!look.p || pm3)))) {
         const BM = cm3 ? Assets.cloth(cm3) || RM : RM; // personagem 3D da loja (enquanto carrega, usa o soldado)
-        this.realBody(BM, rp, c, m, tmp, it, { hipY, crouch, pistol, reload, med, fall, sp, ph: an.ph, onG, tl, tr, sl, sr, wm, wid, teamCol, prot, team: ro.team, t, pants: BM === RM ? pm3 || null : null });
+        this.realBody(BM, rp, c, m, tmp, it, { hipY, crouch, pistol, reload, med, fall, sp, run, legYaw, ph: an.ph, onG, tl, tr, sl, sr, wm, wid, teamCol, prot, team: ro.team, t, pants: BM === RM ? pm3 || null : null });
         for (const x of it) items.push(x);
         return;
       }
@@ -4174,12 +4249,13 @@ const Sfx = (() => {
     realBody(RM, rp, c, m, tmp, it, o) {
       if (!rp.rig || rp.rigM !== RM) { rp.rig = Assets.rigState(RM); rp.rigM = RM; }
       const st = rp.rig, Q = st.Q, B = RM.bi, rot = Assets.rot;
-      const lean = (o.crouch ? -0.25 : -0.05 * o.sp) + c.pitch * 0.35 * (1 - o.fall);
+      const lean = (o.crouch ? -0.25 : -0.05 * o.sp - 0.16 * o.run) + c.pitch * 0.35 * (1 - o.fall) + Math.sin(o.t * 1.8) * 0.012 * (1 - o.sp);
+      const ly = -o.legYaw; // tronco gira de volta: o quadril vai para o movimento, o peito continua na mira
       const aim = !o.med && !o.fall;
       for (const q of Q) rot(q, 0, 0, 0);
       // tronco: inclinação + giro de quem segura fuzil (ombro esquerdo para frente)
       const tw = o.pistol || !aim ? 0 : -0.45;
-      rot(Q[B.Spine], tw * 0.35, lean * 0.45, 0); rot(Q[B.Spine1], tw * 0.35, lean * 0.3, 0); rot(Q[B.Spine2], tw * 0.3, lean * 0.25, 0);
+      rot(Q[B.Spine], tw * 0.35 + ly * 0.4, lean * 0.45, 0); rot(Q[B.Spine1], tw * 0.35 + ly * 0.35, lean * 0.3, 0); rot(Q[B.Spine2], tw * 0.3 + ly * 0.25, lean * 0.25, 0);
       rot(Q[B.Neck], -tw * 0.5, c.pitch * 0.2 * (1 - o.fall), 0); rot(Q[B.Head], -tw * 0.5, c.pitch * 0.25 * (1 - o.fall) - lean * 0.6, 0);
       // pernas (mesmos ângulos do boneco antigo)
       rot(Q[B.LeftUpLeg], 0, o.tl, 0); rot(Q[B.LeftLeg], 0, o.sl, 0); rot(Q[B.LeftFoot], 0, -(o.tl + o.sl) * 0.5, 0);
@@ -4187,8 +4263,8 @@ const Sfx = (() => {
       // arma em espaço do personagem
       const wC = this._wC || (this._wC = M4.create()), wT = this._wT || (this._wT = M4.create());
       // coronha no ombro direito, cano para frente; pistola com braços esticados
-      M4.compose(wT, 0, o.hipY + 0.05, 0, 0, lean, 0);
-      const body = o.crouch ? -0.25 : -0.05 * o.sp; // a arma fica nivelada mesmo com o tronco inclinado
+      M4.compose(wT, 0, o.hipY + 0.05, 0, ly, lean, 0);
+      const body = o.crouch ? -0.25 : -0.05 * o.sp - 0.16 * o.run; // a arma fica nivelada mesmo com o tronco inclinado
       if (o.pistol) M4.compose(tmp, 0.05, 0.36, -0.42, 0, -body, 0); else M4.compose(tmp, 0.07, 0.31, -0.3, 0, -body, 0);
       M4.mul(wC, wT, tmp);
       const wp = (x, y, z) => [wC[0] * x + wC[4] * y + wC[8] * z + wC[12], wC[1] * x + wC[5] * y + wC[9] * z + wC[13], wC[2] * x + wC[6] * y + wC[10] * z + wC[14]];
@@ -4464,6 +4540,7 @@ const Sfx = (() => {
     if (e.code === 'Digit2') keys._swap = 1;
     if (e.code === 'KeyQ') keys._swap = 'next';
     if (e.code === 'KeyM' && Game.active && !chatOpen) Game.toggleMap();
+    if (e.code === 'KeyV' && Game.active && !chatOpen) Game.toggleCam();
     if (e.code === 'KeyE' || e.code === 'KeyF') keys._grab = true;
     if (e.code === 'KeyH' || e.code === 'Digit4') keys._med = true;
     if (e.code === 'Enter' || e.code === 'KeyT') { e.preventDefault(); openChat(); }
@@ -4532,6 +4609,7 @@ const Sfx = (() => {
     { id: 'med', label: '✚ KIT', x: 0.65, y: 0.88, s: 54 },
     { id: 'swap', label: 'TROCAR', x: 0.94, y: 0.38, s: 54 },
     { id: 'grab', label: 'PEGAR', x: 0.62, y: 0.62, s: 66, cls: 'grab' },
+    { id: 'cam', label: '👁 CÂM', x: 0.94, y: 0.22, s: 50 },
     { id: 'score', label: 'PLACAR', x: 0.62, y: 0.08, s: 44 },
     { id: 'chat', label: 'CHAT', x: 0.69, y: 0.08, s: 44 },
     { id: 'pause', label: 'II', x: 0.76, y: 0.08, s: 44 },
@@ -4760,6 +4838,7 @@ const Sfx = (() => {
           case 'pause': pause(); break;
           case 'rotate': cycleOrientation(); break;
           case 'fs': FS.toggle(); break;
+          case 'cam': Game.toggleCam(); break;
         }
         continue;
       }
@@ -5173,7 +5252,7 @@ const Sfx = (() => {
     $('otsens').value = CFG.tsens; $('otsensv').textContent = (+CFG.tsens).toFixed(2);
     document.querySelectorAll('[data-or]').forEach((b) => b.classList.toggle('pri', b.dataset.or === (CFG.orient || 'auto')));
     document.querySelectorAll('[data-vk]').forEach((b) => b.classList.toggle('pri', b.dataset.vk === (CFG.vkb || 'auto')));
-    $('oreal').checked = CFG.real !== false; $('oautofs').checked = CFG.autofs; $('oassist').checked = CFG.assist; $('ohead').checked = CFG.head; $('oastr').value = CFG.astr; $('oastrv').textContent = Math.round(CFG.astr * 100) + '%';
+    $('oreal').checked = CFG.real !== false; $('otps').checked = CFG.tps !== false; $('oautofs').checked = CFG.autofs; $('oassist').checked = CFG.assist; $('ohead').checked = CFG.head; $('oastr').value = CFG.astr; $('oastrv').textContent = Math.round(CFG.astr * 100) + '%';
     $('ovol').value = CFG.vol; $('ovolv').textContent = Math.round(CFG.vol * 100) + '%';
     $('omus').value = CFG.music; $('omusv').textContent = CFG.music > 0 ? Math.round(CFG.music * 100) + '%' : 'desligada';
   }
@@ -5182,7 +5261,7 @@ const Sfx = (() => {
     saveSet(); applyQuality(); renderSettings();
   }));
   const bindSet = (id, key, num) => ($(id).oninput = $(id).onchange = () => { CFG[key] = num ? +$(id).value : $(id).checked; saveSet(); applyQuality(); renderSettings(); if (key === 'touch' && Game.active) showTouch(CFG.touch); });
-  bindSet('oreal', 'real'); bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oastr', 'astr', 1);
+  bindSet('oreal', 'real'); bindSet('otps', 'tps'); bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oastr', 'astr', 1);
   bindSet('oshadow', 'shadows'); bindSet('oeffects', 'effects'); bindSet('ofps', 'fps'); bindSet('otouch', 'touch');
   bindSet('oscale', 'scale', 1); bindSet('ofov', 'fov', 1); bindSet('osens', 'sens', 1); bindSet('otsens', 'tsens', 1); bindSet('ovol', 'vol', 1); bindSet('omus', 'music', 1);
   $('oedit').onclick = openEditor;
