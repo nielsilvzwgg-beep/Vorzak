@@ -200,6 +200,75 @@ body.gport .sthead{padding-top:8px;padding-left:calc(12px + var(--sal))}body.gpo
 body.lshort #sttabs .btn{font-size:13px;padding:4px 8px}
 .item .acts{margin-top:6px}.item .acts .btn{margin:0 4px 0 0}
 .item.try{border-color:var(--blu)}
+/* ===== lobby (menu principal) ===== */
+.scr.lobby{padding:0!important;overflow:hidden;background:radial-gradient(ellipse at 50% 58%,rgba(0,0,0,0) 30%,rgba(6,8,14,.55) 72%,rgba(6,8,14,.85));--y:#ffc93c}
+.lobby button{font-family:Rajdhani,sans-serif;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent}
+.lobby svg{width:24px;height:24px;flex:none}
+.lb-top{position:absolute;left:calc(8px + var(--sal));right:calc(8px + var(--sar));top:calc(6px + var(--sat));display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(8,10,16,.88),rgba(8,10,16,.55) 60%,rgba(8,10,16,.25));border-bottom:1px solid rgba(255,255,255,.08);padding:4px 6px}
+.lb-prof{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);padding:3px 10px 3px 3px;position:relative;min-width:0}
+.lb-prof canvas{width:62px;height:46px;background:radial-gradient(circle,#3a4250,#141820);border:2px solid var(--y);object-fit:cover}
+.lb-pn{display:flex;flex-direction:column;align-items:flex-start;min-width:0}.lb-pn b{font-size:17px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lb-pn small{font-size:12px;color:var(--y);letter-spacing:1px;text-transform:uppercase}
+.lb-prof i{position:absolute;left:2px;bottom:2px;font-style:normal;font-size:11px;font-weight:700;background:#0b0d12;color:#fff;padding:0 4px;border:1px solid var(--y)}
+.lb-coins{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);padding:4px 12px;font-size:19px}.lb-c{color:#111;background:var(--y);border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.lb-xp{min-width:110px;max-width:200px;flex:1;font-size:12px;color:var(--dim)}.lb-xp .bar{height:5px;margin-top:2px}
+.lb-icons{margin-left:auto;display:flex;align-items:center;gap:4px}
+.lb-logo{font-family:Teko,Rajdhani,sans-serif;font-weight:700;font-size:26px;letter-spacing:3px;margin-right:10px;line-height:1}.lb-logo b{color:var(--acc)}
+.lb-ic{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);width:40px;height:40px;display:flex;align-items:center;justify-content:center;padding:0}
+.lb-ic:active,.lb-side:active,.lb-room:active,.lb-bottom button:active,.lb-mode:active{background:rgba(255,201,60,.25)}
+.lb-left{position:absolute;left:calc(12px + var(--sal));top:calc(72px + var(--sat));display:flex;flex-direction:column;gap:10px}
+.lb-side{display:flex;align-items:center;gap:10px;min-width:170px;padding:10px 18px 10px 14px;background:linear-gradient(90deg,rgba(10,12,18,.88),rgba(10,12,18,.55));border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--y);color:var(--y)!important;font-size:22px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;position:relative;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.lb-side em{position:absolute;right:16px;top:8px;width:8px;height:8px;background:var(--red);border-radius:50%;display:none}.lb-side em.on{display:block}
+.lb-right{position:absolute;right:calc(12px + var(--sar));top:calc(72px + var(--sat));display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.lb-room{display:flex;align-items:center;gap:8px;padding:9px 14px;background:rgba(10,12,18,.8);border:1px solid rgba(255,255,255,.12);border-right:3px solid var(--acc);font-size:17px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.lb-bottom{position:absolute;left:calc(10px + var(--sal));bottom:calc(10px + var(--sab));display:flex;background:linear-gradient(90deg,rgba(8,10,16,.9),rgba(8,10,16,.7));border:1px solid rgba(255,255,255,.1);border-top:2px solid rgba(255,201,60,.6)}
+.lb-bottom button{display:flex;align-items:center;gap:8px;background:none;border:0;border-right:1px solid rgba(255,255,255,.12);padding:12px 22px;font-size:20px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.lb-bottom button:last-child{border-right:0}
+.lb-play{position:absolute;right:calc(10px + var(--sar));bottom:calc(10px + var(--sab));width:min(340px,calc(var(--gw)*.36));display:flex;flex-direction:column;gap:6px}
+.lb-mode{display:flex;align-items:center;gap:10px;text-align:left;background:linear-gradient(90deg,#1d2a6b,#3a2b8f 55%,#5b3fc9);border:2px solid #7f9bff;padding:6px 10px}
+.lb-mi{width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.lb-mt{display:flex;flex-direction:column;min-width:0;flex:1}.lb-mt b{font-size:20px;letter-spacing:1px;text-transform:uppercase;color:#9fd2ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb-mt small{font-size:14px;color:#c9d2ff}
+.lb-mc{font-size:20px;opacity:.8}
+.lb-go{background:linear-gradient(180deg,#ffe066,#ffc21a 55%,#f0a400);color:#2a1a00!important;border:2px solid #fff3b0;font-family:Teko,Rajdhani,sans-serif!important;font-size:40px;font-weight:700;letter-spacing:2px;text-transform:uppercase;line-height:1;padding:12px 10px 8px;box-shadow:0 6px 24px rgba(255,190,20,.4),inset 0 -4px 0 rgba(0,0,0,.15);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.lb-go:active{transform:scale(.97)}
+body.lshort .lb-side{font-size:17px;padding:7px 14px 7px 10px;min-width:130px}body.lshort .lb-left,body.lshort .lb-right{top:calc(62px + var(--sat));gap:7px}
+body.lshort .lb-room{font-size:14px;padding:6px 10px}body.lshort .lobby svg{width:20px;height:20px}
+body.lshort .lb-bottom button{font-size:16px;padding:8px 14px}body.lshort .lb-go{font-size:32px;padding:9px 8px 6px}body.lshort .lb-mt b{font-size:16px}body.lshort .lb-mt small{font-size:12px}body.lshort .lb-mi{width:30px;height:30px;font-size:16px}
+body.lshort .lb-prof canvas{width:52px;height:38px}body.lshort .lb-pn b{font-size:15px}body.lshort .lb-coins{font-size:16px}body.lshort .lb-ic{width:34px;height:34px}body.lshort .lb-logo{font-size:22px}
+body.gport .lb-top{flex-wrap:wrap}body.gport .lb-xp{display:none}body.gport .lb-logo{display:none}
+body.gport .lb-left,body.gport .lb-right{top:calc(132px + var(--sat))}body.gport .lb-icons{width:100%;justify-content:flex-end}
+body.gport .lb-side{min-width:0;font-size:17px;padding:8px 14px 8px 10px}body.gport .lb-room span{display:none}
+body.gport .lb-bottom{left:calc(8px + var(--sal));right:calc(8px + var(--sar))}body.gport .lb-bottom button{flex:1;justify-content:center;font-size:15px;padding:10px 4px}
+body.gport .lb-play{left:calc(8px + var(--sal));right:calc(8px + var(--sar));width:auto;bottom:calc(68px + var(--sab))}
+#s-events .sttop{margin-bottom:10px}
+/* ===== sala de espera ===== */
+#s-wait{display:none;flex-direction:column;gap:8px;padding:calc(10px + var(--sat)) calc(12px + var(--sar)) calc(10px + var(--sab)) calc(12px + var(--sal))}
+#s-wait.on{display:flex}
+.wt-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.wt-info{flex:1;min-width:150px}.wt-info h2{margin:0}
+.wt-id,.wt-time{display:flex;flex-direction:column;align-items:center;background:var(--pan);border:1px solid var(--line);padding:4px 14px}
+.wt-id small,.wt-time small{font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+.wt-id b{font-family:Teko,Rajdhani,sans-serif;font-size:34px;letter-spacing:5px;color:var(--y,#ffc93c);line-height:1}
+.wt-id .btn{margin:2px 0 0;font-size:12px;padding:3px 8px}
+.wt-time b{font-family:Teko,Rajdhani,sans-serif;font-size:30px;line-height:1.1}.wt-time.low b{color:var(--red)}
+.wt-hint{color:var(--acc2);font-size:15px;min-height:18px}
+.wt-slots{flex:1;min-height:0;overflow:auto;display:flex;gap:14px;align-items:flex-start;justify-content:center}
+.wt-team{flex:1;max-width:420px;display:flex;flex-direction:column;gap:8px}
+.wt-team h3{margin:0 0 2px;text-align:center}
+.wt-vs{align-self:center;font-family:Teko,Rajdhani,sans-serif;font-size:44px;color:var(--acc);padding:0 4px}
+.wt-slot{display:flex;align-items:center;gap:10px;min-height:62px;padding:6px 10px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-left:4px solid rgba(255,255,255,.25)}
+.wt-slot canvas{width:62px;height:46px;flex:none;background:radial-gradient(circle,#3a4250,#141820)}
+.wt-slot b{font-size:19px}.wt-slot .stat{display:block}
+.wt-slot.me{background:rgba(255,201,60,.14);border-color:rgba(255,201,60,.6)}
+.wt-team.a .wt-slot.full{border-left-color:var(--blu)}.wt-team.b .wt-slot.full{border-left-color:var(--red)}.wt-team.f .wt-slot.full{border-left-color:var(--acc)}
+.wt-slot.empty{border-style:dashed;color:var(--dim);justify-content:center;font-size:16px;cursor:pointer}
+.wt-slot.empty.nomove{cursor:default}
+.wt-foot{display:flex;align-items:center;gap:12px}
+.wt-wait{flex:1;text-align:center;color:var(--dim);font-size:17px}
+.wt-go{width:min(320px,48%);margin-left:auto}
+.wt-go[disabled]{filter:grayscale(.85) brightness(.7);pointer-events:none}
+body.gport .wt-slots{flex-direction:column;align-items:stretch}body.gport .wt-team{max-width:none}body.gport .wt-vs{font-size:30px}
+body.gport .wt-foot{flex-wrap:wrap}body.gport .wt-go{width:100%}body.gport .wt-wait{order:-1;width:100%}
+body.lshort .wt-slot{min-height:46px;padding:3px 8px}body.lshort .wt-slot canvas{width:48px;height:36px}body.lshort .wt-slot b{font-size:16px}body.lshort .wt-id b{font-size:26px}body.lshort .wt-time b{font-size:24px}body.lshort .wt-go{font-size:28px;padding:8px 8px 5px}
 #fsbtn{position:fixed;right:calc(10px + var(--sar));bottom:calc(10px + var(--sab));z-index:40;display:none}
 body.narrow .pcard{position:static;width:100%;margin-bottom:12px}body.narrow .btn{font-size:18px;padding:10px 14px}body.narrow .btn.pri{font-size:22px}body.narrow h1{font-size:34px}body.narrow .ammo .m{font-size:36px}body.narrow .hp .v{font-size:28px}
 body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .btn.pri{font-size:20px}body.short .sub{margin-bottom:10px}
@@ -241,24 +310,62 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   <div><h1>Até a <b>próxima</b>, soldado!</h1><p style="color:var(--dim);font-size:18px">Você saiu do jogo. Pode fechar esta aba.</p><button class="btn sm" id="byeback">Voltar ao jogo</button></div>
 </div>
 
-<!-- MENU PRINCIPAL -->
-<div id="s-menu" class="scr dim">
-  <div class="pcard" id="pcard"></div>
-  <div class="col">
-    <h1 class="vz">VOR<b>ZAK</b></h1>
-    <div class="sub">FPS tático multiplayer</div>
-    <button class="btn pri" data-go="play">Jogar agora</button>
-    <button class="btn" data-go="create">➕ Criar sala</button>
-    <button class="btn" data-go="find">🔍 Procurar sala</button>
-    <button class="btn" data-go="shop">🛒 Lojinha</button>
-    <button class="btn" data-go="inv">Inventário</button>
-    <button class="btn" data-go="profile">Perfil</button>
-    <button class="btn" data-go="settings">Configurações</button>
-    <button class="btn" data-fs="1">⛶ Tela cheia</button>
-    <button class="btn" id="minstall" style="display:none">📲 Instalar app</button>
-    <button class="btn" data-rot="1">⟳ Girar tela</button>
-    <button class="btn" id="mquit">Sair</button>
+<!-- MENU PRINCIPAL (lobby) -->
+<div id="s-menu" class="scr lobby">
+  <div class="lb-top">
+    <button class="lb-prof" data-go="profile"><canvas id="lbav" width="240" height="110"></canvas><span class="lb-pn"><b id="lbname"></b><small id="lbrank"></small></span><i id="lblvn">1</i></button>
+    <div class="lb-coins"><span class="lb-c">●</span><b id="lbcoins">0</b></div>
+    <div class="lb-xp"><span id="lbxpt"></span><div class="bar"><i id="lbxpb"></i></div></div>
+    <div class="lb-icons">
+      <div class="lb-logo">VOR<b>ZAK</b></div>
+      <button class="lb-ic" id="minstall" style="display:none" title="Instalar app"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button>
+      <button class="lb-ic" data-rot="1" title="Girar tela"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 3v5h-5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button>
+      <button class="lb-ic" data-fs="1" data-fsicon="1" title="Tela cheia"><svg viewBox="0 0 24 24"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button>
+      <button class="lb-ic" data-go="settings" title="Configurações"><svg viewBox="0 0 24 24"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6zM19.4 13.4l2 1.6-2 3.4-2.4-.9a7.6 7.6 0 0 1-2.1 1.2L14.5 21h-5l-.4-2.3A7.6 7.6 0 0 1 7 17.5l-2.4.9-2-3.4 2-1.6a7.7 7.7 0 0 1 0-2.8l-2-1.6 2-3.4 2.4.9a7.6 7.6 0 0 1 2.1-1.2L9.5 3h5l.4 2.3A7.6 7.6 0 0 1 17 6.5l2.4-.9 2 3.4-2 1.6a7.7 7.7 0 0 1 0 2.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
+      <button class="lb-ic" id="mquit" title="Sair"><svg viewBox="0 0 24 24"><path d="M12 3v8M6.6 6.6a8 8 0 1 0 10.8 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+    </div>
   </div>
+  <div class="lb-left">
+    <button class="lb-side" data-go="shop"><svg viewBox="0 0 24 24"><path d="M2 3h3l2.6 11.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L22 7H6.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.7" fill="currentColor"/><circle cx="18" cy="20" r="1.7" fill="currentColor"/></svg><span>Loja</span></button>
+    <button class="lb-side" data-go="events"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3 6.5l9 6.5 9-6.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Eventos</span><em id="lbevdot"></em></button>
+  </div>
+  <div class="lb-right">
+    <button class="lb-room" data-go="create"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><span>Criar sala</span></button>
+    <button class="lb-room" data-go="find"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15.5 15.5L21 21" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><span>Procurar sala</span></button>
+  </div>
+  <div class="lb-bottom">
+    <button data-go="cofre"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v1.5M12 14.5V16M8 12h1.5M14.5 12H16M6 20v1.5M18 20v1.5" stroke="currentColor" stroke-width="2"/></svg><span>Cofre</span></button>
+    <button data-go="armas"><svg viewBox="0 0 24 24"><path d="M2 8h17l1.5-2H22v4h-3l-1 2h-5l-1.4 2.6a1 1 0 0 1-.9.5H9.4l1.6-3.1H7l-1.6 5H2.6L4 11H2z" fill="currentColor"/></svg><span>Armas</span></button>
+    <button data-go="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3.5 21c.8-4.3 4.2-6.5 8.5-6.5s7.7 2.2 8.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Perfil</span></button>
+  </div>
+  <div class="lb-play">
+    <button class="lb-mode" data-go="play"><span class="lb-mi" id="lbmodei"></span><span class="lb-mt"><b id="lbmodet"></b><small id="lbmodes"></small></span><span class="lb-mc">⇄</span></button>
+    <button class="lb-go" id="lbgo">Jogar agora</button>
+  </div>
+</div>
+
+<!-- SALA DE ESPERA -->
+<div id="s-wait" class="scr full">
+  <div class="wt-head">
+    <div class="wt-info"><h2 id="wtname">Sala</h2><div class="stat" id="wtmode"></div></div>
+    <div class="wt-id"><small>ID DA SALA</small><b id="wtid">000000</b><button class="btn sm" id="wtcopy">Copiar ID</button></div>
+    <div class="wt-time"><small>A sala fecha em</small><b id="wttime">5:00</b></div>
+  </div>
+  <div class="wt-hint" id="wthint"></div>
+  <div class="wt-slots" id="wtslots"></div>
+  <div class="wt-foot">
+    <button class="btn" id="wtleave" style="width:auto;margin:0">Sair da sala</button>
+    <div class="wt-wait" id="wtwaitmsg">Aguardando o criador da sala iniciar a partida…</div>
+    <button class="lb-go wt-go" id="wtgo">Jogar agora</button>
+  </div>
+</div>
+
+<!-- EVENTOS -->
+<div id="s-events" class="scr full">
+  <div class="sttop"><h2>Eventos</h2><button class="btn sm" data-go="menu">Voltar</button></div>
+  <div class="card"><h3 style="margin-top:0">Missões da semana</h3><div id="evmiss"></div></div>
+  <div class="card"><h3 style="margin-top:0">Recompensas de nível</h3><div id="evlv"></div></div>
+  <div class="card"><h3 style="margin-top:0">Como ganhar XP</h3><div class="stat" style="font-size:15px;line-height:1.6">Eliminação +100 · Headshot +50 · Primeiro sangue +50 · Série de 3 eliminações +100 · Série de 5 +200 · Vitória +500 · Partida concluída +150 · Round vencido no X1–X4 +75. A cada nível você ganha moedas para gastar na Loja.</div></div>
 </div>
 
 <!-- JOGAR AGORA -->
@@ -2702,6 +2809,7 @@ const Sfx = (() => {
       ws.onmessage = (ev) => { let m; try { m = JSON.parse(ev.data); } catch (e) { return; } this.onMsg(m); };
       ws.onerror = () => { status('<span style="color:var(--red)">Falha na conexão com o servidor.</span>' + artifactHint()); };
       ws.onclose = () => {
+        if (curScreen === 'wait') { Wait.st = null; go('menu'); toast('Conexão com o servidor perdida.'); }
         const was = this.ok; this.ok = false; this.ws = null; Prof.online = null;
         if (was) status('Desconectado do servidor.');
         if (Game.active && Game.conn && !Game.conn.offline) { Game.stop(); toast('Conexão com o servidor perdida.'); go('menu'); }
@@ -2726,12 +2834,14 @@ const Sfx = (() => {
           break;
         case 'rooms': renderRooms(m.list); break;
         case 'found': renderFound(m); break;
+        case 'wroom': Wait.st = m; Wait.deadline = Date.now() + m.msLeft; if (curScreen !== 'wait') go('wait'); else renderWait(); break;
+        case 'wclosed': Wait.st = null; if (curScreen === 'wait') go('menu'); if (!m.self) toast('⚠ ' + esc(m.m), 6000); break;
         case 'autherr': Auth.pending = null; Auth.onWelcome = null; toast('⚠ ' + esc(m.m)); go('login'); try { this.ws.close(); } catch (e) {} break;
         case 'online': renderOnline(m.list); break;
         case 'profile':
           Prof.online = S.fixProfile(m.profile); refreshMenu(); renderLobbyRank();
           if (m.result) Game.onProfileResult(m.result);
-          if (curScreen === 'shop' || curScreen === 'inv') renderStore(); if (curScreen === 'profile') renderProfile();
+          if (STORE_SCR.includes(curScreen)) renderStore(); if (curScreen === 'menu') refreshMenu(); if (curScreen === 'events') renderEvents(); if (curScreen === 'profile') renderProfile();
           break;
         case 'joined': Game.start(new NetConn((x) => Game.onMsg(x)), m); Game.onMsg(m); break;
         case 'invite': {
@@ -3540,7 +3650,7 @@ const Sfx = (() => {
     toggle() { (document.fullscreenElement || document.webkitFullscreenElement) ? this.exit() : this.enter(); },
     auto() { if (isTouch && CFG.autofs) this.enter(true); },
   };
-  document.addEventListener('fullscreenchange', () => { setTimeout(applyRotation, 100); document.querySelectorAll('[data-fs]').forEach((b) => (b.textContent = (document.fullscreenElement ? '⛶ Sair da tela cheia' : '⛶ Tela cheia'))); });
+  document.addEventListener('fullscreenchange', () => { setTimeout(applyRotation, 100); document.querySelectorAll('[data-fs]:not([data-fsicon])').forEach((b) => (b.textContent = (document.fullscreenElement ? '⛶ Sair da tela cheia' : '⛶ Tela cheia'))); });
   document.addEventListener('webkitfullscreenchange', () => setTimeout(applyRotation, 100));
   // instalar como app (PWA)
   let installEvt = null;
@@ -3761,10 +3871,12 @@ const Sfx = (() => {
     Sfx.ui(); if (VK) VK.close();
     if (name === 'settings' && !Game.active) settingsBack = 'menu';
     hideScreens(); curScreen = name;
-    const el = $('s-' + (name === 'inv' ? 'shop' : name)); if (el) el.classList.add('on');
+    const el = $('s-' + (STORE_SCR.includes(name) ? 'shop' : name)); if (el) el.classList.add('on');
     if (name === 'menu') refreshMenu();
     if (name === 'play') { renderPlay(); autoConnect(); }
-    if (name === 'shop' || name === 'inv') { Store.try = null; renderStore(); }
+    if (STORE_SCR.includes(name)) { Store.try = null; renderStore(); }
+    if (name === 'events') renderEvents();
+    if (name === 'wait') renderWait();
     if (name === 'profile') renderProfile();
     if (name === 'settings') renderSettings();
     if (name === 'create') renderCreate();
@@ -3773,11 +3885,24 @@ const Sfx = (() => {
   document.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => { Sfx.init(); go(b.dataset.go); }));
   $('setback').onclick = () => { if (settingsBack === 'pause' && Game.active) { hideScreens(); pause(); } else go('menu'); };
 
+  const STORE_SCR = ['shop', 'inv', 'cofre', 'armas'];
+  const MODE_TXT = { ffa: ['1 contra todos', '🎯'], tdm: ['Mata-mata em equipe', '⚔'], training: ['Modo treinamento', '🎓'] };
   function refreshMenu() {
     const p = Prof.cur, li = S.levelInfo(p.xp);
-    $('pcard').innerHTML = `<div class="row" style="justify-content:space-between"><div><div style="color:var(--dim);font-size:13px">${Prof.online ? 'PERFIL ONLINE' : 'PERFIL OFFLINE'}</div><div style="font-size:22px;font-weight:700">${esc(p.name)}</div></div><div class="lv">${li.level}</div></div>
-      <div style="font-size:14px;color:var(--dim);margin:4px 0">${li.cur} / ${li.need} XP · Rank ${S.rankName(p.mmr)} (${p.mmr})</div><div class="bar"><i style="width:${li.cur / li.need * 100}%"></i></div>
-      <div style="margin-top:8px" class="coins">● ${p.coins} moedas</div>`;
+    setT($('lbname'), p.name); setT($('lblvn'), String(li.level)); setT($('lbcoins'), String(p.coins));
+    setT($('lbrank'), 'Rank ' + S.rankName(p.mmr)); setT($('lbxpt'), `Nível ${li.level} · ${li.cur}/${li.need} XP`);
+    $('lbxpb').style.width = (li.cur / li.need * 100) + '%';
+    if ($('lbav')._c !== p.cos.char) { $('lbav')._c = p.cos.char; headIcon(p.cos.char, $('lbav')); }
+    const mt = MODE_TXT[PL.mode] || MODE_TXT.ffa;
+    setT($('lbmodet'), mt[0]); setT($('lbmodei'), mt[1]);
+    setT($('lbmodes'), PL.mode === 'training' ? 'Bots fáceis · XP reduzido' : playOnline() ? (PL.mode === 'tdm' && PL.ranked ? 'Online · ranqueado' : 'Online · jogadores reais') : 'Contra bots');
+    $('lbevdot').classList.toggle('on', p.missions.some((m) => m.prog > 0));
+  }
+  // eventos: missões da semana e recompensas de nível
+  function renderEvents() {
+    const p = Prof.cur, li = S.levelInfo(p.xp);
+    $('evmiss').innerHTML = p.missions.map((m) => { const d = S.MISSIONS.find((x) => x.id === m.id); return `<div style="margin-bottom:10px"><div class="row" style="justify-content:space-between"><span style="font-size:18px">${esc(d.text)}</span><span class="coins">+${d.xp} XP</span></div><div class="bar"><i style="width:${m.prog / d.goal * 100}%"></i></div><span class="stat">${m.prog}/${d.goal}</span></div>`; }).join('');
+    $('evlv').innerHTML = `<div class="stat" style="margin-bottom:6px">Você está no nível ${li.level} (${li.cur}/${li.need} XP)</div>` + [li.level + 1, li.level + 2, li.level + 3].map((l) => { const u = S.WEAPON_LIST.filter((w) => W[w].level === l).map((w) => W[w].name).concat(Object.values(S.UNIFORMS).filter((x) => x.level === l).map((x) => 'Uniforme ' + x.name)); return `<div class="pill">Nível ${l}: +${400 + l * 100} moedas${u.length ? ' · ' + esc(u.join(', ')) : ''}</div>`; }).join('');
   }
   // ---- JOGAR AGORA: 1 contra todos · mata-mata em equipe · treinamento (botões do próprio jogo, giram com a tela)
   const PL = Object.assign({ mode: 'ffa', who: 'online', diff: 1, bots: 7, ranked: false }, store.get('vz_play', {}));
@@ -3802,6 +3927,7 @@ const Sfx = (() => {
     $('pstart').textContent = on ? 'Procurar partida' : 'Iniciar partida';
     $('pstatus').innerHTML = '';
     store.set('vz_play', PL);
+    refreshMenu();
   }
   document.querySelectorAll('[data-pm]').forEach((b) => (b.onclick = () => { Sfx.init(); Sfx.ui(); PL.mode = b.dataset.pm; renderPlay(); }));
   document.querySelectorAll('[data-pw]').forEach((b) => (b.onclick = () => { Sfx.ui(); PL.who = b.dataset.pw; renderPlay(); autoConnect(); }));
@@ -3815,6 +3941,7 @@ const Sfx = (() => {
     const conn = new LocalConn({ mode: PL.mode, diff: PL.mode === 'training' ? 0 : PL.diff, bots: PL.bots }, (m) => Game.onMsg(m));
     Game.start(conn, {});
   };
+  $('lbgo').onclick = () => $('pstart').onclick();
   // ---- servidor online (endereço em Configurações) e salas públicas (em Procurar sala)
   $('mpurl').value = serverUrl();
   $('mpgo').onclick = () => { const u = $('mpurl').value.trim(); if (!u) return; store.set('fps_server', u); Net.connect(u); };
@@ -3951,11 +4078,14 @@ const Sfx = (() => {
     return {};
   }
   function renderStore() {
-    const p = Prof.cur, inv = curScreen === 'inv', tab = Store.tab;
-    $('sttitle').textContent = inv ? 'Inventário' : 'Lojinha';
+    const p = Prof.cur, inv = curScreen !== 'shop';
+    const tabs = curScreen === 'cofre' ? TABS.filter(([k]) => ['char', 'shirt', 'pants', 'uniform'].includes(k)) : curScreen === 'armas' ? TABS.filter(([k]) => ['weapon', 'wskin'].includes(k)) : TABS;
+    if (!tabs.some(([k]) => k === Store.tab)) Store.tab = tabs[0][0];
+    const tab = Store.tab;
+    $('sttitle').textContent = { shop: 'Loja', inv: 'Inventário', cofre: 'Cofre', armas: 'Armas' }[curScreen] || 'Loja';
     $('shopcoins').textContent = '● ' + p.coins + ' moedas';
     $('shopsrc').textContent = Prof.online ? 'Seus itens ficam salvos na sua conta online.' : 'Seus itens ficam salvos neste aparelho (perfil offline).';
-    $('sttabs').innerHTML = TABS.map(([k, n]) => `<button class="btn sm ${k === tab ? 'sel' : ''}" data-tab="${k}">${n}</button>`).join('');
+    $('sttabs').innerHTML = tabs.map(([k, n]) => `<button class="btn sm ${k === tab ? 'sel' : ''}" data-tab="${k}">${n}</button>`).join('');
     const defs = storeDefs(tab).filter((d) => !inv || owns(p, tab, d.id));
     $('stgrid').innerHTML = defs.length ? defs.map((d) => {
       const own = owns(p, tab, d.id), eq = own && isEquipped(p, tab, d.id), lock = p.level < d.level;
@@ -3963,7 +4093,7 @@ const Sfx = (() => {
       const state = eq ? '<div style="color:var(--acc)">EQUIPADO</div>' : own ? '<div style="color:var(--grn)">✔ Seu</div>' : lock ? `<div class="lk">🔒 Nível ${d.level}</div>` : `<div class="p">● ${d.price} moedas</div>`;
       const act = !own ? (lock ? '' : `<button class="btn sm" data-act="buy" ${p.coins < d.price ? 'disabled' : ''}>Comprar</button>`) : tab === 'gear' ? '' : !eq ? '<button class="btn sm" data-act="eq">Equipar</button>' : ['shirt', 'pants', 'wskin'].includes(tab) ? '<button class="btn sm" data-act="off">Tirar</button>' : '';
       return `<div class="item ${eq ? 'sel' : ''} ${Store.try === d.id ? 'try' : ''}" data-it="${d.id}"><canvas data-icon="${tab}:${d.id}"></canvas><div class="n">${esc(d.name)}</div>${info}${state}<div class="acts">${act}</div></div>`;
-    }).join('') : `<span class="stat">Você ainda não tem itens aqui. Compre na Lojinha.</span>`;
+    }).join('') : `<span class="stat">Você ainda não tem itens aqui. Compre na Loja.</span>`;
     drawIcons($('stgrid'));
     const td = Store.try && storeDef(Store.tryTab, Store.try);
     $('pvlabel').textContent = td ? 'Experimentando: ' + td.name : '';
@@ -3991,16 +4121,17 @@ const Sfx = (() => {
     ro: { uniform: 'woodland', skin: 1, team: -1, look: null },
     m: [M4.create(), M4.create(), M4.create()],
     frame() {
-      const p = Prof.cur, look = S.lookOf(p), t = now(), id = Store.try, tab = Store.tryTab;
+      const lobby = curScreen === 'menu';
+      const p = Prof.cur, look = S.lookOf(p), t = now(), id = lobby ? null : Store.try, tab = Store.tryTab;
       let uniform = p.uniform, weapon = p.loadout.primary, gun = false;
       if (id) {
         if (tab === 'char') look.c = id; else if (tab === 'shirt') look.s = id; else if (tab === 'pants') look.p = id;
         else if (tab === 'uniform') { uniform = id; look.s = ''; look.p = ''; }
         else if (tab === 'weapon') { weapon = id; gun = true; }
         else if (tab === 'wskin') { weapon = S.COSMETICS[id].weapon; look.w[weapon] = id; gun = true; }
-      } else if (Store.tab === 'weapon' || Store.tab === 'wskin') gun = true;
+      } else if (!lobby && (Store.tab === 'weapon' || Store.tab === 'wskin')) gun = true;
       const items = MAPITEMS.slice(), land = cv.clientWidth >= cv.clientHeight, asp = cv.clientWidth / Math.max(1, cv.clientHeight);
-      const fov = land ? 0.45 : 0.85, tn = Math.tan(fov / 2), nx = land ? -0.66 : 0, ny = land ? 0 : 0.7; // centro do provador na tela
+      const fov = lobby ? (land ? 0.6 : 0.82) : land ? 0.45 : 0.85, tn = Math.tan(fov / 2), nx = lobby ? 0 : land ? -0.66 : 0, ny = lobby ? (land ? -0.1 : 0.05) : land ? 0 : 0.7; // centro do personagem na tela
       let ty, dist;
       if (gun) {
         const wsk = S.COSMETICS[look.w[weapon]], wm = Assets.weapon(weapon, wsk ? wsk.pat : null), M = this.m, zc = wm.kind === 'pistol' ? 0.1 : 0.22;
@@ -4010,10 +4141,10 @@ const Sfx = (() => {
         if (wm.pump) items.push({ mesh: wm.pump.mesh, tex: wm.pump.tex, model: M[0] });
         ty = 1.3; dist = (wm.kind === 'pistol' ? 0.45 : 1) * (land ? 3.9 : 4.6);
       } else {
-        const rp = this.rp; rp.w = weapon; rp.cur.yaw = Math.PI + t * 0.6;
+        const rp = this.rp; rp.w = weapon; rp.cur.yaw = lobby ? Math.PI + 0.25 + Math.sin(t * 0.5) * 0.3 : Math.PI + t * 0.6;
         this.ro.uniform = uniform; this.ro.look = look;
         Game.soldierItems(rp, items, this.ro);
-        ty = 0.98; dist = land ? 5.75 : 8.5;
+        ty = 0.98; dist = lobby ? (land ? 4.5 : 5.6) : land ? 5.75 : 8.5;
       }
       R.setCamera({ x: 0, y: ty, z: -2 + dist, yaw: Math.atan(nx * asp * tn), pitch: -Math.atan(ny * tn), fov });
       return { items, vm: [], particles: Parts.buf, pCount: 0, lineCount: 0 };
@@ -4078,7 +4209,7 @@ const Sfx = (() => {
         const f = Game.buildFrame();
         R.render(f);
         Game.overlay();
-      } else if (curScreen === 'shop' || curScreen === 'inv') {
+      } else if (STORE_SCR.includes(curScreen) || curScreen === 'menu') {
         R.render(Preview.frame());
       } else {
         menuT += dt * 0.05;
@@ -4199,10 +4330,48 @@ const Sfx = (() => {
     if (!r) { $('fres').innerHTML = `<span style="color:var(--red)">Nenhuma sala encontrada com o ID <b>${m.id}</b>.</span>`; return; }
     const full = r.n >= r.max;
     $('fres').innerHTML = `<div class="card" style="margin:0"><div style="font-size:22px;font-weight:700">${esc(r.name)} <span class="tag">ID ${r.id}</span></div>
+      ${r.waiting ? `<div style="color:var(--grn);font-weight:700">● Sala de espera aberta · fecha em ${Math.floor(r.msLeft / 60000)}:${String(Math.floor(r.msLeft / 1000) % 60).padStart(2, '0')}</div>` : '<div style="color:var(--acc2)">● Partida em andamento</div>'}
       <div class="stat">${esc(S.MODE_NAMES[r.mode] || r.mode)} · ${r.n}/${r.max} jogadores${r.teams ? ` · <span class="ta">Azul ${r.teams[0]}</span> / <span class="tb">Vermelho ${r.teams[1]}</span>` : ''}${r.priv ? ' · privada' : ''}</div>
       <button class="btn pri" id="fjoin" style="margin-top:10px;text-align:center" ${full ? 'disabled' : ''}>${full ? 'Sala cheia' : 'Entrar na sala'}</button></div>`;
     const b = $('fjoin'); if (b) b.onclick = () => { Sfx.init(); FS.auto(); Net.send({ t: 'join', id: r.id }); };
   }
+  // ---- sala de espera: slots dos times, contador de 5 minutos e "Jogar agora" só para o criador
+  const Wait = { st: null, deadline: 0 };
+  function renderWait() {
+    const st = Wait.st; if (!st) return;
+    const r = st.room, me = Net.uid, owner = st.owner === me, ffa = r.mode === 'ffa';
+    setT($('wtname'), r.name); setT($('wtid'), String(r.id));
+    setT($('wtmode'), `${S.MODE_NAMES[r.mode] || r.mode} · ${st.players.length}/${r.max} jogadores${r.priv ? ' · privada' : ''}`);
+    const slot = (p, team, side) => {
+      if (p) return `<div class="wt-slot full ${p.uid === me ? 'me' : ''}"><canvas data-av="${esc(p.char)}"></canvas><div><b>${esc(p.name)}${p.uid === st.owner ? ' 👑' : ''}</b><span class="stat">Nível ${p.level}${p.uid === me ? ' · você' : ''}</span></div></div>`;
+      const mine = st.players.find((x) => x.uid === me), canMove = !ffa && mine && mine.team !== team;
+      return `<div class="wt-slot empty ${canMove ? '' : 'nomove'}" ${canMove ? `data-team="${team}"` : ''}>${canMove ? 'Vazio · toque para trocar de time' : 'Aguardando jogador…'}</div>`;
+    };
+    let h;
+    if (ffa) { const ps = st.players; h = `<div class="wt-team f"><h3>Jogadores</h3>${Array.from({ length: r.max }, (_, i) => slot(ps[i], 0)).join('')}</div>`; }
+    else {
+      const col = (t) => { const ps = st.players.filter((p) => p.team === t); return `<div class="wt-team ${t ? 'b' : 'a'}"><h3 class="${t ? 'tb' : 'ta'}">Time ${t ? 'Vermelho' : 'Azul'}</h3>${Array.from({ length: r.size }, (_, i) => slot(ps[i], t)).join('')}</div>`; };
+      h = col(0) + '<div class="wt-vs">VS</div>' + col(1);
+    }
+    $('wtslots').innerHTML = h;
+    $('wtslots').querySelectorAll('canvas[data-av]').forEach((c) => headIcon(S.COSMETICS[c.dataset.av] ? c.dataset.av : 'ch_soldado', c));
+    $('wtslots').querySelectorAll('[data-team]').forEach((el) => (el.onclick = () => { Sfx.ui(); Net.send({ t: 'wteam', team: +el.dataset.team }); }));
+    $('wtgo').style.display = owner ? '' : 'none';
+    $('wtwaitmsg').style.display = owner ? 'none' : '';
+    $('wtgo').disabled = !st.canStart;
+    $('wthint').textContent = owner ? (st.canStart ? 'Tudo pronto! Toque em JOGAR AGORA para começar.' : `Envie o ID ${r.id} para seu amigo. Ele entra em Procurar sala → digita o ID → Entrar na sala.`) : 'Você está na sala. A partida começa quando o criador tocar em JOGAR AGORA.';
+    waitTick();
+  }
+  function waitTick() {
+    if (curScreen !== 'wait' || !Wait.st) return;
+    const ms = Math.max(0, Wait.deadline - Date.now()), s2 = Math.ceil(ms / 1000);
+    setT($('wttime'), `${Math.floor(s2 / 60)}:${String(s2 % 60).padStart(2, '0')}`);
+    $('wttime').parentNode.classList.toggle('low', s2 <= 30);
+  }
+  setInterval(waitTick, 500);
+  $('wtgo').onclick = () => { Sfx.init(); FS.auto(); Net.send({ t: 'wstart' }); };
+  $('wtleave').onclick = () => { Net.send({ t: 'leave' }); Wait.st = null; go('menu'); };
+  $('wtcopy').onclick = () => { const id = Wait.st && String(Wait.st.room.id); if (!id) return; (navigator.clipboard ? navigator.clipboard.writeText(id) : Promise.reject()).then(() => toast('ID copiado: <b>' + id + '</b>'), () => toast('ID da sala: <b>' + id + '</b>')); };
   const quitGame = () => {
     if (Game.active) Game.stop();
     if (Net.ws) { try { Net.ws.close(); } catch (e) {} }

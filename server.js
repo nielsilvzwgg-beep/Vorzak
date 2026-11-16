@@ -15,6 +15,7 @@ const path = require('path');
 const S = require('./shared.js');
 
 const PORT = +process.env.PORT || 8080;
+const WAIT_MS = +process.env.WAIT_MS || 5 * 60 * 1000; // sala de espera fecha em 5 minutos se a partida não começar
 const DATA = process.env.DATA_DIR || path.join(__dirname, 'data');
 const MAX_CONN = +process.env.MAX_CONN || 400;
 // arquivos do jogo: pasta dist/ (projeto completo) ou a própria pasta (pacote simples para GitHub/Render)
@@ -143,6 +144,7 @@ class Client {
   }
   onClose() {
     if (!this.alive) return; this.alive = false;
+    if (this.wroom) this.wroom.wleave(this);
     if (this.room) this.room.leave(this);
     clients.delete(this.uid);
     broadcastOnline();
@@ -162,14 +164,62 @@ class Room {
     this.sim = new S.GameSim({ mode: this.mode, ranked: this.ranked });
     this.sim.onMatchEnd = (results, win) => this.onMatchEnd(results, win);
     this.members = new Map(); // pid -> client
+    // sala criada por um jogador: começa numa sala de espera; só o criador inicia a partida
+    this.waiting = !!o.custom; this.wait = new Map(); // uid -> { c, team }
+    this.expiresAt = this.waiting ? Date.now() + WAIT_MS : 0;
     rooms.set(this.id, this);
   }
-  info() { const tc = [0, 0]; for (const p of this.sim.players.values()) if (p.team === 0 || p.team === 1) tc[p.team]++; return { id: this.id, name: this.name, mode: this.mode, ranked: this.ranked, n: this.members.size, max: this.max, priv: this.priv, teams: this.mode === 'ffa' ? null : tc }; }
-  join(c) {
+  teamSize() { return S.isRounds(this.mode) ? +this.mode[1] : this.mode === 'ffa' ? this.max : Math.ceil(this.max / 2); }
+  wcount(t) { let n = 0; for (const w of this.wait.values()) if (w.team === t) n++; return n; }
+  canStart() { return this.mode === 'ffa' ? this.wait.size >= 2 : this.wcount(0) >= 1 && this.wcount(1) >= 1; }
+  wstate() {
+    return { t: 'wroom', room: { id: this.id, name: this.name, mode: this.mode, priv: this.priv, max: this.max, size: this.teamSize() }, owner: this.owner, msLeft: Math.max(0, this.expiresAt - Date.now()), canStart: this.canStart(),
+      players: [...this.wait.values()].map((w) => ({ uid: w.c.uid, name: w.c.profile.name, level: w.c.profile.level, team: w.team, char: S.lookOf(w.c.profile).c })) };
+  }
+  wbroadcast() { const s = JSON.stringify(this.wstate()); for (const w of this.wait.values()) w.c.sendRaw(s); broadcastRooms(); }
+  wjoin(c) {
+    if (this.wait.has(c.uid)) return c.send(this.wstate());
+    if (this.wait.size >= this.max) return c.send({ t: 'err', m: 'Sala cheia' });
+    if (c.room) c.room.leave(c);
+    if (c.wroom) c.wroom.wleave(c);
+    const team = this.mode === 'ffa' ? 0 : this.wcount(0) <= this.wcount(1) ? 0 : 1;
+    this.wait.set(c.uid, { c, team }); c.wroom = this;
+    this.wbroadcast(); broadcastOnline();
+  }
+  wteam(c, team) {
+    const w = this.wait.get(c.uid);
+    if (!w || this.mode === 'ffa' || (team !== 0 && team !== 1) || w.team === team || this.wcount(team) >= this.teamSize()) return;
+    w.team = team; this.wbroadcast();
+  }
+  wleave(c, quiet) {
+    if (!this.wait.has(c.uid)) return;
+    this.wait.delete(c.uid); c.wroom = null;
+    if (c.uid === this.owner) return this.wclose('O criador saiu e a sala foi fechada.');
+    if (!quiet && c.alive) c.send({ t: 'wclosed', m: 'Você saiu da sala.', self: 1 });
+    this.wbroadcast(); broadcastOnline();
+  }
+  wclose(msg) {
+    const s = JSON.stringify({ t: 'wclosed', m: msg });
+    for (const w of this.wait.values()) { w.c.wroom = null; w.c.sendRaw(s); }
+    this.wait.clear(); rooms.delete(this.id); broadcastRooms(); broadcastOnline();
+  }
+  wstart(c) {
+    if (!this.waiting || c.uid !== this.owner) return c.send({ t: 'err', m: 'Só o criador da sala pode iniciar a partida.' });
+    if (!this.canStart()) return c.send({ t: 'err', m: this.mode === 'ffa' ? 'Espere pelo menos mais 1 jogador.' : 'Espere um jogador entrar no outro time.' });
+    this.waiting = false;
+    const list = [...this.wait.values()]; this.wait.clear();
+    for (const w of list) { w.c.wroom = null; this.join(w.c, w.team); }
+    this.system('A partida começou! Boa sorte.');
+    broadcastRooms();
+  }
+  info() { const tc = [0, 0]; if (this.waiting) { for (const w of this.wait.values()) tc[w.team]++; } else for (const p of this.sim.players.values()) if (p.team === 0 || p.team === 1) tc[p.team]++; return { waiting: this.waiting, msLeft: this.waiting ? Math.max(0, this.expiresAt - Date.now()) : 0, id: this.id, name: this.name, mode: this.mode, ranked: this.ranked, n: this.waiting ? this.wait.size : this.members.size, max: this.max, priv: this.priv, teams: this.mode === 'ffa' ? null : tc }; }
+  join(c, team) {
+    if (this.waiting) return this.wjoin(c);
     if (this.members.size >= this.max) return c.send({ t: 'err', m: 'Sala cheia' });
     if (c.room) c.room.leave(c);
+    if (c.wroom) c.wroom.wleave(c, true);
     const p = c.profile;
-    const pl = this.sim.addPlayer({ name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p) });
+    const pl = this.sim.addPlayer({ team, name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p) });
     c.room = this; c.pid = pl.id; this.members.set(pl.id, c);
     c.send({ t: 'joined', pid: pl.id, room: { id: this.id, name: this.name, mode: this.mode, code: this.code, priv: this.priv, ranked: this.ranked } });
     this.system(`${p.name} entrou na sala`);
@@ -222,7 +272,7 @@ function broadcastOnline() {
   if (onlineTimer) return;
   onlineTimer = setTimeout(() => {
     onlineTimer = null;
-    const list = [...clients.values()].filter((c) => c.hello).slice(0, 100).map((c) => ({ uid: c.uid, name: c.profile.name, level: c.profile.level, room: c.room ? 1 : 0 }));
+    const list = [...clients.values()].filter((c) => c.hello).slice(0, 100).map((c) => ({ uid: c.uid, name: c.profile.name, level: c.profile.level, room: c.room || c.wroom ? 1 : 0 }));
     const s = JSON.stringify({ t: 'online', list });
     for (const c of clients.values()) if (c.hello) c.sendRaw(s);
   }, 300);
@@ -263,7 +313,7 @@ function handle(c, m) {
     case 'rooms': return c.send({ t: 'rooms', list: roomList() });
     case 'find': { const r = rooms.get(parseInt(m.id, 10)); return c.send({ t: 'found', id: parseInt(m.id, 10) || 0, room: r ? r.info() : null }); }
     case 'create': {
-      const r = new Room({ name: m.name, mode: m.mode, priv: !!m.priv, max: m.max, owner: c.uid });
+      const r = new Room({ name: m.name, mode: m.mode, priv: !!m.priv, max: m.max, owner: c.uid, custom: true });
       return r.join(c);
     }
     case 'join': {
@@ -271,17 +321,19 @@ function handle(c, m) {
       const id = parseInt(m.id || m.code, 10);
       if (id) r = rooms.get(id);
       if (!r) return c.send({ t: 'err', m: 'Sala não encontrada' });
-      if (r === room) return;
+      if (r === room || r === c.wroom) return r.waiting ? c.send(r.wstate()) : undefined;
       return r.join(c);
     }
     case 'quick': {
       const ranked = m.mode === 'ranked', mode = ranked ? 'tdm' : m.mode === 'ffa' || S.isRounds(m.mode) ? m.mode : 'tdm';
       let best = null;
-      for (const r of rooms.values()) if (!r.priv && r.mode === mode && r.ranked === ranked && r.members.size < r.max && (!best || r.members.size > best.members.size)) best = r;
+      for (const r of rooms.values()) if (!r.priv && r.mode === mode && r.ranked === ranked && !r.waiting && r.members.size < r.max && (!best || r.members.size > best.members.size)) best = r;
       if (!best) best = new Room({ name: ranked ? 'Ranqueado #' + nextRoomId : (mode === 'ffa' ? 'Todos contra todos' : S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata'), mode, ranked, max: ranked ? 10 : 12 });
       return best.join(c);
     }
-    case 'leave': if (room) room.leave(c); return;
+    case 'leave': if (room) room.leave(c); else if (c.wroom) c.wroom.wleave(c); return;
+    case 'wteam': if (c.wroom) c.wroom.wteam(c, m.team); return;
+    case 'wstart': if (c.wroom) c.wroom.wstart(c); return;
     case 'in': if (room) room.sim.handleInputs(c.pid, m.l); return;
     case 'act': if (room) room.sim.handleAction(c.pid, m); return;
     case 'team': if (room && !room.ranked && room.mode !== 'ffa') { room.sim.setTeam(c.pid, m.team); room.system(`${c.profile.name} trocou de equipe`); } return;
@@ -295,9 +347,10 @@ function handle(c, m) {
     case 'rename': c.profile.name = S.sanitizeName(m.name); saveProfiles(); broadcastOnline(); return c.send({ t: 'profile', profile: c.profile });
     case 'invite': {
       const to = clients.get(m.to | 0);
-      if (!to || !to.hello || !room) return;
+      const ir = room || c.wroom;
+      if (!to || !to.hello || !ir) return;
       if (Date.now() - (c.lastInvite || 0) < 1500) return; c.lastInvite = Date.now();
-      return to.send({ t: 'invite', from: c.profile.name, roomName: room.name, code: room.code });
+      return to.send({ t: 'invite', from: c.profile.name, roomName: ir.name, code: ir.code });
     }
   }
 }
@@ -331,6 +384,8 @@ setInterval(() => {
   if (acc > 0.5) acc = 0.5;
   while (acc >= S.C.TICK) { acc -= S.C.TICK; for (const r of rooms.values()) if (r.members.size) r.tick(S.C.TICK); }
 }, 10);
+// salas de espera vencidas fecham sozinhas
+setInterval(() => { const t = Date.now(); for (const r of [...rooms.values()]) if (r.waiting && t >= r.expiresAt) r.wclose('A sala fechou: o tempo de 5 minutos acabou e a partida não começou.'); }, 1000);
 // medição de ping para compensação de latência
 setInterval(() => { const s = JSON.stringify({ t: 'sp', c: Date.now() }); for (const c of clients.values()) if (c.room) c.sendRaw(s); }, 2000);
 
