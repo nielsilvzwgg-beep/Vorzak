@@ -15,6 +15,7 @@ const path = require('path');
 const S = require('./shared.js');
 
 const PORT = +process.env.PORT || 8080;
+const zlib = require('zlib'), vzmCache = new Map();
 const WAIT_MS = +process.env.WAIT_MS || 5 * 60 * 1000; // sala de espera fecha em 5 minutos se a partida não começar
 const DATA = process.env.DATA_DIR || path.join(__dirname, 'data');
 const MAX_CONN = +process.env.MAX_CONN || 400;
@@ -71,6 +72,21 @@ const server = http.createServer((req, res) => {
       if (err) { res.writeHead(404); return res.end('404'); }
       res.writeHead(200, { 'content-type': STATIC[url], 'cache-control': url === '/sw.js' ? 'no-cache' : 'max-age=86400' });
       res.end(data);
+    });
+    return;
+  }
+  // personagens 3D (.vzm): comprimidos com gzip e guardados em memória
+  if (/^\/[a-z0-9_-]+\.vzm$/.test(url)) {
+    const send = (e) => {
+      if (!e) { res.writeHead(404); return res.end('404'); }
+      const gz = /\bgzip\b/.test(req.headers['accept-encoding'] || '');
+      res.writeHead(200, Object.assign({ 'content-type': 'application/octet-stream', 'cache-control': 'max-age=86400' }, gz ? { 'content-encoding': 'gzip' } : {}));
+      res.end(gz ? e.gz : e.raw);
+    };
+    if (vzmCache.has(url)) return send(vzmCache.get(url));
+    fs.readFile(path.join(DIST_DIR, url.slice(1)), (err, raw) => {
+      if (err) return send(null);
+      const e = { raw, gz: zlib.gzipSync(raw, { level: 9 }) }; vzmCache.set(url, e); send(e);
     });
     return;
   }

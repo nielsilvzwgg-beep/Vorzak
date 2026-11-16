@@ -456,6 +456,8 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     <div><button class="btn sm" data-q="low">Baixa</button><button class="btn sm" data-q="medium">Média</button><button class="btn sm" data-q="high">Alta</button></div>
     <label><input type="checkbox" id="oshadow"> Sombras</label>
     <label><input type="checkbox" id="oeffects"> Efeitos e partículas</label>
+    <label><input type="checkbox" id="oreal"> Personagens 3D realistas (desligue se o celular travar)</label>
+    <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0.</div>
     <label>Resolução: <span id="oscalev"></span></label><input type="range" id="oscale" min="0.4" max="1" step="0.05">
     <label>Campo de visão (FOV): <span id="ofovv"></span></label><input type="range" id="ofov" min="60" max="100" step="1">
     <label><input type="checkbox" id="ofps"> Mostrar FPS</label>
@@ -596,6 +598,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     ch_comandante: { type: 'char', name: 'Comandante', price: 1400, level: 1, tone: 0, gear: 'beret', beard: 'mustache', hair: [0.1, 0.08, 0.06] },
     ch_rebelde: { type: 'char', name: 'Rebelde', price: 1400, level: 1, tone: 3, gear: 'bandana', beard: 'stubble', glasses: 1, hair: [0.05, 0.05, 0.05] },
     ch_noturno: { type: 'char', name: 'Operador Noturno', price: 2200, level: 1, tone: 1, gear: 'balaclava' },
+    ch_cowboy: { type: 'char', name: 'Cowboy', price: 1600, level: 1, tone: 0, gear: 'cowboy', outfit: 'cowboy', hair: [0.1, 0.08, 0.11] }, // visual completo: chapéu, lenço, jaqueta, jeans e botas
     sh_ang_azul: { type: 'shirt', name: 'Blusa Angelical Azul', price: 1300, level: 1, col: [40, 115, 240] },
     sh_ang_vermelha: { type: 'shirt', name: 'Blusa Angelical Vermelha', price: 1300, level: 1, col: [225, 40, 48] },
     sh_ang_amarela: { type: 'shirt', name: 'Blusa Angelical Amarela', price: 1300, level: 1, col: [245, 200, 35] },
@@ -1347,7 +1350,9 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       buildNav();
       // alguns bots usam itens da lojinha, para as skins aparecerem nas partidas
       const pick = (t, chance) => { if (Math.random() > chance) return ''; const ids = Object.keys(COSMETICS).filter((k) => COSMETICS[k].type === t && COSMETICS[k].price > 0); return ids[Math.floor(Math.random() * ids.length)] || ''; };
-      const look = { c: pick('char', 0.45) || 'ch_soldado', s: pick('shirt', 0.22), p: pick('pants', 0.22), w: {} };
+      // bots: maioria é o soldado 3D realista; uns 25% vêm de Cowboy e alguns usam outras skins
+      const rr = Math.random();
+      const look = rr < 0.25 ? { c: 'ch_cowboy', s: '', p: '', w: {} } : rr < 0.4 ? { c: pick('char', 1) || 'ch_soldado', s: '', p: '', w: {} } : { c: 'ch_soldado', s: '', p: '', w: {} };
       const ws = Object.keys(COSMETICS).filter((k) => COSMETICS[k].type === 'wskin' && COSMETICS[k].weapon === prim);
       if (ws.length && Math.random() < 0.35) look.w[prim] = ws[Math.floor(Math.random() * ws.length)];
       return this.addPlayer({ name, bot: true, team, uniform: uni, look, loadout: { primary: prim, secondary: Math.random() < 0.5 ? 'pistol' : 'deagle' }, level: 1 + Math.floor(Math.random() * 20) });
@@ -1787,6 +1792,17 @@ const Engine = (() => {
       drawWings(x, S * 0.875, S * 0.925, S * 0.2);
       noise(x, S, S, 10, r); return c;
     },
+    // couro marrom da jaqueta do Cowboy (u<0.72 couro, u>0.75 liso para as cores por vértice)
+    leather(S = 256) {
+      const [c, x] = canvas(S, S), r = rnd(77);
+      x.fillStyle = '#8a4e2c'; x.fillRect(0, 0, S, S);
+      blotches(x, S * 0.72, S, 18, ['#9c5a34', '#74401f'], r, S * 0.04, S * 0.1, 0.4);
+      x.strokeStyle = 'rgba(60,30,12,.35)'; x.lineWidth = 1;
+      for (let i = 0; i < 40; i++) { const px = r() * S * 0.7, py = r() * S; x.beginPath(); x.moveTo(px, py); x.lineTo(px + (r() - 0.5) * 20, py + r() * 10); x.stroke(); }
+      for (let i = 0; i < 2000; i++) { x.fillStyle = 'rgba(0,0,0,.1)'; x.fillRect(r() * S * 0.72, r() * S, 1, 1); }
+      x.fillStyle = '#f0f0f0'; x.fillRect(S * 0.75, 0, S * 0.25, S);
+      noise(x, S, S, 8, r); return c;
+    },
     // estampas das skins de armas
     gunskin(pat, S = 128) {
       const [c, x] = canvas(S, S), r = rnd(pat.length * 31 + pat.charCodeAt(0));
@@ -1840,16 +1856,19 @@ const Engine = (() => {
   // ------------------------------------------------------------ shaders
   const VS = `#version 300 es
   layout(location=0) in vec3 aPos; layout(location=1) in vec3 aNrm; layout(location=2) in vec2 aUv; layout(location=3) in vec3 aCol;
-  uniform mat4 uVP, uModel, uShVP;
+  layout(location=4) in vec4 aJ; layout(location=5) in vec4 aW;
+  uniform mat4 uVP, uModel, uShVP; uniform mat4 uBones[24]; uniform int uSkin;
   out vec3 vN; out vec2 vUv; out vec3 vCol; out vec3 vW; out vec4 vSh;
-  void main(){ vec4 w = uModel*vec4(aPos,1.0); vW=w.xyz; vN=mat3(uModel)*aNrm; vUv=aUv; vCol=aCol;
+  void main(){ vec4 lp = vec4(aPos,1.0); vec3 ln = aNrm;
+    if(uSkin==1){ mat4 sk = uBones[int(aJ.x)]*aW.x + uBones[int(aJ.y)]*aW.y + uBones[int(aJ.z)]*aW.z + uBones[int(aJ.w)]*aW.w; lp = sk*lp; ln = mat3(sk)*aNrm; }
+    vec4 w = uModel*lp; vW=w.xyz; vN=mat3(uModel)*ln; vUv=aUv; vCol=aCol;
     vSh = uShVP*vec4(w.xyz + normalize(vN)*0.06, 1.0); gl_Position = uVP*w; }`;
   const FS = `#version 300 es
   precision highp float; precision highp sampler2DShadow;
   in vec3 vN; in vec2 vUv; in vec3 vCol; in vec3 vW; in vec4 vSh;
   uniform sampler2D uTex; uniform sampler2DShadow uShadow;
   uniform int uShOn; uniform int uPCF; uniform float uTexel;
-  uniform vec3 uSun, uSunCol, uSky, uGnd, uFog, uCam; uniform float uFogD; uniform vec4 uTint; uniform float uEmis, uSpec;
+  uniform vec3 uSun, uSunCol, uSky, uGnd, uFog, uCam; uniform float uFogD; uniform vec4 uTint; uniform float uEmis, uSpec; uniform highp int uSkin;
   out vec4 o;
   float sh(){ vec3 p = vSh.xyz/vSh.w*0.5+0.5; if(p.x<0.0||p.x>1.0||p.y<0.0||p.y>1.0||p.z>1.0) return 1.0;
     p.z -= 0.0008;
@@ -1858,7 +1877,7 @@ const Engine = (() => {
   void main(){
     vec4 t = texture(uTex, vUv);
     vec3 base = pow(t.rgb*vCol*uTint.rgb, vec3(2.2));
-    vec3 n = normalize(vN); if(!gl_FrontFacing) n = -n;
+    vec3 n = normalize(vN); if(!gl_FrontFacing && uSkin==0) n = -n;
     float nd = max(dot(n, uSun), 0.0);
     float s = (uShOn==1 && nd>0.0) ? sh() : 1.0;
     vec3 amb = mix(uGnd, uSky, n.y*0.5+0.5);
@@ -1872,7 +1891,11 @@ const Engine = (() => {
     o = vec4(pow(clamp(col,0.0,1.0), vec3(1.0/2.2)), uTint.a);
   }`;
   const DVS = `#version 300 es
-  layout(location=0) in vec3 aPos; uniform mat4 uVP, uModel; void main(){ gl_Position = uVP*uModel*vec4(aPos,1.0); }`;
+  layout(location=0) in vec3 aPos; layout(location=4) in vec4 aJ; layout(location=5) in vec4 aW;
+  uniform mat4 uVP, uModel; uniform mat4 uBones[24]; uniform int uSkin;
+  void main(){ vec4 lp = vec4(aPos,1.0);
+    if(uSkin==1) lp = (uBones[int(aJ.x)]*aW.x + uBones[int(aJ.y)]*aW.y + uBones[int(aJ.z)]*aW.z + uBones[int(aJ.w)]*aW.w)*lp;
+    gl_Position = uVP*uModel*lp; }`;
   const DFS = `#version 300 es
   precision mediump float; out vec4 o; void main(){ o=vec4(1.0); }`;
   const SKYVS = `#version 300 es
@@ -1984,6 +2007,16 @@ const Engine = (() => {
       gl.bindVertexArray(null);
       return { vao, count: g.i.length, type: big ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT };
     }
+    // malha com ossos (personagem 3D): arrays tipados prontos
+    skinnedMesh(m) {
+      const gl = this.gl, vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+      const buf = (data, loc, size, type = gl.FLOAT, norm = false) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, type, norm, 0, 0); };
+      buf(m.pos, 0, 3); buf(m.nrm, 1, 3); buf(m.uv, 2, 2); buf(m.joints, 4, 4, gl.UNSIGNED_BYTE); buf(m.weights, 5, 4);
+      gl.vertexAttrib3f(3, 1, 1, 1);
+      const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, m.index, gl.STATIC_DRAW);
+      gl.bindVertexArray(null);
+      return { vao, count: m.index.length, type: m.index instanceof Uint32Array ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, skinned: true };
+    }
     resize() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2) * (this.q.scale || 1);
       const w = Math.max(1, Math.floor(this.cv.clientWidth * dpr)), h = Math.max(1, Math.floor(this.cv.clientHeight * dpr));
@@ -2001,10 +2034,14 @@ const Engine = (() => {
     drawList(prog, items, vp, depthOnly) {
       const gl = this.gl, u = prog.u;
       gl.uniformMatrix4fv(u.uVP, false, vp);
+      let skin = 0; gl.uniform1i(u.uSkin, 0);
       for (const it of items) {
         if (it.visible === false) continue;
         if (depthOnly && it.noShadow) continue;
         gl.uniformMatrix4fv(u.uModel, false, it.model || this.ident);
+        if (it.bones) { if (!skin) { gl.uniform1i(u.uSkin, 1); skin = 1; gl.disable(gl.CULL_FACE); } gl.uniformMatrix4fv(u['uBones[0]'], false, it.bones); }
+        else if (skin) { gl.uniform1i(u.uSkin, 0); skin = 0; gl.enable(gl.CULL_FACE); }
+        if (it.mesh.skinned) gl.vertexAttrib3f(3, 1, 1, 1);
         if (!depthOnly) {
           gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, it.tex || this.white);
           const t = it.tint || [1, 1, 1, 1];
@@ -2015,6 +2052,7 @@ const Engine = (() => {
         gl.drawElements(gl.TRIANGLES, it.mesh.count, it.mesh.type, 0);
         this.stats.draws++;
       }
+      if (skin) gl.enable(gl.CULL_FACE);
     }
     // frame: {items, vm (viewmodel items), vmAdd (aditivos), particles: Float32Array count, lines}
     render(f) {
@@ -2123,6 +2161,7 @@ const Assets = (() => {
     R = renderer;
     for (const k of ['grass', 'asphalt', 'brick', 'concrete', 'crate', 'metal', 'sandbag', 'roof', 'barrier', 'wood', 'plain']) tex[k] = R.texture(TEX[k]());
     for (const id in S.UNIFORMS) tex['u_' + id] = R.texture(TEX.uniform(S.UNIFORMS[id].c, id.length));
+    tex.cowboy = R.texture(TEX.leather());
   }
 
   // ------------------------------------------------------------ mapa
@@ -2239,6 +2278,18 @@ const Assets = (() => {
         g.box(-0.1, 0.246, -0.012, 0.1, 0.258, 0.012, P([0.16, 0.17, 0.15]));
         g.box(-0.118, 0.1, -0.075, -0.108, 0.108, -0.02, P([0.1, 0.1, 0.1]));
         break;
+      case 'cowboy': { // chapéu de cowboy marrom com aba larga
+        hairBack();
+        const HAT = [0.6, 0.35, 0.2], HATD = [0.47, 0.26, 0.14], BAND = [0.33, 0.17, 0.09];
+        for (const x of [-0.097, 0.083]) g.box(x, 0.12, -0.09, x + 0.014, 0.2, -0.03, P(hair)); // costeletas
+        g.box(-0.085, 0.178, -0.112, 0.085, 0.2, -0.085, P(hair)); // franja
+        g.sphere(0, 0.205, 0, 0.235, 0.016, 0.215, { col: HAT, uv: UVP, seg: 18, rings: 5 }); // aba
+        for (const x of [-0.2, 0.2]) g.sphere(x, 0.222, 0, 0.045, 0.02, 0.16, { col: HAT, uv: UVP, seg: 10, rings: 4 }); // aba virada nas laterais
+        g.sphere(0, 0.205, 0, 0.108, 0.085, 0.118, { col: HAT, uv: UVP, seg: 14, rings: 7, ymin: 0.1 }); // copa
+        g.box(-0.03, 0.27, -0.12, 0.03, 0.292, 0.12, P(HATD)); // amassado da copa
+        g.box(-0.111, 0.212, -0.121, 0.111, 0.236, 0.121, P(BAND)); // fita
+        break;
+      }
       default: // capacete
         g.sphere(0, 0.15, 0.005, 0.128, 0.118, 0.135, { col: [0.9, 0.9, 0.9], uv: UVC, seg: 14, rings: 7, ymin: 0.05 });
         g.box(-0.13, 0.145, -0.14, 0.13, 0.16, 0.14, { col: [0.6, 0.6, 0.58], uv: UVC });
@@ -2257,7 +2308,7 @@ const Assets = (() => {
   }
   function skinTex(pat) { const key = 'ws_' + pat; return tex[key] || (tex[key] = R.texture(TEX.gunskin(pat, 128))); }
   // tecido das mangas: blusa equipada ou o uniforme
-  function fabricKey(uniform, shirt) { if (shirt && S.COSMETICS[shirt] && S.COSMETICS[shirt].type === 'shirt') { clothTex(shirt); return 'c_' + shirt; } return 'u_' + uniform; }
+  function fabricKey(uniform, shirt, charId) { if (shirt && S.COSMETICS[shirt] && S.COSMETICS[shirt].type === 'shirt') { clothTex(shirt); return 'c_' + shirt; } if (charId && S.COSMETICS[charId] && S.COSMETICS[charId].outfit === 'cowboy') return 'cowboy'; return 'u_' + uniform; }
   function shirtParts(id) {
     const key = 'shp_' + id; if (cache[key]) return cache[key];
     const t = clothTex(id), W = [1, 1, 1], WH = [0.97, 0.97, 0.97], torso = new Geo(), upper = new Geo();
@@ -2288,14 +2339,46 @@ const Assets = (() => {
     const m = (g) => ({ mesh: R.mesh(g), tex: t, emis: 0.08 });
     return (cache[key] = { thigh: m(thigh), shin: m(shin) });
   }
+  // roupa completa do Cowboy: jaqueta de couro, camisa branca, lenço vermelho, cinto com fivela, jeans e botas
+  function cowboyParts() {
+    if (cache.cowboy) return cache.cowboy;
+    const t = tex.cowboy, W = [1, 1, 1], P = (col) => ({ col, uv: UVP });
+    const SHIRT = [0.95, 0.94, 0.9], RED = [0.86, 0.22, 0.14], REDD = [0.68, 0.16, 0.1], BELT = [0.3, 0.17, 0.08], GOLD = [0.95, 0.74, 0.26];
+    const JEANS = [0.31, 0.48, 0.76], JEANSD = [0.24, 0.38, 0.62], BOOT = [0.52, 0.29, 0.15], CUFF = [0.62, 0.36, 0.2];
+    const torso = new Geo(), upper = new Geo(), thigh = new Geo(), shin = new Geo();
+    torso.box(-0.2, 0, -0.115, 0.2, 0.46, 0.115, { col: W, uv: UVC });                // jaqueta
+    torso.box(-0.06, 0.04, -0.12, 0.06, 0.44, -0.114, P(SHIRT));                      // camisa aparecendo na frente
+    for (const x of [-0.09, 0.09]) for (const y of [0.14, 0.24, 0.34]) torso.box(x - 0.012, y - 0.012, -0.124, x + 0.012, y + 0.012, -0.114, P(GOLD)); // botões
+    for (const sx of [-1, 1]) torso.box(sx > 0 ? 0.05 : -0.11, 0.3, -0.122, sx > 0 ? 0.11 : -0.05, 0.45, -0.115, P([0.66, 0.4, 0.23])); // lapelas
+    torso.box(-0.06, 0.44, -0.06, 0.06, 0.53, 0.06, P(SKIN[1]));                    // pescoço
+    torso.box(-0.085, 0.43, -0.085, 0.085, 0.49, 0.085, P(RED));                      // lenço no pescoço
+    torso.box(-0.05, 0.33, -0.1, 0.05, 0.44, -0.084, P(RED));                         // ponta do lenço
+    torso.box(-0.025, 0.29, -0.1, 0.025, 0.34, -0.086, P(REDD));
+    torso.box(-0.205, -0.04, -0.12, 0.205, 0.01, 0.12, P(BELT));                      // cinto
+    torso.box(-0.035, -0.045, -0.13, 0.035, 0.015, -0.118, P(GOLD));                  // fivela dourada
+    torso.box(0.2, -0.2, -0.04, 0.24, -0.02, 0.05, P([0.4, 0.22, 0.1]));             // coldre
+    torso.box(0.205, -0.04, -0.025, 0.235, 0.04, 0.03, P([0.2, 0.15, 0.1]));         // cabo do revólver
+    upper.box(-0.06, -0.3, -0.065, 0.06, 0.03, 0.065, { col: W, uv: UVC });
+    upper.box(-0.064, -0.3, -0.069, 0.064, -0.26, 0.069, P(CUFF));                   // punho da manga
+    thigh.box(-0.085, -0.47, -0.09, 0.085, 0.04, 0.09, P(JEANS));
+    thigh.box(-0.086, -0.47, -0.02, -0.08, 0.04, 0.02, P(JEANSD));                   // costura
+    shin.box(-0.075, -0.2, -0.08, 0.075, 0, 0.08, P(JEANS));
+    shin.box(-0.082, -0.22, -0.087, 0.082, -0.16, 0.087, P(CUFF));                   // cano da bota
+    shin.box(-0.078, -0.48, -0.085, 0.078, -0.2, 0.085, P(BOOT));
+    shin.box(-0.078, -0.48, -0.17, 0.078, -0.4, -0.08, P(BOOT));                      // bico
+    shin.box(-0.082, -0.5, -0.172, 0.082, -0.478, 0.09, P([0.25, 0.14, 0.07]));       // sola
+    shin.box(-0.03, -0.52, 0.06, 0.03, -0.49, 0.1, P([0.3, 0.17, 0.08]));             // salto
+    const m = (g) => ({ mesh: R.mesh(g), tex: t });
+    return (cache.cowboy = { torso: m(torso), upper: m(upper), thigh: m(thigh), shin: m(shin) });
+  }
   // tudo o que é preciso para desenhar um jogador: uniforme + itens da lojinha
   function outfit(uniform, tone, look) {
     look = look || { c: 'ch_soldado', s: '', p: '' };
     const key = 'of_' + uniform + tone + look.c + '|' + look.s + '|' + look.p; if (cache[key]) return cache[key];
     const base = soldier(uniform), ch = S.COSMETICS[look.c] || S.COSMETICS.ch_soldado, tn = ch.tone == null ? tone : ch.tone;
     const sh = look.s && S.COSMETICS[look.s] ? shirtParts(look.s) : null, pa = look.p && S.COSMETICS[look.p] ? pantsParts(look.p) : null;
-    const fk = fabricKey(uniform, look.s);
-    return (cache[key] = { torso: sh ? sh.torso : base.torso, upper: sh ? sh.upper : base.upper, band: base.band, thigh: pa ? pa.thigh : base.thigh, shin: pa ? pa.shin : base.shin, fore: fore3(fk, tn), head: head(look.c, uniform, tn), tone: tn, fkey: fk });
+    const fk = fabricKey(uniform, look.s, look.c), cw = ch.outfit === 'cowboy' ? cowboyParts() : null, bs = cw || base;
+    return (cache[key] = { torso: sh ? sh.torso : bs.torso, upper: sh ? sh.upper : bs.upper, band: base.band, thigh: pa ? pa.thigh : bs.thigh, shin: pa ? pa.shin : bs.shin, fore: fore3(fk, tn), head: head(look.c, uniform, tn), tone: tn, fkey: fk });
   }
 
   // ------------------------------------------------------------ armas
@@ -2501,7 +2584,107 @@ const Assets = (() => {
     g.sphere(0, 0, -0.02, 0.05, 0.05, 0.05, { col: [1, 0.9, 0.6], seg: 8, rings: 5 });
     return (cache.flash = { mesh: R.mesh(g), tex: tex.plain });
   }
-  return { init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, flash, tex, SKIN };
+  // ------------------------------------------------------------ personagem 3D realista (.vzm, convertido de .glb)
+  const Models = {};
+  async function loadModel(name, url) {
+    const res = await fetch(url); if (!res.ok) throw new Error('modelo ' + url + ' ' + res.status);
+    const buf = await res.arrayBuffer(), dv = new DataView(buf);
+    if (String.fromCharCode(dv.getUint8(0), dv.getUint8(1), dv.getUint8(2), dv.getUint8(3)) !== 'VZM1') throw new Error('formato inválido');
+    const hl = dv.getUint32(4, true), hdr = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, hl))), base = 8 + hl;
+    const A = (k, T) => { const [o, n] = hdr.off[k]; return new T(buf, base + o, n / T.BYTES_PER_ELEMENT); };
+    const m = { pos: A('pos', Float32Array), nrm: A('nrm', Float32Array), uv: A('uv', Float32Array), joints: A('joints', Uint8Array), weights: A('weights', Float32Array), index: A('index', hdr.big ? Uint32Array : Uint16Array) };
+    const [jo, jn] = hdr.off.jpg;
+    const bmp = await createImageBitmap(new Blob([new Uint8Array(buf, base + jo, jn)], { type: 'image/jpeg' }));
+    const n = hdr.bones.length, rest = new Float32Array(hdr.rest), bi = {};
+    hdr.bones.forEach((b, i) => (bi[b] = i));
+    const model = { name, mesh: R.skinnedMesh(m), tex: R.texture(bmp), bones: hdr.bones, parent: hdr.parent, rest, bi, n, credit: hdr.credit };
+    // faixa do time no braço (cada lado desenhado preso ao osso do próprio braço)
+    for (const side of ['Left', 'Right']) {
+      const band = new Geo(), a = bi[side + 'Arm'], f = bi[side + 'ForeArm'];
+      const ax = rest[a * 3], ay = rest[a * 3 + 1], az = rest[a * 3 + 2], fx = rest[f * 3], fy = rest[f * 3 + 1];
+      const cx = ax + (fx - ax) * 0.4, cy = ay + (fy - ay) * 0.4, sx = Math.sign(fx - ax), r = 0.066;
+      band.box(Math.min(cx, cx + sx * 0.05), cy - r, az - r, Math.max(cx, cx + sx * 0.05), cy + r, az + r, { col: [1, 1, 1], uv: [0, 0, 1, 1] });
+      model['band' + side] = { mesh: R.mesh(band), bone: a };
+    }
+    return (Models[name] = model);
+  }
+  // pose por ossos em "espaço do personagem" (pés no chão, frente = -z).
+  // cada osso gira em volta da própria junta com uma rotação Q (eixos do personagem);
+  // braços podem usar IK de 2 ossos até um alvo (mão na arma).
+  const _q = {}, _t1 = M4.create(), _t2 = M4.create();
+  function rot(o, yaw, pitch, roll) { return M4.compose(o, 0, 0, 0, yaw, pitch, roll); }
+  function apply3(m, x, y, z, o) { o[0] = m[0] * x + m[4] * y + m[8] * z; o[1] = m[1] * x + m[5] * y + m[9] * z; o[2] = m[2] * x + m[6] * y + m[10] * z; return o; }
+  // rotação mínima levando a direção a até b (matriz 4x4 sem translação)
+  function rotBetween(o, ax, ay, az, bx, by, bz) {
+    let la = Math.hypot(ax, ay, az), lb = Math.hypot(bx, by, bz); ax /= la; ay /= la; az /= la; bx /= lb; by /= lb; bz /= lb;
+    let cx = ay * bz - az * by, cy = az * bx - ax * bz, cz = ax * by - ay * bx; const d = ax * bx + ay * by + az * bz;
+    let w = 1 + d;
+    if (w < 1e-6) { // oposto: gira 180° em um eixo perpendicular
+      if (Math.abs(ax) > 0.9) { cx = -ay; cy = ax; cz = 0; } else { cx = 0; cy = -az; cz = ay; } w = 0;
+    }
+    const l = Math.hypot(cx, cy, cz, w), x = cx / l, y = cy / l, z = cz / l, ww = w / l;
+    o.fill(0); o[15] = 1;
+    o[0] = 1 - 2 * (y * y + z * z); o[1] = 2 * (x * y + z * ww); o[2] = 2 * (x * z - y * ww);
+    o[4] = 2 * (x * y - z * ww); o[5] = 1 - 2 * (x * x + z * z); o[6] = 2 * (y * z + x * ww);
+    o[8] = 2 * (x * z + y * ww); o[9] = 2 * (y * z - x * ww); o[10] = 1 - 2 * (x * x + y * y);
+    return o;
+  }
+  function rigState(model) {
+    const n = model.n, D = [], p = new Float32Array(n * 3), Q = [];
+    for (let i = 0; i < n; i++) { D.push(M4.create()); Q.push(M4.create()); }
+    return { D, p, Q, bones: new Float32Array(24 * 16), ik: {} };
+  }
+  const V = [0, 0, 0], V2 = [0, 0, 0];
+  // st.Q[j]: rotação local (eixos do personagem). st.ik.Left/Right = { t:[x,y,z], pole:[x,y,z] }. hipY = altura do quadril.
+  function rigSolve(model, st, hipY) {
+    const { D, p, Q } = st, r = model.rest, par = model.parent, bi = model.bi;
+    for (let j = 0; j < model.n; j++) {
+      const pj = par[j];
+      if (pj < 0) { D[j].set(Q[j]); p[0] = r[0]; p[1] = hipY; p[2] = r[2]; continue; }
+      apply3(D[pj], r[j * 3] - r[pj * 3], r[j * 3 + 1] - r[pj * 3 + 1], r[j * 3 + 2] - r[pj * 3 + 2], V);
+      p[j * 3] = p[pj * 3] + V[0]; p[j * 3 + 1] = p[pj * 3 + 1] + V[1]; p[j * 3 + 2] = p[pj * 3 + 2] + V[2];
+      const side = model.bones[j] === 'LeftArm' ? 'Left' : model.bones[j] === 'RightArm' ? 'Right' : null;
+      const ik = side && st.ik[side];
+      if (ik) {
+        const f = bi[side + 'ForeArm'], h = bi[side + 'Hand'];
+        const d1 = [r[f * 3] - r[j * 3], r[f * 3 + 1] - r[j * 3 + 1], r[f * 3 + 2] - r[j * 3 + 2]], d2 = [r[h * 3] - r[f * 3], r[h * 3 + 1] - r[f * 3 + 1], r[h * 3 + 2] - r[f * 3 + 2]];
+        const L1 = Math.hypot(...d1), L2 = Math.hypot(...d2);
+        const ax = p[j * 3], ay = p[j * 3 + 1], az = p[j * 3 + 2];
+        let tx = ik.t[0] - ax, ty = ik.t[1] - ay, tz = ik.t[2] - az, dist = Math.hypot(tx, ty, tz);
+        const dd = Math.min(Math.max(dist, 0.08), (L1 + L2) * 0.999); tx /= dist; ty /= dist; tz /= dist;
+        const a = (L1 * L1 + dd * dd - L2 * L2) / (2 * dd), hh = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+        let px = ik.pole[0], py = ik.pole[1], pz = ik.pole[2]; const pd = px * tx + py * ty + pz * tz; px -= tx * pd; py -= ty * pd; pz -= tz * pd;
+        const pl = Math.hypot(px, py, pz) || 1; px /= pl; py /= pl; pz /= pl;
+        const ex = ax + tx * a + px * hh, ey = ay + ty * a + py * hh, ez = az + tz * a + pz * hh;
+        // braço
+        apply3(D[pj], d1[0], d1[1], d1[2], V);
+        M4.mul(D[j], rotBetween(_t1, V[0], V[1], V[2], ex - ax, ey - ay, ez - az), D[pj]);
+        // antebraço
+        p[f * 3] = ex; p[f * 3 + 1] = ey; p[f * 3 + 2] = ez;
+        apply3(D[j], d2[0], d2[1], d2[2], V);
+        const hx = ax + tx * dd, hy = ay + ty * dd, hz = az + tz * dd;
+        M4.mul(D[f], rotBetween(_t1, V[0], V[1], V[2], hx - ex, hy - ey, hz - ez), D[j]);
+        // mão
+        p[h * 3] = hx; p[h * 3 + 1] = hy; p[h * 3 + 2] = hz;
+        M4.mul(D[h], D[f], Q[h]);
+        j = h; // pula antebraço e mão (já resolvidos)
+        continue;
+      }
+      M4.mul(D[j], D[pj], Q[j]);
+    }
+    // matrizes de skin: S = T(p) * D * T(-rest)
+    const B = st.bones;
+    for (let j = 0; j < model.n; j++) {
+      const m = D[j], o = j * 16;
+      for (let k = 0; k < 12; k++) B[o + k] = m[k];
+      apply3(m, r[j * 3], r[j * 3 + 1], r[j * 3 + 2], V2);
+      B[o + 12] = p[j * 3] - V2[0]; B[o + 13] = p[j * 3 + 1] - V2[1]; B[o + 14] = p[j * 3 + 2] - V2[2]; B[o + 15] = 1;
+      B[o + 3] = B[o + 7] = B[o + 11] = 0;
+    }
+    return st;
+  }
+
+  return { init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP };
 })();
 
 </script>
@@ -2681,7 +2864,7 @@ const Sfx = (() => {
   };
   const lowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 4) || (isTouch && Math.min(screen.width, screen.height) < 500);
   const defQ = isTouch ? (lowEnd ? 'low' : 'medium') : 'high';
-  const CFG = Object.assign({ quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, btns: {} }, store.get('fps_settings', {}));
+  const CFG = Object.assign({ quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, real: true, btns: {} }, store.get('fps_settings', {}));
   const saveSet = () => store.set('fps_settings', CFG);
 
   // ================================================================ perfil
@@ -2705,6 +2888,8 @@ const Sfx = (() => {
     Sfx.setVolume(CFG.vol); Sfx.setMusicVolume(CFG.music); menuMusic();
   }
   Assets.init(R);
+  // personagem 3D realista: carrega em segundo plano; até chegar, usa o boneco antigo
+  Assets.loadModel('soldier', 'soldier.vzm').catch((e) => console.warn('modelo 3D indisponível:', e.message));
   const MAPITEMS = Assets.buildMap();
 
   // ================================================================ partículas e traçantes
@@ -3324,12 +3509,67 @@ const Sfx = (() => {
       const prot = c.fl & 64 ? 0.35 : 0;
       const it = rp.items; it.length = 0;
       const P = (part, mat, extra) => it.push(Object.assign({ mesh: part.mesh, tex: part.tex, model: mat, emis: Math.max(prot, part.emis || 0), spec: part.spec }, extra));
+      const RM = Assets.Models.soldier;
+      if (RM && CFG.real !== false && (!look.c || look.c === 'ch_soldado') && !look.s && !look.p) {
+        this.realBody(RM, rp, c, m, tmp, it, { hipY, crouch, pistol, reload, med, fall, sp, ph: an.ph, onG, tl, tr, sl, sr, wm, wid, teamCol, prot, team: ro.team, t });
+        for (const x of it) items.push(x);
+        return;
+      }
       P(of.torso, m[1]); P(of.head, m[2]);
       P(of.upper, m[3]); P(of.fore, m[4]); P(of.upper, m[5]); P(of.fore, m[6]);
       if (ro.team !== -1) { P(of.band, m[3], { tex: Assets.tex.plain, tint: teamCol, emis: 0.25 }); P(of.band, m[5], { tex: Assets.tex.plain, tint: teamCol, emis: 0.25 }); }
       P(of.thigh, m[7]); P(of.shin, m[8]); P(of.thigh, m[9]); P(of.shin, m[10]);
       if (!med || fall) { P(wm.body, m[11]); if (!reload) P(wm.mag, m[12]); if (wm.pump) P(wm.pump, m[11]); }
       for (const x of it) items.push(x);
+    },
+    // corpo realista (modelo 3D com ossos): pernas e tronco por rotação, mãos na arma por IK
+    realBody(RM, rp, c, m, tmp, it, o) {
+      const st = rp.rig || (rp.rig = Assets.rigState(RM)), Q = st.Q, B = RM.bi, rot = Assets.rot;
+      const lean = (o.crouch ? -0.25 : -0.05 * o.sp) + c.pitch * 0.35 * (1 - o.fall);
+      const aim = !o.med && !o.fall;
+      for (const q of Q) rot(q, 0, 0, 0);
+      // tronco: inclinação + giro de quem segura fuzil (ombro esquerdo para frente)
+      const tw = o.pistol || !aim ? 0 : -0.45;
+      rot(Q[B.Spine], tw * 0.35, lean * 0.45, 0); rot(Q[B.Spine1], tw * 0.35, lean * 0.3, 0); rot(Q[B.Spine2], tw * 0.3, lean * 0.25, 0);
+      rot(Q[B.Neck], -tw * 0.5, c.pitch * 0.2 * (1 - o.fall), 0); rot(Q[B.Head], -tw * 0.5, c.pitch * 0.25 * (1 - o.fall) - lean * 0.6, 0);
+      // pernas (mesmos ângulos do boneco antigo)
+      rot(Q[B.LeftUpLeg], 0, o.tl, 0); rot(Q[B.LeftLeg], 0, o.sl, 0); rot(Q[B.LeftFoot], 0, -(o.tl + o.sl) * 0.5, 0);
+      rot(Q[B.RightUpLeg], 0, o.tr, 0); rot(Q[B.RightLeg], 0, o.sr, 0); rot(Q[B.RightFoot], 0, -(o.tr + o.sr) * 0.5, 0);
+      // arma em espaço do personagem
+      const wC = this._wC || (this._wC = M4.create()), wT = this._wT || (this._wT = M4.create());
+      // coronha no ombro direito, cano para frente; pistola com braços esticados
+      M4.compose(wT, 0, o.hipY + 0.05, 0, 0, lean, 0);
+      const body = o.crouch ? -0.25 : -0.05 * o.sp; // a arma fica nivelada mesmo com o tronco inclinado
+      if (o.pistol) M4.compose(tmp, 0.05, 0.36, -0.42, 0, -body, 0); else M4.compose(tmp, 0.07, 0.31, -0.3, 0, -body, 0);
+      M4.mul(wC, wT, tmp);
+      const wp = (x, y, z) => [wC[0] * x + wC[4] * y + wC[8] * z + wC[12], wC[1] * x + wC[5] * y + wC[9] * z + wC[13], wC[2] * x + wC[6] * y + wC[10] * z + wC[14]];
+      const wm = o.wm, gz = Assets.GRIP[o.wid] ? Assets.GRIP[o.wid][2] : 0.05;
+      st.ik.Right = st.ik.Left = null;
+      if (aim) {
+        st.ik.Right = { t: wp(0.0, -0.075, gz + 0.075), pole: [0.7, -1, 0.5] };
+        if (o.pistol) st.ik.Left = { t: wp(-0.035, -0.085, gz + 0.06), pole: [-0.7, -1, 0.4] };
+        else if (o.reload) st.ik.Left = { t: wp(wm.magPos[0] - 0.02, wm.magPos[1] - 0.08 + Math.sin(o.t * 8) * 0.04, wm.magPos[2] + 0.05), pole: [-0.6, -1, 0.3] };
+        else st.ik.Left = { t: wp(-0.02, -0.06, wm.support + 0.16), pole: [-0.8, -0.8, 0.2] };
+      } else if (o.med) {
+        const by = o.hipY + 0.28;
+        st.ik.Right = { t: [0.08, by, -0.28], pole: [0.7, -1, 0.3] }; st.ik.Left = { t: [-0.08, by, -0.28], pole: [-0.7, -1, 0.3] };
+      } else { // caindo: braços soltos
+        rot(Q[B.LeftArm], 0, 0, 1.2); rot(Q[B.RightArm], 0, 0, -1.2);
+      }
+      Assets.rigSolve(RM, st, o.hipY + 0.05);
+      const mdl = rp.realM || (rp.realM = M4.create()); mdl.set(m[0]);
+      it.push({ mesh: RM.mesh, tex: RM.tex, model: mdl, bones: st.bones, emis: o.prot, spec: 0.1 });
+      if (o.team !== -1) for (const side of ['Left', 'Right']) {
+        const bd = RM['band' + side], bm = rp['band' + side] || (rp['band' + side] = M4.create());
+        M4.mul(bm, m[0], st.bones.subarray(bd.bone * 16, bd.bone * 16 + 16));
+        it.push({ mesh: bd.mesh, tex: Assets.tex.plain, model: bm, tint: o.teamCol, emis: 0.2 });
+      }
+      if (!o.med || o.fall) {
+        M4.mul(m[11], m[0], wC); M4.compose(tmp, wm.magPos[0], wm.magPos[1], wm.magPos[2], 0, 0, 0); M4.mul(m[12], m[11], tmp);
+        it.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: m[11], emis: o.prot, spec: wm.body.spec });
+        if (!o.reload) it.push({ mesh: wm.mag.mesh, tex: wm.mag.tex, model: m[12], emis: o.prot, spec: wm.mag.spec });
+        if (wm.pump) it.push({ mesh: wm.pump.mesh, tex: wm.pump.tex, model: m[11], emis: o.prot, spec: wm.pump.spec });
+      }
     },
     viewmodel(cam, vm, vmAdd) {
       const fw = this.fw, L = this.local, t = now(), w = this.curW(), myR = this.roster.get(this.myId) || {}, uni = myR.uniform || Prof.cur.uniform, myLook = myR.look || S.lookOf(Prof.cur), myCh = S.COSMETICS[myLook.c] || {}, tone = myCh.tone != null ? myCh.tone : myR.skin == null ? 1 : myR.skin, wsk = S.COSMETICS[myLook.w[w.id]], wm = Assets.weapon(w.id, wsk ? wsk.pat : null);
@@ -3366,7 +3606,7 @@ const Sfx = (() => {
       const GM = this._gm || (this._gm = M4.create()), tmp = M4.create();
       M4.compose(tmp, x, y, z, ry, rx, rz); M4.mul(GM, CW, tmp);
       vm.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: GM, spec: Math.max(0.7, wm.body.spec) });
-      const AR = Assets.arms(Assets.fabricKey(uni, myLook.s), w.id, tone); vm.push({ mesh: AR.mesh, tex: AR.tex, model: GM, spec: 0.08 });
+      const AR = Assets.arms(Assets.fabricKey(uni, myLook.s, myLook.c), w.id, tone); vm.push({ mesh: AR.mesh, tex: AR.tex, model: GM, spec: 0.08 });
       if (!magHide && w.id !== 'doze' || (w.id === 'doze' && rl)) {
         const MM = this._mm || (this._mm = M4.create());
         M4.compose(tmp, wm.magPos[0] + magOff[0], wm.magPos[1] + magOff[1], wm.magPos[2] + magOff[2], 0, 0, 0); M4.mul(MM, GM, tmp);
@@ -4141,7 +4381,7 @@ const Sfx = (() => {
         if (wm.pump) items.push({ mesh: wm.pump.mesh, tex: wm.pump.tex, model: M[0] });
         ty = 1.3; dist = (wm.kind === 'pistol' ? 0.45 : 1) * (land ? 3.9 : 4.6);
       } else {
-        const rp = this.rp; rp.w = weapon; rp.cur.yaw = lobby ? Math.PI + 0.25 + Math.sin(t * 0.5) * 0.3 : Math.PI + t * 0.6;
+        const rp = this.rp; rp.w = weapon; rp.cur.yaw = window.__yo != null ? Math.PI + window.__yo : lobby ? Math.PI + 0.25 + Math.sin(t * 0.5) * 0.3 : Math.PI + t * 0.6;
         this.ro.uniform = uniform; this.ro.look = look;
         Game.soldierItems(rp, items, this.ro);
         ty = 0.98; dist = lobby ? (land ? 4.5 : 5.6) : land ? 5.75 : 8.5;
@@ -4176,7 +4416,7 @@ const Sfx = (() => {
     $('otsens').value = CFG.tsens; $('otsensv').textContent = (+CFG.tsens).toFixed(2);
     document.querySelectorAll('[data-or]').forEach((b) => b.classList.toggle('pri', b.dataset.or === (CFG.orient || 'auto')));
     document.querySelectorAll('[data-vk]').forEach((b) => b.classList.toggle('pri', b.dataset.vk === (CFG.vkb || 'auto')));
-    $('oautofs').checked = CFG.autofs; $('oassist').checked = CFG.assist; $('ohead').checked = CFG.head; $('oastr').value = CFG.astr; $('oastrv').textContent = Math.round(CFG.astr * 100) + '%';
+    $('oreal').checked = CFG.real !== false; $('oautofs').checked = CFG.autofs; $('oassist').checked = CFG.assist; $('ohead').checked = CFG.head; $('oastr').value = CFG.astr; $('oastrv').textContent = Math.round(CFG.astr * 100) + '%';
     $('ovol').value = CFG.vol; $('ovolv').textContent = Math.round(CFG.vol * 100) + '%';
     $('omus').value = CFG.music; $('omusv').textContent = CFG.music > 0 ? Math.round(CFG.music * 100) + '%' : 'desligada';
   }
@@ -4185,7 +4425,7 @@ const Sfx = (() => {
     saveSet(); applyQuality(); renderSettings();
   }));
   const bindSet = (id, key, num) => ($(id).oninput = $(id).onchange = () => { CFG[key] = num ? +$(id).value : $(id).checked; saveSet(); applyQuality(); renderSettings(); if (key === 'touch' && Game.active) showTouch(CFG.touch); });
-  bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oastr', 'astr', 1);
+  bindSet('oreal', 'real'); bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oastr', 'astr', 1);
   bindSet('oshadow', 'shadows'); bindSet('oeffects', 'effects'); bindSet('ofps', 'fps'); bindSet('otouch', 'touch');
   bindSet('oscale', 'scale', 1); bindSet('ofov', 'fov', 1); bindSet('osens', 'sens', 1); bindSet('otsens', 'tsens', 1); bindSet('ovol', 'vol', 1); bindSet('omus', 'music', 1);
   $('oedit').onclick = openEditor;

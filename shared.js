@@ -53,6 +53,7 @@
     ch_comandante: { type: 'char', name: 'Comandante', price: 1400, level: 1, tone: 0, gear: 'beret', beard: 'mustache', hair: [0.1, 0.08, 0.06] },
     ch_rebelde: { type: 'char', name: 'Rebelde', price: 1400, level: 1, tone: 3, gear: 'bandana', beard: 'stubble', glasses: 1, hair: [0.05, 0.05, 0.05] },
     ch_noturno: { type: 'char', name: 'Operador Noturno', price: 2200, level: 1, tone: 1, gear: 'balaclava' },
+    ch_cowboy: { type: 'char', name: 'Cowboy', price: 1600, level: 1, tone: 0, gear: 'cowboy', outfit: 'cowboy', hair: [0.1, 0.08, 0.11] }, // visual completo: chapéu, lenço, jaqueta, jeans e botas
     sh_ang_azul: { type: 'shirt', name: 'Blusa Angelical Azul', price: 1300, level: 1, col: [40, 115, 240] },
     sh_ang_vermelha: { type: 'shirt', name: 'Blusa Angelical Vermelha', price: 1300, level: 1, col: [225, 40, 48] },
     sh_ang_amarela: { type: 'shirt', name: 'Blusa Angelical Amarela', price: 1300, level: 1, col: [245, 200, 35] },
@@ -804,7 +805,9 @@
       buildNav();
       // alguns bots usam itens da lojinha, para as skins aparecerem nas partidas
       const pick = (t, chance) => { if (Math.random() > chance) return ''; const ids = Object.keys(COSMETICS).filter((k) => COSMETICS[k].type === t && COSMETICS[k].price > 0); return ids[Math.floor(Math.random() * ids.length)] || ''; };
-      const look = { c: pick('char', 0.45) || 'ch_soldado', s: pick('shirt', 0.22), p: pick('pants', 0.22), w: {} };
+      // bots: maioria é o soldado 3D realista; uns 25% vêm de Cowboy e alguns usam outras skins
+      const rr = Math.random();
+      const look = rr < 0.25 ? { c: 'ch_cowboy', s: '', p: '', w: {} } : rr < 0.4 ? { c: pick('char', 1) || 'ch_soldado', s: '', p: '', w: {} } : { c: 'ch_soldado', s: '', p: '', w: {} };
       const ws = Object.keys(COSMETICS).filter((k) => COSMETICS[k].type === 'wskin' && COSMETICS[k].weapon === prim);
       if (ws.length && Math.random() < 0.35) look.w[prim] = ws[Math.floor(Math.random() * ws.length)];
       return this.addPlayer({ name, bot: true, team, uniform: uni, look, loadout: { primary: prim, secondary: Math.random() < 0.5 ? 'pistol' : 'deagle' }, level: 1 + Math.floor(Math.random() * 20) });
