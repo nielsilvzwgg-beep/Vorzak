@@ -780,7 +780,7 @@
     return { id: m.id, prog: 0 };
   }
   function newProfile(name) {
-    const p = { v: 1, name: sanitizeName(name), xp: 0, level: 1, coins: 1500, owned: ['pistol', 'smg'], uniformsOwned: ['woodland', 'desert'], upgrades: [], loadout: { primary: 'smg', secondary: 'pistol' }, uniform: 'woodland', mmr: 1000, wins: 0, losses: 0, kills: 0, deaths: 0, hs: 0, matches: 0, missions: [], cos: { owned: ['ch_soldado'], char: 'ch_soldado', shirt: '', pants: '', wskins: {} } };
+    const p = { v: 1, name: sanitizeName(name), xp: 0, level: 1, coins: 1500, owned: ['pistol', 'smg'], uniformsOwned: ['woodland', 'desert'], upgrades: [], loadout: { primary: 'smg', secondary: 'pistol' }, uniform: 'woodland', mmr: 1000, wins: 0, losses: 0, kills: 0, deaths: 0, hs: 0, matches: 0, missions: [], cos: { owned: ['ch_soldado'], char: 'ch_soldado', shirt: '', pants: '', wskins: {} }, pid: '', friends: [], fin: [], fout: [], mail: [], news: [] };
     while (p.missions.length < 3) p.missions.push(pickMission(p));
     return p;
   }

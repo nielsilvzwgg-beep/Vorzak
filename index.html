@@ -94,7 +94,7 @@ label{display:block;margin:10px 0 4px;color:var(--dim);font-size:15px;text-trans
 #brov.brtop .brn{font-size:34px}
 #brov .brs{font-size:15px;opacity:.9}
 #brov .brbar{width:260px;height:6px;background:rgba(255,255,255,.15);border-radius:3px;margin:12px auto 0;overflow:hidden}
-#brov.brtop .brbar{width:200px;margin-top:6px}
+#brov.brtop .brbar,#brov.brtop .brs{display:none}
 #brov .brbar i{display:block;height:100%;background:var(--acc);width:0}
 #brov .brscan{position:relative;width:120px;height:120px;margin:0 auto 18px;border-radius:50%;border:2px solid rgba(255,138,31,.55);overflow:hidden;background:repeating-radial-gradient(circle,rgba(255,138,31,.0) 0 18px,rgba(255,138,31,.25) 19px 20px)}
 #brov.brtop .brscan{display:none}
@@ -159,6 +159,7 @@ body.brhide #touch,body.brhide .tbtn{visibility:hidden!important}
 .tbtn{position:absolute;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);color:#fff;font:700 13px Rajdhani,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1;transform:translate(-50%,-50%);pointer-events:auto;text-transform:uppercase;letter-spacing:.5px}
 .tbtn.dn{background:rgba(255,138,31,.45);border-color:var(--acc)}
 .tbtn.fire{background:rgba(255,60,40,.22);border-color:rgba(255,90,60,.7)}
+.tbtn.gear{font-size:26px;letter-spacing:0}
 #joy{position:absolute;width:130px;height:130px;margin:-65px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);display:none}
 #joy i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px;border-radius:50%;background:rgba(255,255,255,.35)}
 #joyhint{position:absolute;left:calc(70px + var(--sal));bottom:calc(70px + var(--sab));width:110px;height:110px;margin:-55px;border-radius:50%;border:2px dashed rgba(255,255,255,.18)}
@@ -252,6 +253,15 @@ body.lshort #sttabs .btn{font-size:13px;padding:4px 8px}
 .lb-ic:active,.lb-side:active,.lb-room:active,.lb-bottom button:active,.lb-mode:active{background:rgba(255,201,60,.25)}
 .lb-left{position:absolute;left:calc(12px + var(--sal));top:calc(72px + var(--sat));display:flex;flex-direction:column;gap:10px}
 .lb-side{display:flex;align-items:center;gap:10px;min-width:170px;padding:10px 18px 10px 14px;background:linear-gradient(90deg,rgba(10,12,18,.88),rgba(10,12,18,.55));border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--y);color:var(--y)!important;font-size:22px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;position:relative;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.lb-ic{position:relative}.lb-ic em{position:absolute;right:-5px;top:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;font:700 11px/17px Rajdhani,sans-serif;font-style:normal;display:none}.lb-ic em.on{display:block}
+.frtabs{display:flex;gap:6px;margin-bottom:8px}.frtabs button{flex:1;background:rgba(0,0,0,.35);border:1px solid var(--line);color:#fff;padding:10px;font:700 15px Rajdhani,sans-serif;text-transform:uppercase;position:relative}.frtabs button.on{background:var(--acc);border-color:var(--acc);color:#111}
+.frtabs em{font-style:normal;background:var(--red);color:#fff;border-radius:9px;padding:0 6px;font-size:12px;margin-left:4px;display:none}.frtabs em.on{display:inline}
+.frrow{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line)}.frrow:last-child{border-bottom:0}.frrow canvas{width:56px;height:40px;flex:none;background:rgba(0,0,0,.3)}
+.frrow .n{flex:1;min-width:0}.frrow .n b{display:block;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.frrow .n small{color:var(--dim)}.frrow .on{color:var(--grn)}.frrow .btn{margin:0}
+.frsearch{display:flex;gap:6px;margin-bottom:8px}.frsearch input{flex:1;font-size:16px}
+.mlwrap{display:flex;gap:10px;align-items:flex-start}.mllist{width:38%;max-height:62vh;overflow:auto;padding:0}.mlview{flex:1;min-height:200px}
+.mlit{padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}.mlit b{display:block;font-size:15px}.mlit small{color:var(--dim)}.mlit.new b::before{content:'● ';color:var(--acc)}.mlit.sel{background:rgba(255,138,31,.15)}
+.mlview h3{margin:0 0 4px}.mlview p{font-size:16px;line-height:1.5;white-space:pre-wrap}
 .lb-side em{position:absolute;right:16px;top:8px;width:8px;height:8px;background:var(--red);border-radius:50%;display:none}.lb-side em.on{display:block}
 .lb-right{position:absolute;right:calc(12px + var(--sar));top:calc(72px + var(--sat));display:flex;flex-direction:column;gap:10px;align-items:flex-end}
 .lb-room{display:flex;align-items:center;gap:8px;padding:9px 14px;background:rgba(10,12,18,.8);border:1px solid rgba(255,255,255,.12);border-right:3px solid var(--acc);font-size:17px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
@@ -356,6 +366,8 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       <button class="lb-ic" id="minstall" style="display:none" title="Instalar app"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button>
       <button class="lb-ic" data-rot="1" title="Girar tela"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 3v5h-5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button>
       <button class="lb-ic" data-fs="1" data-fsicon="1" title="Tela cheia"><svg viewBox="0 0 24 24"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button>
+      <button class="lb-ic" data-go="friends" title="Amigos"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 19.5c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.8" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M17 13.8c2.6.2 4.2 1.9 4.6 4.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><em id="frdot"></em></button>
+      <button class="lb-ic" data-go="mail" title="Correio"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 6.5l9 6.5 9-6.5" fill="none" stroke="currentColor" stroke-width="2"/></svg><em id="mldot"></em></button>
       <button class="lb-ic" data-go="settings" title="Configurações"><svg viewBox="0 0 24 24"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6zM19.4 13.4l2 1.6-2 3.4-2.4-.9a7.6 7.6 0 0 1-2.1 1.2L14.5 21h-5l-.4-2.3A7.6 7.6 0 0 1 7 17.5l-2.4.9-2-3.4 2-1.6a7.7 7.7 0 0 1 0-2.8l-2-1.6 2-3.4 2.4.9a7.6 7.6 0 0 1 2.1-1.2L9.5 3h5l.4 2.3A7.6 7.6 0 0 1 17 6.5l2.4-.9 2 3.4-2 1.6a7.7 7.7 0 0 1 0 2.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
       <button class="lb-ic" id="mquit" title="Sair"><svg viewBox="0 0 24 24"><path d="M12 3v8M6.6 6.6a8 8 0 1 0 10.8 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
     </div>
@@ -393,6 +405,19 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     <div class="wt-wait" id="wtwaitmsg">Aguardando o criador da sala iniciar a partida…</div>
     <button class="lb-go wt-go" id="wtgo">Jogar agora</button>
   </div>
+</div>
+
+<!-- AMIGOS -->
+<div id="s-friends" class="scr full">
+  <div class="sttop"><h2>Amigos <small id="frme" style="font-size:14px;color:var(--dim)"></small></h2><button class="btn sm" data-go="menu">Voltar</button></div>
+  <div class="frtabs"><button data-ft="list" class="on">Meus amigos</button><button data-ft="inc">Pedidos <em id="frinc"></em></button><button data-ft="search">Procurar jogadores</button></div>
+  <div class="card" id="frbody"></div>
+</div>
+
+<!-- CORREIO -->
+<div id="s-mail" class="scr full">
+  <div class="sttop"><h2>Correio</h2><span style="display:flex;gap:6px"><button class="btn sm" id="mlall">Marcar tudo como lido</button><button class="btn sm" id="mlclean">Apagar lidas</button><button class="btn sm" data-go="menu">Voltar</button></span></div>
+  <div class="mlwrap"><div class="card mllist" id="mllist"></div><div class="card mlview" id="mlview"></div></div>
 </div>
 
 <!-- EVENTOS -->
@@ -1367,7 +1392,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     return { id: m.id, prog: 0 };
   }
   function newProfile(name) {
-    const p = { v: 1, name: sanitizeName(name), xp: 0, level: 1, coins: 1500, owned: ['pistol', 'smg'], uniformsOwned: ['woodland', 'desert'], upgrades: [], loadout: { primary: 'smg', secondary: 'pistol' }, uniform: 'woodland', mmr: 1000, wins: 0, losses: 0, kills: 0, deaths: 0, hs: 0, matches: 0, missions: [], cos: { owned: ['ch_soldado'], char: 'ch_soldado', shirt: '', pants: '', wskins: {} } };
+    const p = { v: 1, name: sanitizeName(name), xp: 0, level: 1, coins: 1500, owned: ['pistol', 'smg'], uniformsOwned: ['woodland', 'desert'], upgrades: [], loadout: { primary: 'smg', secondary: 'pistol' }, uniform: 'woodland', mmr: 1000, wins: 0, losses: 0, kills: 0, deaths: 0, hs: 0, matches: 0, missions: [], cos: { owned: ['ch_soldado'], char: 'ch_soldado', shirt: '', pants: '', wskins: {} }, pid: '', friends: [], fin: [], fout: [], mail: [], news: [] };
     while (p.missions.length < 3) p.missions.push(pickMission(p));
     return p;
   }
@@ -3819,8 +3844,11 @@ const Sfx = (() => {
         case 'wclosed': Wait.st = null; if (curScreen === 'wait') go('menu'); if (!m.self) toast('⚠ ' + esc(m.m), 6000); break;
         case 'autherr': Auth.pending = null; Auth.onWelcome = null; toast('⚠ ' + esc(m.m)); go('login'); try { this.ws.close(); } catch (e) {} break;
         case 'online': renderOnline(m.list); break;
+        case 'social': Social.st = m; updBadges(); if (curScreen === 'friends') renderFriends(); break;
+        case 'fresults': Social.res = m.list; if (curScreen === 'friends' && Social.tab === 'search') renderFriends(); break;
+        case 'fnote': toast(esc(m.m)); break;
         case 'profile':
-          Prof.online = S.fixProfile(m.profile); refreshMenu(); renderLobbyRank();
+          Prof.online = S.fixProfile(m.profile); refreshMenu(); renderLobbyRank(); if (curScreen === 'mail') renderMail();
           if (m.result) Game.onProfileResult(m.result);
           if (STORE_SCR.includes(curScreen)) renderStore(); if (curScreen === 'menu') refreshMenu(); if (curScreen === 'events') renderEvents(); if (curScreen === 'profile') renderProfile();
           break;
@@ -4401,7 +4429,7 @@ const Sfx = (() => {
       const n = this.brPn || 1;
       if (ph === 'busca') { setT($('brt'), 'PROCURANDO JOGADORES'); setT($('brs'), n + (n === 1 ? ' jogador encontrado' : ' jogadores encontrados') + ' · até 30 · depois todos entram no trem'); }
       else if (ph === 'lobby') { setT($('brt'), 'LOBBY · A PARTIDA COMEÇA EM'); setT($('brs'), n + (n === 1 ? ' jogador' : ' jogadores') + ' · depois todos entram no trem'); }
-      else { setT($('brt'), this.riding ? 'NO TREM · PULE ONDE QUISER' : 'O TREM CHEGA NA ESTAÇÃO EM'); setT($('brs'), this.riding ? 'Toque em PULAR DO TREM (ou espaço) — o trem para no fim da linha' : 'Procure armas e kits médicos!'); }
+      else { setT($('brt'), 'NO TREM · PULE ONDE QUISER'); setT($('brs'), ''); }
       setT($('brn'), ph === 'trem' ? sec + 's' : String(sec));
       const tot = ph === 'busca' ? 15 : ph === 'lobby' ? 20 : this.brDur || 50;
       $('brbar').style.width = Math.max(0, Math.min(100, (1 - sec / tot) * 100)) + '%';
@@ -4879,11 +4907,7 @@ const Sfx = (() => {
     { id: 'swap', label: 'TROCAR', x: 0.94, y: 0.38, s: 54 },
     { id: 'grab', label: 'PEGAR', x: 0.62, y: 0.62, s: 66, cls: 'grab' },
     { id: 'cam', label: '👁 CÂM', x: 0.94, y: 0.22, s: 50 },
-    { id: 'score', label: 'PLACAR', x: 0.62, y: 0.08, s: 44 },
-    { id: 'chat', label: 'CHAT', x: 0.69, y: 0.08, s: 44 },
-    { id: 'pause', label: 'II', x: 0.76, y: 0.08, s: 44 },
-    { id: 'rotate', label: '⟳ GIRAR', x: 0.83, y: 0.08, s: 44 },
-    { id: 'fs', label: '⛶', x: 0.9, y: 0.08, s: 44 },
+    { id: 'gear', label: '⚙', x: 0.94, y: 0.08, s: 50, cls: 'gear' }, // configurações (substitui o pausar)
   ];
   const Touch = {
     joy: [0, 0], sprint: false, held: {}, score: false, joyId: null, joyO: [0, 0], look: new Map(), els: {},
@@ -5105,7 +5129,7 @@ const Sfx = (() => {
           case 'grab': keys._grab = true; break;
           case 'score': Touch.score = !Touch.score; break;
           case 'chat': openChat(); break;
-          case 'pause': pause(); break;
+          case 'pause': case 'gear': pause(); break;
           case 'rotate': cycleOrientation(); break;
           case 'fs': FS.toggle(); break;
           case 'cam': Game.toggleCam(); break;
@@ -5190,6 +5214,8 @@ const Sfx = (() => {
     if (name === 'events') renderEvents();
     if (name === 'wait') renderWait();
     if (name === 'profile') renderProfile();
+    if (name === 'friends') { autoConnect(); if (Net.ok) Net.send({ t: 'social' }); renderFriends(); }
+    if (name === 'mail') { autoConnect(); Social.sel = null; renderMail(); }
     if (name === 'settings') renderSettings();
     if (name === 'create') renderCreate();
     if (name === 'find') { $('fres').innerHTML = ''; autoConnect(); if (Net.ok) Net.send({ t: 'rooms' }); setTimeout(() => $('fid').focus(), 50); }
@@ -5198,9 +5224,65 @@ const Sfx = (() => {
   $('setback').onclick = () => { if (settingsBack === 'pause' && Game.active) { hideScreens(); pause(); } else go('menu'); };
 
   const STORE_SCR = ['shop', 'inv', 'cofre', 'armas'];
+  // ================================================================ amigos e correio (precisam do servidor online)
+  const Social = { st: null, res: null, tab: 'list', sel: null, q: '' };
+  function updBadges() {
+    const inc = Social.st ? Social.st.inc.length : 0, unread = Prof.online ? Prof.online.mail.filter((x) => !x.read).length : 0;
+    const b1 = $('frdot'), b2 = $('mldot'), b3 = $('frinc');
+    b1.textContent = inc; b1.classList.toggle('on', inc > 0); b2.textContent = unread > 99 ? '99+' : unread; b2.classList.toggle('on', unread > 0);
+    b3.textContent = inc; b3.classList.toggle('on', inc > 0);
+  }
+  function needOnline(el) { if (Net.ok && Prof.online) return false; el.innerHTML = '<div class="stat" style="font-size:16px">Conectando ao servidor online…</div><div class="stat">Amigos e correio funcionam com a internet ligada.</div>'; Net.after = () => { if (curScreen === 'friends') { Net.send({ t: 'social' }); renderFriends(); } else if (curScreen === 'mail') renderMail(); }; return true; }
+  function frRow(f, btns) {
+    const st = f.online ? (f.playing ? '<span class="on">● Jogando</span>' : '<span class="on">● Online</span>') : 'Offline';
+    return `<div class="frrow" data-id="${esc(f.id)}"><canvas width="240" height="110" data-ch="${esc(f.char || 'ch_soldado')}"></canvas><div class="n"><b>${esc(f.name)}</b><small>Nível ${f.level | 0} · ID ${esc(f.id)} · ${st}</small></div>${btns}</div>`;
+  }
+  function renderFriends() {
+    const body = $('frbody'); document.querySelectorAll('.frtabs button').forEach((b) => b.classList.toggle('on', b.dataset.ft === Social.tab));
+    setT($('frme'), Prof.online && Prof.online.pid ? '· seu ID: ' + Prof.online.pid : ''); updBadges();
+    if (needOnline(body)) return;
+    const st = Social.st || { friends: [], inc: [], out: [] };
+    if (Social.tab === 'list') {
+      const fr = st.friends.slice().sort((a, b) => b.online - a.online);
+      body.innerHTML = fr.length ? fr.map((f) => frRow(f, `<button class="btn sm" data-fx="rem">Desfazer</button>`)).join('') : '<div class="stat" style="font-size:16px">Você ainda não tem amigos. Toque em <b>Procurar jogadores</b> e envie um pedido pelo nome ou pelo ID.</div>';
+    } else if (Social.tab === 'inc') {
+      body.innerHTML = (st.inc.length ? '<h3 style="margin-top:0">Pedidos recebidos</h3>' + st.inc.map((f) => frRow(f, `<button class="btn sm" data-fx="ok">Aceitar</button><button class="btn sm" data-fx="no">Recusar</button>`)).join('') : '<div class="stat" style="font-size:16px">Nenhum pedido de amizade.</div>')
+        + (st.out.length ? '<h3>Pedidos enviados</h3>' + st.out.map((f) => frRow(f, `<button class="btn sm" data-fx="rem">Cancelar</button>`)).join('') : '');
+    } else {
+      const res = Social.res;
+      body.innerHTML = `<div class="frsearch"><input type="text" id="frq" maxlength="20" placeholder="Nome do jogador ou ID (8 números)" value="${esc(Social.q)}"><button class="btn sm" id="frgo">Procurar</button></div>`
+        + (res == null ? '<div class="stat">Digite pelo menos 2 letras do nome, ou o ID completo.</div>' : res.length ? res.map((f) => frRow(f, f.friend ? '<span class="stat">Amigo ✔</span>' : f.sent ? '<span class="stat">Pedido enviado</span>' : f.got ? '<button class="btn sm" data-fx="ok">Aceitar</button>' : '<button class="btn sm" data-fx="add">+ Adicionar</button>')).join('') : '<div class="stat">Nenhum jogador encontrado.</div>');
+      const go2 = () => { Social.q = $('frq').value.trim(); if (Social.q.length >= 2) Net.send({ t: 'fsearch', q: Social.q }); else toast('Digite pelo menos 2 letras.'); };
+      $('frgo').onclick = go2; $('frq').onkeydown = (e) => { if (e.key === 'Enter') go2(); };
+    }
+    body.querySelectorAll('canvas[data-ch]').forEach((cv) => headIcon(cv.dataset.ch, cv));
+    body.querySelectorAll('[data-fx]').forEach((b) => (b.onclick = () => {
+      const id = b.closest('.frrow').dataset.id, fx = b.dataset.fx;
+      if (fx === 'add') { Net.send({ t: 'freq', id }); b.outerHTML = '<span class="stat">Pedido enviado</span>'; }
+      else if (fx === 'ok' || fx === 'no') Net.send({ t: 'fresp', id, ok: fx === 'ok' ? 1 : 0 });
+      else if (fx === 'rem') { if (Social.tab !== 'list' || confirm('Desfazer a amizade?')) Net.send({ t: 'frem', id }); }
+    }));
+  }
+  document.querySelectorAll('.frtabs button').forEach((b) => (b.onclick = () => { Sfx.ui(); Social.tab = b.dataset.ft; renderFriends(); }));
+  function renderMail() {
+    const L = $('mllist'), V = $('mlview'); updBadges();
+    if (needOnline(L)) { V.innerHTML = ''; return; }
+    const mail = Prof.online.mail;
+    if (!mail.length) { L.innerHTML = '<div class="stat" style="padding:12px">Nenhuma mensagem.</div>'; V.innerHTML = ''; return; }
+    if (!Social.sel || !mail.some((x) => x.id === Social.sel)) Social.sel = mail[0].id;
+    const dt = (ts) => { const d = new Date(ts); return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); };
+    L.innerHTML = mail.map((x) => `<div class="mlit${x.read ? '' : ' new'}${x.id === Social.sel ? ' sel' : ''}" data-id="${esc(x.id)}"><b>${esc(x.title)}</b><small>Sistema · ${dt(x.ts)}</small></div>`).join('');
+    const cur = mail.find((x) => x.id === Social.sel);
+    V.innerHTML = `<h3>${esc(cur.title)}</h3><div class="stat">De: VORZAK (sistema) · ${dt(cur.ts)}</div><p>${esc(cur.body)}</p><button class="btn sm" id="mldel">Apagar</button>`;
+    if (!cur.read) { cur.read = 1; Net.send({ t: 'mread', id: cur.id }); updBadges(); }
+    $('mldel').onclick = () => { Net.send({ t: 'mdel', id: cur.id }); Social.sel = null; };
+    L.querySelectorAll('.mlit').forEach((d) => (d.onclick = () => { Sfx.ui(); Social.sel = d.dataset.id; renderMail(); }));
+  }
+  $('mlall').onclick = () => { if (Net.ok) Net.send({ t: 'mread', all: 1 }); };
+  $('mlclean').onclick = () => { if (Net.ok) Net.send({ t: 'mdel', all: 1 }); };
   const MODE_TXT = { aberto: ['Mapa aberto', '🚆'], ffa: ['1 contra todos', '🎯'], tdm: ['Mata-mata em equipe', '⚔'], training: ['Modo treinamento', '🎓'] };
   function refreshMenu() {
-    const p = Prof.cur, li = S.levelInfo(p.xp);
+    const p = Prof.cur, li = S.levelInfo(p.xp); updBadges();
     setT($('lbname'), p.name); setT($('lblvn'), String(li.level)); setT($('lbcoins'), String(p.coins));
     setT($('lbrank'), 'Rank ' + S.rankName(p.mmr)); setT($('lbxpt'), `Nível ${li.level} · ${li.cur}/${li.need} XP`);
     $('lbxpb').style.width = (li.cur / li.need * 100) + '%';

@@ -34,6 +34,41 @@ try { accounts = JSON.parse(fs.readFileSync(AFILE, 'utf8')); } catch (e) { accou
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID || '', FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET || '';
 const FAKE_AUTH = process.env.FAKE_AUTH === '1'; // só para testes automatizados
+// ------------------------------------------------------------ amigos e correio
+// cada perfil tem um ID público de 8 dígitos (pid) — o token continua secreto
+const pidIndex = new Map(); // pid -> token
+for (const tok in profiles) if (profiles[tok] && profiles[tok].pid) pidIndex.set(profiles[tok].pid, tok);
+function ensurePid(tok, p) {
+  if (!p.pid || (pidIndex.has(p.pid) && pidIndex.get(p.pid) !== tok)) { do { p.pid = String(10000000 + Math.floor(Math.random() * 89999999)); } while (pidIndex.has(p.pid)); }
+  pidIndex.set(p.pid, tok);
+}
+function profByPid(pid) { const tok = pidIndex.get(String(pid)); if (!tok || !profiles[tok]) return null; return (profiles[tok] = S.fixProfile(profiles[tok])); }
+function clientByPid(pid) { for (const c of clients.values()) if (c.hello && c.profile && c.profile.pid === pid) return c; return null; }
+// avisos do sistema (chegam no correio de todo mundo uma vez)
+const NEWS = [
+  { id: 'n-casas', title: 'Casas abertas no Mapa aberto', body: 'As casas novas não têm mais portas e ganharam janelas: entre para se esconder! Dentro delas tem kit médico e arma no chão.' },
+  { id: 'n-maverick', title: 'Nova arma: Maverick 88', body: 'Escopeta de bomba com 6 tiros. Compre na Loja (nível 3) ou pegue no chão do Mapa aberto.' },
+  { id: 'n-3p', title: 'Câmera em 3ª pessoa', body: 'Agora você vê o personagem inteiro. Use o botão 👁 CÂM (ou a tecla V) para trocar entre 3ª e 1ª pessoa.' },
+  { id: 'n-corrida', title: 'Corrida nova', body: 'Os personagens agora correm com animação gravada de pessoas reais, segurando a arma.' },
+  { id: 'n-trem', title: 'Mapa aberto: entre pelo trem', body: 'Ao jogar o Mapa aberto online, o jogo procura jogadores e todos começam dentro do trem. Pule onde quiser para procurar armas e kits!' },
+  { id: 'n-social', title: 'Amigos e correio', body: 'Procure jogadores pelo nome ou pelo ID e envie pedidos de amizade no botão de amigos, no alto da tela inicial. Os avisos do jogo chegam aqui no correio.' },
+];
+function addMail(p, title, body) {
+  p.mail.unshift({ id: crypto.randomBytes(5).toString('hex'), ts: Date.now(), title: String(title).slice(0, 60), body: String(body).slice(0, 400), read: 0 });
+  if (p.mail.length > 40) p.mail.length = 40;
+}
+function syncNews(p) { for (const n of NEWS) if (!p.news.includes(n.id)) { p.news.push(n.id); addMail(p, n.title, n.body); } }
+function pubOf(pid) {
+  const p = profByPid(pid); if (!p) return null;
+  const c = clientByPid(pid);
+  return { id: pid, name: p.name, level: p.level, char: S.lookOf(p).c, online: c ? 1 : 0, playing: c && (c.room || c.wroom) ? 1 : 0, uid: c ? c.uid : 0 };
+}
+function socialOf(p) {
+  return { t: 'social', me: p.pid, friends: p.friends.map(pubOf).filter(Boolean), inc: p.fin.map(pubOf).filter(Boolean), out: p.fout.map(pubOf).filter(Boolean) };
+}
+function pushSocial(c) { if (c && c.alive && c.hello) c.send(socialOf(c.profile)); }
+function pushProfile(c) { if (c && c.alive && c.hello) c.send({ t: 'profile', profile: c.profile }); }
+function friendsOnlineChanged(p) { for (const f of p.friends) { const fc = clientByPid(f); if (fc) pushSocial(fc); } }
 let saveTimer = null;
 function saveProfiles() {
   if (saveTimer) return;
@@ -164,6 +199,7 @@ class Client {
     if (this.room) this.room.leave(this);
     clients.delete(this.uid);
     broadcastOnline();
+    if (this.hello && this.profile) friendsOnlineChanged(this.profile);
   }
 }
 
@@ -312,12 +348,17 @@ function handle(c, m) {
     if (c.hello || c.authing) return;
     const finish = (tok, acct) => {
       if (!c.alive) return;
-      if (!tok || !profiles[tok]) { tok = crypto.randomBytes(16).toString('hex'); profiles[tok] = S.newProfile(m.name); }
+      let fresh = false;
+      if (!tok || !profiles[tok]) { tok = crypto.randomBytes(16).toString('hex'); profiles[tok] = S.newProfile(m.name); fresh = true; }
       c.token = tok; c.profile = S.fixProfile(profiles[tok]); profiles[tok] = c.profile; c.hello = true;
+      ensurePid(tok, c.profile);
+      if (fresh) addMail(c.profile, 'Bem-vindo ao VORZAK!', 'Seu ID de jogador é ' + c.profile.pid + '. Passe para seus amigos para eles te adicionarem. Bom jogo!');
+      syncNews(c.profile);
       if (acct) { accounts[acct.key] = tok; c.profile.account = { provider: acct.provider, email: acct.email || '' }; }
       if (m.name && (m.setName || !acct)) c.profile.name = S.sanitizeName(m.name);
       saveProfiles();
       c.send({ t: 'welcome', uid: c.uid, token: tok, profile: c.profile, account: c.profile.account || null });
+      pushSocial(c); friendsOnlineChanged(c.profile);
       c.send({ t: 'rooms', list: roomList() });
       broadcastOnline();
     };
@@ -339,6 +380,53 @@ function handle(c, m) {
     case 'ping': return c.send({ t: 'pong', c: m.c });
     case 'sp': { const rtt = Date.now() - (+m.c || 0); if (rtt >= 0 && rtt < 5000 && room) { const p = room.sim.players.get(c.pid); if (p) p.ping = p.ping * 0.7 + (rtt / 1000) * 0.3; } return; }
     case 'rooms': return c.send({ t: 'rooms', list: roomList() });
+    // ---------------- amigos
+    case 'social': return pushSocial(c);
+    case 'fsearch': {
+      const q = String(m.q || '').trim().toLowerCase().slice(0, 20), me = c.profile, out = [];
+      if (q.length >= 2) {
+        if (/^\d{8}$/.test(q)) { if (q !== me.pid && pidIndex.has(q)) out.push(q); }
+        else for (const [pid] of pidIndex) { if (pid === me.pid) continue; const p = profByPid(pid); if (p && p.name.toLowerCase().includes(q)) out.push(pid); if (out.length >= 20) break; }
+      }
+      const list = out.map(pubOf).filter(Boolean).map((x) => Object.assign(x, { friend: me.friends.includes(x.id) ? 1 : 0, sent: me.fout.includes(x.id) ? 1 : 0, got: me.fin.includes(x.id) ? 1 : 0 }));
+      return c.send({ t: 'fresults', q, list });
+    }
+    case 'freq': {
+      const me = c.profile, id = String(m.id || ''), o = profByPid(id);
+      if (!o || id === me.pid) return c.send({ t: 'err', m: 'Jogador não encontrado.' });
+      if (me.friends.includes(id)) return c.send({ t: 'err', m: 'Vocês já são amigos.' });
+      if (me.friends.length >= 100) return c.send({ t: 'err', m: 'Sua lista de amigos está cheia (100).' });
+      if (me.fin.includes(id)) return handle(c, { t: 'fresp', id, ok: 1 }); // ele já tinha pedido: vira amizade
+      if (!me.fout.includes(id)) me.fout.push(id);
+      if (!o.fin.includes(me.pid)) { o.fin.push(me.pid); addMail(o, 'Pedido de amizade', me.name + ' (ID ' + me.pid + ') quer ser seu amigo. Abra Amigos > Pedidos para aceitar.'); }
+      saveProfiles(); pushSocial(c);
+      const oc = clientByPid(id); if (oc) { pushSocial(oc); pushProfile(oc); oc.send({ t: 'fnote', m: me.name + ' enviou um pedido de amizade' }); }
+      return c.send({ t: 'fnote', m: 'Pedido enviado para ' + o.name });
+    }
+    case 'fresp': {
+      const me = c.profile, id = String(m.id || ''), o = profByPid(id);
+      me.fin = me.fin.filter((x) => x !== id);
+      if (o) o.fout = o.fout.filter((x) => x !== me.pid);
+      if (o && m.ok) {
+        if (!me.friends.includes(id)) me.friends.push(id);
+        if (!o.friends.includes(me.pid)) o.friends.push(me.pid);
+        me.fout = me.fout.filter((x) => x !== id); o.fin = o.fin.filter((x) => x !== me.pid);
+        addMail(o, 'Amizade aceita', me.name + ' aceitou seu pedido de amizade.');
+      }
+      saveProfiles(); pushSocial(c);
+      const oc = clientByPid(id); if (oc) { pushSocial(oc); pushProfile(oc); if (m.ok) oc.send({ t: 'fnote', m: me.name + ' aceitou sua amizade!' }); }
+      return;
+    }
+    case 'frem': {
+      const me = c.profile, id = String(m.id || ''), o = profByPid(id);
+      me.friends = me.friends.filter((x) => x !== id); me.fout = me.fout.filter((x) => x !== id);
+      if (o) { o.friends = o.friends.filter((x) => x !== me.pid); o.fin = o.fin.filter((x) => x !== me.pid); }
+      saveProfiles(); pushSocial(c); const oc = clientByPid(id); if (oc) pushSocial(oc);
+      return;
+    }
+    // ---------------- correio
+    case 'mread': { for (const x of c.profile.mail) if (m.all || x.id === m.id) x.read = 1; saveProfiles(); return pushProfile(c); }
+    case 'mdel': { c.profile.mail = c.profile.mail.filter((x) => !(m.all ? x.read : x.id === m.id)); saveProfiles(); return pushProfile(c); }
     case 'find': { const r = rooms.get(parseInt(m.id, 10)); return c.send({ t: 'found', id: parseInt(m.id, 10) || 0, room: r ? r.info() : null }); }
     case 'create': {
       const r = new Room({ name: m.name, mode: m.mode, priv: !!m.priv, max: m.max, owner: c.uid, custom: true });
