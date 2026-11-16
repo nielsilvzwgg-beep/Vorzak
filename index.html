@@ -277,6 +277,10 @@ body.lshort #sttabs .btn{font-size:13px;padding:4px 8px}
 .ffreset{width:100%;background:#1c1f25;border:1px solid #444;color:#fff;font:700 14px Rajdhani,sans-serif;padding:9px;margin-bottom:6px;text-transform:uppercase}
 body.setopen #hud,body.setopen #touch{display:none!important}
 /* grupo do mapa aberto (Solo/Duo/Squad) */
+#lbmates{position:absolute;inset:0;pointer-events:none}
+.lb-mate{position:absolute;transform:translate(-50%,-100%);text-align:center;white-space:nowrap;background:rgba(8,12,20,.7);border:1px solid rgba(90,176,255,.6);border-left:3px solid #5ab0ff;padding:2px 10px 3px;display:flex;flex-direction:column;align-items:center}
+.lb-mate b{font-size:16px;color:#e8f2ff;letter-spacing:.5px}.lb-mate small{font-size:11px;color:#9fd2ff}.lb-mate em{font-style:normal;position:absolute;right:-22px;top:2px}
+.lb-mate.talk{border-color:#5f5;box-shadow:0 0 10px rgba(80,255,120,.6)}
 .lb-sq{display:flex;gap:4px;background:rgba(8,10,16,.82);border:1px solid rgba(255,255,255,.12);padding:4px}
 .lb-sq button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:2px solid transparent;padding:5px 2px 4px;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#dfe6f0}
 .lb-sq button i{display:flex;gap:0;height:22px;align-items:flex-end}.lb-sq button i svg{width:15px;height:20px;margin:0 -2px}
@@ -436,6 +440,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       <button class="lb-ic" id="mquit" title="Sair"><svg viewBox="0 0 24 24"><path d="M12 3v8M6.6 6.6a8 8 0 1 0 10.8 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
     </div>
   </div>
+  <div id="lbmates"></div>
   <div class="lb-left">
     <button class="lb-side" data-go="shop"><svg viewBox="0 0 24 24"><path d="M2 3h3l2.6 11.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L22 7H6.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.7" fill="currentColor"/><circle cx="18" cy="20" r="1.7" fill="currentColor"/></svg><span>Loja</span></button>
     <button class="lb-side" data-go="events"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3 6.5l9 6.5 9-6.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span>Eventos</span><em id="lbevdot"></em></button>
@@ -3774,17 +3779,19 @@ const Sfx = (() => {
 <script>
 /* client/voice.js */
 /* Voz da equipe (VORZAK)
-   O microfone é gravado, reduzido para 12 kHz e comprimido (IMA ADPCM, 4 bits por amostra ≈ 6 KB/s).
-   Os pedaços (80 ms) vão pelo servidor do jogo só para os companheiros de equipe — funciona em qualquer distância
-   e em qualquer rede (não depende de conexão direta entre os celulares). Cada pedaço se decodifica sozinho:
-   se um se perder, o próximo toca normalmente. */
+   1) Caminho principal: WebRTC direto entre os celulares (codec Opus, cancelamento de eco, redução de ruído e
+      controle de volume do próprio aparelho). O servidor do jogo só apresenta um celular ao outro (sinalização).
+   2) Reserva: se a ligação direta não abrir em ~7 s (algumas redes de celular bloqueiam), a voz daquele
+      companheiro passa pelo servidor do jogo, comprimida (16 kHz, IMA ADPCM ≈ 8 KB/s).
+   O grupo de voz (quem fala com quem) vem do servidor: no menu, o grupo; na partida, a equipe. */
 const Voice = (() => {
   'use strict';
-  const RATE = 12000, FRAME = 960; // 80 ms por pacote
+  const RATE = 16000, FRAME = 1280; // reserva: 80 ms por pacote
+  const ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' }];
   const STEP = [7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767];
   const IDX = [-1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8];
 
-  function encode(pcm) { // Float32 [-1,1] -> bytes: [pred lo, pred hi, idx, n lo, n hi, ...nibbles]
+  function encode(pcm) { // Float32 [-1,1] -> [pred lo, pred hi, idx, n lo, n hi, ...nibbles]
     let pred = Math.max(-32768, Math.min(32767, Math.round(pcm[0] * 32767))), idx = 0;
     const out = new Uint8Array(5 + Math.ceil(pcm.length / 2));
     out[0] = pred & 255; out[1] = (pred >> 8) & 255; out[2] = idx; out[3] = pcm.length & 255; out[4] = pcm.length >> 8;
@@ -3819,64 +3826,152 @@ const Voice = (() => {
   const b64d = (s) => { const t = atob(s), u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i); return u; };
 
   const V = {
-    mic: false, spk: true, busy: false, send: null, canSend: () => false, onChange: null,
-    stream: null, src: null, proc: null, sink: null, out: null, peers: new Map(), selfAt: 0,
-    acc: new Float32Array(FRAME), accN: 0, pos: 0, sum: 0, cnt: 0, gateUntil: 0,
+    mic: false, spk: true, busy: false, me: 0,
+    send: null, signal: null, canSend: () => false, onChange: null,
+    stream: null, track: null, src: null, proc: null, sink: null, filt: null, out: null,
+    peers: new Map(), // uid -> { next, at } (quem está falando / fila do áudio de reserva)
+    rtc: new Map(), // uid -> { pc, tx, audio, ok, fail, t0, q, an, buf }
+    group: [], pid: new Map(), selfAt: 0,
+    acc: new Float32Array(FRAME), accN: 0, pos: 0, prev: 0, gateUntil: 0,
     ctx() { return Sfx.ctx(); },
     output() {
       const ctx = this.ctx(); if (!ctx) return null;
-      if (!this.out) { this.out = ctx.createGain(); this.out.gain.value = this.spk ? 1.6 : 0; this.out.connect(ctx.destination); }
+      if (!this.out) { this.out = ctx.createGain(); this.out.gain.value = this.spk ? 1 : 0; this.out.connect(ctx.destination); }
       return this.out;
     },
-    setSpk(on) { this.spk = !!on; if (this.out) this.out.gain.value = this.spk ? 1.6 : 0; if (this.onChange) this.onChange(); },
+    setSpk(on) {
+      this.spk = !!on; if (this.out) this.out.gain.value = this.spk ? 1 : 0;
+      for (const r of this.rtc.values()) if (r.audio) r.audio.muted = !this.spk;
+      if (this.onChange) this.onChange();
+    },
+    // ---------------------------------------------------------------- microfone
     async setMic(on) {
       if (on === this.mic || this.busy) return this.mic;
       if (!on) { this.stopMic(); if (this.onChange) this.onChange(); return false; }
       Sfx.init(); const ctx = this.ctx();
-      if (!ctx || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Este navegador não deixa usar o microfone (abra pelo endereço https do jogo).');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Este navegador não deixa usar o microfone (abra pelo endereço https do jogo).');
       this.busy = true;
       try {
-        this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+        this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: { ideal: true }, noiseSuppression: { ideal: true }, autoGainControl: { ideal: true }, channelCount: 1 } });
       } catch (e) {
         this.busy = false;
         throw new Error(e && e.name === 'NotAllowedError' ? 'Permissão do microfone negada. Libere o microfone para este site nas configurações do navegador.' : 'Não foi possível abrir o microfone.');
       }
       this.busy = false;
-      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-      this.src = ctx.createMediaStreamSource(this.stream);
-      this.proc = ctx.createScriptProcessor(4096, 1, 1);
-      this.sink = ctx.createGain(); this.sink.gain.value = 0; // o processador precisa estar ligado à saída (mudo)
-      const ratio = ctx.sampleRate / RATE;
-      this.proc.onaudioprocess = (ev) => {
-        if (!this.mic) return;
-        const inp = ev.inputBuffer.getChannelData(0);
-        for (let i = 0; i < inp.length; i++) { // média por janela = filtro passa-baixa + reamostragem para 12 kHz
-          this.sum += inp[i]; this.cnt++; this.pos += 1;
-          if (this.pos >= ratio) {
-            this.pos -= ratio; this.acc[this.accN++] = this.sum / this.cnt; this.sum = 0; this.cnt = 0;
-            if (this.accN === FRAME) { this.flush(); this.accN = 0; }
+      this.track = this.stream.getAudioTracks()[0];
+      for (const r of this.rtc.values()) this.attach(r);
+      if (ctx) { // captura para o caminho de reserva (só usada se algum companheiro não conectar direto)
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+        this.src = ctx.createMediaStreamSource(this.stream);
+        const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 110;
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6800; lp.Q.value = 0.7; // antes de reduzir para 16 kHz
+        this.filt = [hp, lp];
+        this.proc = ctx.createScriptProcessor(2048, 1, 1);
+        this.sink = ctx.createGain(); this.sink.gain.value = 0;
+        const ratio = ctx.sampleRate / RATE;
+        this.proc.onaudioprocess = (ev) => {
+          if (!this.mic || !this.needRelay()) { this.accN = 0; return; }
+          const inp = ev.inputBuffer.getChannelData(0);
+          for (let i = 0; i < inp.length; i++) { // reamostragem linear (o filtro já cortou os agudos acima de ~7 kHz)
+            while (this.pos <= 1) { this.acc[this.accN++] = this.prev + (inp[i] - this.prev) * this.pos; this.pos += ratio; if (this.accN === FRAME) { this.flush(); this.accN = 0; } }
+            this.pos -= 1; this.prev = inp[i];
           }
-        }
-      };
-      this.src.connect(this.proc); this.proc.connect(this.sink); this.sink.connect(ctx.destination);
+        };
+        this.src.connect(hp); hp.connect(lp); lp.connect(this.proc); this.proc.connect(this.sink); this.sink.connect(ctx.destination);
+      }
       this.mic = true; if (this.onChange) this.onChange();
       return true;
     },
     stopMic() {
       this.mic = false;
-      try { if (this.proc) this.proc.disconnect(); if (this.src) this.src.disconnect(); if (this.sink) this.sink.disconnect(); } catch (e) {}
+      for (const r of this.rtc.values()) try { r.tx.sender.replaceTrack(null); } catch (e) {}
+      try { if (this.proc) this.proc.disconnect(); if (this.src) this.src.disconnect(); if (this.sink) this.sink.disconnect(); if (this.filt) this.filt.forEach((f) => f.disconnect()); } catch (e) {}
       if (this.stream) for (const t of this.stream.getTracks()) t.stop();
-      this.stream = this.src = this.proc = this.sink = null; this.accN = 0;
+      this.stream = this.track = this.src = this.proc = this.sink = this.filt = null; this.accN = 0;
     },
+    // ---------------------------------------------------------------- grupo e WebRTC
+    setGroup(me, list) {
+      this.me = me; const want = new Set();
+      this.pid.clear();
+      for (const g of list) { want.add(g.u); if (g.p) this.pid.set(g.u, g.p); }
+      this.group = [...want];
+      for (const [u, r] of this.rtc) if (!want.has(u)) this.drop(u);
+      for (const u of want) if (!this.rtc.has(u) && me < u) this.call(u); // quem tem o número menor liga
+    },
+    make(u) {
+      if (typeof RTCPeerConnection === 'undefined') return null;
+      const pc = new RTCPeerConnection({ iceServers: ICE });
+      const r = { pc, tx: pc.addTransceiver('audio', { direction: 'sendrecv' }), audio: null, ok: false, fail: false, t0: performance.now(), q: [], an: null };
+      this.rtc.set(u, r); this.attach(r);
+      pc.onicecandidate = (e) => { if (e.candidate && this.signal) this.signal(u, { c: e.candidate.toJSON ? e.candidate.toJSON() : e.candidate }); };
+      pc.ontrack = (e) => this.play(u, r, e.streams && e.streams[0] ? e.streams[0] : new MediaStream([e.track]));
+      pc.onconnectionstatechange = () => {
+        const st = pc.connectionState;
+        if (st === 'connected') { r.ok = true; r.fail = false; }
+        else if (st === 'failed' || st === 'closed') { r.ok = false; r.fail = true; }
+        else if (st === 'disconnected') r.ok = false;
+      };
+      return r;
+    },
+    attach(r) { try { if (r.tx.sender.track !== this.track) r.tx.sender.replaceTrack(this.mic || this.track ? this.track : null); } catch (e) {} },
+    async call(u) {
+      const r = this.make(u); if (!r) return;
+      try { await r.pc.setLocalDescription(await r.pc.createOffer()); this.signal(u, { d: r.pc.localDescription.toJSON ? r.pc.localDescription.toJSON() : r.pc.localDescription }); } catch (e) { r.fail = true; }
+    },
+    async onSignal(u, s) {
+      if (!s || !this.group.includes(u)) return;
+      try {
+        if (s.d && s.d.type === 'offer') {
+          if (this.rtc.has(u)) this.drop(u); // nova ligação substitui a antiga
+          const r = this.make(u); if (!r) return;
+          await r.pc.setRemoteDescription(s.d);
+          for (const c of r.q) await r.pc.addIceCandidate(c).catch(() => {}); r.q = [];
+          await r.pc.setLocalDescription(await r.pc.createAnswer());
+          this.signal(u, { d: r.pc.localDescription.toJSON ? r.pc.localDescription.toJSON() : r.pc.localDescription });
+        } else if (s.d && s.d.type === 'answer') {
+          const r = this.rtc.get(u); if (!r || r.pc.signalingState !== 'have-local-offer') return;
+          await r.pc.setRemoteDescription(s.d);
+          for (const c of r.q) await r.pc.addIceCandidate(c).catch(() => {}); r.q = [];
+        } else if (s.c) {
+          const r = this.rtc.get(u); if (!r) return;
+          if (r.pc.remoteDescription) await r.pc.addIceCandidate(s.c).catch(() => {}); else r.q.push(s.c);
+        }
+      } catch (e) { const r = this.rtc.get(u); if (r) r.fail = true; }
+    },
+    play(u, r, stream) {
+      if (!r.audio) { r.audio = new Audio(); r.audio.autoplay = true; r.audio.setAttribute('playsinline', ''); }
+      r.audio.srcObject = stream; r.audio.muted = !this.spk;
+      r.audio.play().catch(() => { r.blocked = true; });
+    },
+    drop(u) {
+      const r = this.rtc.get(u); if (!r) return;
+      try { r.pc.close(); } catch (e) {}
+      if (r.audio) { r.audio.srcObject = null; }
+      this.rtc.delete(u);
+    },
+    // navegador de celular só toca áudio depois de um toque na tela
+    kick() { for (const r of this.rtc.values()) if (r.audio && (r.blocked || r.audio.paused)) { r.blocked = false; r.audio.play().catch(() => { r.blocked = true; }); } },
+    tick() {
+      const t = performance.now();
+      for (const [u, r] of this.rtc) {
+        if (!r.ok && !r.fail && t - r.t0 > 7000) r.fail = true; // não conectou direto: usa o servidor para este companheiro
+        // volume que chega do amigo (estatística da ligação): acende o 🔊 de quem está falando
+        if (r.ok && !r.st) { r.st = 1; r.pc.getStats().then((st) => { r.st = 0; st.forEach((x) => { if (x.type === 'inbound-rtp' && x.kind === 'audio' && x.audioLevel > 0.03) { const p = this.peers.get(u) || { next: 0, at: 0 }; p.at = performance.now(); this.peers.set(u, p); } }); }).catch(() => { r.st = 0; }); }
+      }
+    },
+    // ---------------------------------------------------------------- reserva pelo servidor
+    relayTo() { const out = []; for (const u of this.group) { const r = this.rtc.get(u); if (!r || !r.ok) out.push(u); } return out; },
+    needRelay() { return !!this.send && this.canSend() && this.relayTo().length > 0; },
     flush() {
       let e = 0; for (let i = 0; i < FRAME; i++) e += this.acc[i] * this.acc[i];
       const rms = Math.sqrt(e / FRAME), t = performance.now();
-      if (rms > 0.012) this.gateUntil = t + 450; // só envia quando tem voz (economiza internet)
-      if (t > this.gateUntil || !this.send || !this.canSend()) return;
-      // ganho leve: voz baixa fica audível sem estourar
-      const k = Math.min(4, 0.25 / Math.max(rms, 0.02)), f = new Float32Array(FRAME);
+      // enquanto um amigo fala pelo alto-falante, só abre com voz mais forte (evita devolver a voz dele = eco)
+      let echo = false; for (const p of this.peers.values()) if (t - p.at < 300) echo = true;
+      if (rms > (echo ? 0.06 : 0.01)) this.gateUntil = t + 400;
+      if (t > this.gateUntil) return;
+      const k = Math.min(2, 0.2 / Math.max(rms, 0.03)), f = new Float32Array(FRAME);
       for (let i = 0; i < FRAME; i++) f[i] = Math.max(-1, Math.min(1, this.acc[i] * k));
-      this.selfAt = t; this.send(b64e(encode(f)));
+      this.selfAt = t; this.send(b64e(encode(f)), this.relayTo());
     },
     recv(uid, d) {
       const ctx = this.ctx(); if (!ctx || typeof d !== 'string') return;
@@ -3888,13 +3983,28 @@ const Voice = (() => {
       const buf = ctx.createBuffer(1, pcm.length, RATE); buf.getChannelData(0).set(pcm);
       const s = ctx.createBufferSource(); s.buffer = buf; s.connect(out);
       const now = ctx.currentTime;
-      if (p.next < now + 0.02 || p.next > now + 0.7) p.next = now + 0.16; // pequeno atraso guarda pacotes que chegam fora de hora
+      if (p.next < now + 0.02 || p.next > now + 0.6) p.next = now + 0.14;
       s.start(p.next); p.next += buf.duration;
     },
     talking(uid) { const p = this.peers.get(uid); return !!p && performance.now() - p.at < 350; },
-    selfTalking() { return this.mic && performance.now() - this.selfAt < 350; },
+    talkingPid(pid) { for (const [u, p] of this.pid) if (p === pid) return this.talking(u); return false; },
+    selfTalking() {
+      if (!this.mic) return false;
+      if (performance.now() - this.selfAt < 350) return true;
+      return !!this._lvl && this._lvl() > 0.02;
+    },
+    level() { // volume do próprio microfone (indicador quando tudo vai direto, sem servidor)
+      const ctx = this.ctx(); if (!ctx || !this.src) return 0;
+      if (!this._an) { this._an = ctx.createAnalyser(); this._an.fftSize = 512; this._ab = new Float32Array(512); }
+      if (this._anSrc !== this.src) { try { this.src.connect(this._an); } catch (e) {} this._anSrc = this.src; }
+      this._an.getFloatTimeDomainData(this._ab); let e = 0; for (let i = 0; i < 512; i++) e += this._ab[i] * this._ab[i]; return Math.sqrt(e / 512);
+    },
+    stats() { return [...this.rtc].map(([u, r]) => ({ u, state: r.pc.connectionState, ok: r.ok, fail: r.fail })); },
     _test: { encode, decode },
   };
+  V._lvl = () => V.level();
+  setInterval(() => V.tick(), 150);
+  for (const ev of ['touchend', 'click', 'keydown']) document.addEventListener(ev, () => V.kick(), true);
   return V;
 })();
 
@@ -4086,6 +4196,7 @@ const Voice = (() => {
       ws.onclose = () => {
         if (curScreen === 'wait') { Wait.st = null; go('menu'); toast('Conexão com o servidor perdida.'); }
         const was = this.ok; this.ok = false; this.ws = null; Prof.online = null;
+        try { Voice.setGroup(0, []); Party.set(null); } catch (e) {}
         if (was) status('Desconectado do servidor.');
         if (Game.active && Game.conn && !Game.conn.offline) { Game.stop(); toast('Conexão com o servidor perdida.'); go('menu'); }
         refreshMenu();
@@ -4120,6 +4231,8 @@ const Voice = (() => {
         case 'party': Party.set(m); break;
         case 'pinvite': Party.invited(m); break;
         case 'vc': Voice.recv(m.u, m.d); if (m.p) Game.talk[m.p] = performance.now(); if (curScreen === 'menu') Party.talkUpd(); break;
+        case 'vgroup': Voice.setGroup(this.uid, m.list || []); break;
+        case 'rtc': Voice.onSignal(m.from, m.s); break;
         case 'profile':
           Prof.online = S.fixProfile(m.profile); refreshMenu(); renderLobbyRank(); if (curScreen === 'mail') renderMail();
           if (m.result) Game.onProfileResult(m.result);
@@ -4272,7 +4385,7 @@ const Voice = (() => {
       for (const [id, r] of this.roster) {
         if (r.team !== mt) continue; i++;
         const me = id === this.myId, rp = this.remote.get(id), hp = me ? this.local.hp : rp ? rp.hp : 0, alive = me ? this.local.alive : rp && rp.cur && rp.cur.fl & 1;
-        const talk = me ? Voice.selfTalking() : performance.now() - (this.talk[id] || 0) < 400;
+        const talk = me ? Voice.selfTalking() : performance.now() - (this.talk[id] || 0) < 400 || Voice.talkingPid(id);
         rows.push(`<div class="sq-r${me ? ' me' : ''}${alive ? '' : ' dead'}"><b>${i}</b><span>${esc(r.name)}</span>${talk ? '<em>🔊</em>' : ''}<i><u style="width:${alive ? Math.max(0, Math.min(100, hp)) : 0}%"></u></i></div>`);
       }
       box.style.display = rows.length > 1 ? '' : 'none';
@@ -5237,8 +5350,8 @@ const Voice = (() => {
     { id: 'grab', label: 'PEGAR', x: 0.62, y: 0.62, s: 66, cls: 'grab' },
     { id: 'cam', label: '👁 CÂM', x: 0.94, y: 0.22, s: 50 },
     { id: 'gear', label: '⚙', x: 0.94, y: 0.08, s: 50, cls: 'gear' }, // configurações (substitui o pausar)
-    { id: 'mic', label: '🎤', x: 0.30, y: 0.18, s: 44, cls: 'vbtn' }, // microfone da equipe (liga/desliga)
-    { id: 'spk', label: '🔊', x: 0.345, y: 0.18, s: 44, cls: 'vbtn' }, // ouvir a equipe (liga/desliga)
+    { id: 'mic', label: '🎤', x: 0.815, y: 0.08, s: 46, cls: 'vbtn' }, // microfone da equipe (liga/desliga)
+    { id: 'spk', label: '🔊', x: 0.87, y: 0.08, s: 46, cls: 'vbtn' }, // ouvir a equipe (liga/desliga)
   ];
   const Touch = {
     joy: [0, 0], sprintLock: false, held: {}, score: false, joyId: null, joyO: [0, 0], look: new Map(), els: {},
@@ -5700,7 +5813,8 @@ const Voice = (() => {
     try { const on = await Voice.setMic(!Voice.mic); toast(on ? '🎤 Microfone ligado: sua equipe te escuta' : '🎤 Microfone desligado', 1800); }
     catch (e) { toast('⚠ ' + esc(e.message), 7000); }
   }
-  Voice.send = (d) => Net.send({ t: 'vc', d });
+  Voice.send = (d, to) => Net.send({ t: 'vc', d, to });
+  Voice.signal = (u, sg) => Net.send({ t: 'rtc', to: u, s: sg });
   Voice.canSend = () => Net.ok && (Game.active ? Game.voiceOn() : !!(Party.st && Party.st.members.length > 1));
   Voice.onChange = () => { renderParty(); if (Game.active) { Game._vh = 0; Game.voiceHud(); } };
   function renderParty() {
@@ -5965,6 +6079,19 @@ const Voice = (() => {
     rp: { id: -1, cur: { x: 0, y: 0, z: -2, yaw: Math.PI, pitch: 0, fl: 1 | 32 }, anim: { ph: 0, speed: 0, alive: true, deadAt: 0 }, w: 'smg' },
     ro: { uniform: 'woodland', skin: 1, team: -1, look: null },
     m: [M4.create(), M4.create(), M4.create()],
+    mrp: {}, mates: [], SLOTS: [[-1.35, -2.55, 0.35], [1.35, -2.55, -0.35], [-2.55, -3.2, 0.5]],
+    // nomes em cima dos amigos no lobby
+    labels() {
+      const box = $('lbmates'), list = curScreen === 'menu' ? this.mates : [];
+      let h = '';
+      for (const x of list) {
+        const q = this.mrp[x.uid]; if (!q) continue;
+        const p = R.project(q.cur.x, 2.05, q.cur.z); if (!p) continue;
+        const talk = Voice.talking(x.uid);
+        h += `<div class="lb-mate${talk ? ' talk' : ''}" style="left:${p[0].toFixed(0)}px;top:${p[1].toFixed(0)}px"><b>${esc(x.name)}</b><small>Nível ${x.level}${x.playing ? ' · em partida' : ''}</small>${talk ? '<em>🔊</em>' : ''}</div>`;
+      }
+      if (box._h !== h) { box._h = h; box.innerHTML = h; }
+    },
     frame() {
       const lobby = curScreen === 'menu';
       const p = Prof.cur, look = S.lookOf(p), t = now(), id = lobby ? null : Store.try, tab = Store.tryTab;
@@ -5989,7 +6116,15 @@ const Voice = (() => {
         const rp = this.rp; rp.w = weapon; rp.cur.yaw = window.__yo != null ? Math.PI + window.__yo : lobby ? Math.PI + 0.25 + Math.sin(t * 0.5) * 0.3 : Math.PI + t * 0.6;
         this.ro.uniform = uniform; this.ro.look = look;
         Game.soldierItems(rp, items, this.ro);
-        ty = 0.98; dist = lobby ? (land ? 4.5 : 5.6) : land ? 5.75 : 8.5;
+        // grupo do mapa aberto: os amigos aparecem no lobby ao seu lado (e você aparece no deles)
+        const mates = lobby && Party.st ? Party.st.members.filter((x) => x.uid !== Net.uid).slice(0, 3) : [];
+        this.mates = mates;
+        mates.forEach((x, i) => {
+          const S0 = Preview.SLOTS[i], q = this.mrp[x.uid] || (this.mrp[x.uid] = { id: -10 - i, cur: { x: 0, y: 0, z: 0, yaw: Math.PI, pitch: 0, fl: 1 | 32 }, anim: { ph: 0, speed: 0, alive: true, deadAt: 0 }, w: 'smg' });
+          q.cur.x = S0[0]; q.cur.z = S0[1]; q.cur.yaw = Math.PI + S0[2] + Math.sin(t * 0.45 + i * 2) * 0.12; q.w = x.w || 'smg'; q.slot = i;
+          Game.soldierItems(q, items, { uniform: x.uniform || 'woodland', skin: x.skin != null ? x.skin : 1, team: -1, look: S.sanitizeLook(x.look) });
+        });
+        ty = 0.98; dist = lobby ? (land ? 4.5 : 5.6) + (mates.length ? 1.1 : 0) : land ? 5.75 : 8.5;
       }
       R.setCamera({ x: 0, y: ty, z: -2 + dist, yaw: Math.atan(nx * asp * tn), pitch: -Math.atan(ny * tn), fov });
       return { items, vm: [], particles: Parts.buf, pCount: 0, lineCount: 0 };
@@ -6072,7 +6207,7 @@ const Voice = (() => {
         R.render(f);
         Game.overlay(); Game.radar(); Game.brHud(); Game.voiceHud();
       } else if (STORE_SCR.includes(curScreen) || curScreen === 'menu') {
-        R.render(Preview.frame());
+        R.render(Preview.frame()); Preview.labels();
       } else {
         menuT += dt * 0.05;
         const cam = { x: Math.sin(menuT) * 34, y: 11, z: Math.cos(menuT) * 34, yaw: menuT, pitch: -0.22, fov: 1.0 };

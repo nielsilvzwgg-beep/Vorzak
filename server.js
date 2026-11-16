@@ -319,6 +319,7 @@ class Room {
     const pl = this.sim.addPlayer({ sq, team, name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p) });
     c.room = this; c.pid = pl.id; this.members.set(pl.id, c);
     c.send({ t: 'joined', pid: pl.id, room: { id: this.id, name: this.name, mode: this.mode, code: this.code, priv: this.priv, ranked: this.ranked } });
+    pushVG([...this.members.values()]); if (c.party) pushVG(c.party.members);
     this.system(`${p.name} entrou na sala`);
     this.fillBots();
     broadcastRooms(); broadcastOnline();
@@ -330,6 +331,7 @@ class Room {
     this.system(`${c.profile ? c.profile.name : 'Jogador'} saiu`);
     c.room = null; c.pid = 0;
     if (c.alive) c.send({ t: 'left' });
+    pushVG([c, ...this.members.values()]); if (c.party) pushVG(c.party.members);
     this.fillBots();
     if (!this.members.size && !this.persistent) rooms.delete(this.id);
     broadcastRooms(); broadcastOnline();
@@ -384,13 +386,23 @@ let nextParty = 1;
 const parties = new Map();
 function newParty(c, size) { partyLeave(c); const p = { id: nextParty++, leader: c.uid, size, members: [c], invited: new Set() }; c.party = p; parties.set(p.id, p); return p; }
 function partyState(p) {
-  return { t: 'party', id: p.id, leader: p.leader, size: p.size, members: p.members.map((m) => ({ uid: m.uid, pid: m.profile.pid, name: m.profile.name, level: m.profile.level, char: S.lookOf(m.profile).c, playing: m.room ? 1 : 0 })) };
+  return { t: 'party', id: p.id, leader: p.leader, size: p.size, members: p.members.map((m) => ({ uid: m.uid, pid: m.profile.pid, name: m.profile.name, level: m.profile.level, char: S.lookOf(m.profile).c, look: S.lookOf(m.profile), uniform: m.profile.uniform, w: m.profile.loadout && m.profile.loadout.primary, playing: m.room ? 1 : 0 })) };
 }
-function pushParty(p) { const s = JSON.stringify(partyState(p)); for (const m of p.members) m.sendRaw(s); }
+function pushParty(p) { const s = JSON.stringify(partyState(p)); for (const m of p.members) m.sendRaw(s); pushVG(p.members); }
+// avisa cada jogador quem está no grupo de voz dele (o celular liga direto para esses companheiros)
+function pushVG(list) {
+  for (const c of list) {
+    if (!c.alive || !c.hello) continue;
+    const g = voiceGroup(c).map((o) => ({ u: o.uid, p: o.room === c.room && c.room ? o.pid : 0, n: o.profile.name }));
+    const key = JSON.stringify(g); if (c.vgKey === key) continue; c.vgKey = key;
+    c.send({ t: 'vgroup', list: g });
+  }
+}
 function partyLeave(c) {
   const p = c.party; if (!p) return;
   p.members = p.members.filter((m) => m !== c); c.party = null;
   if (c.alive) c.send({ t: 'party', id: 0, size: p.size });
+  pushVG([c]);
   if (!p.members.length) { parties.delete(p.id); return; }
   if (p.leader === c.uid) p.leader = p.members[0].uid;
   pushParty(p);
@@ -583,21 +595,29 @@ function handle(c, m) {
       if (typeof m.d !== 'string' || m.d.length > 2400) return;
       const t = Date.now(); if (t - (c.vcWin || 0) > 1000) { c.vcWin = t; c.vcN = 0; } if (++c.vcN > 20) return;
       const out = JSON.stringify({ t: 'vc', u: c.uid, p: c.room ? c.pid : 0, d: m.d });
-      for (const o of voiceGroup(c)) o.sendRaw(out);
+      const to = Array.isArray(m.to) ? new Set(m.to.slice(0, 8).map((x) => x | 0)) : null; // só quem não conectou direto
+      for (const o of voiceGroup(c)) if (!to || to.has(o.uid)) o.sendRaw(out);
       return;
+    }
+    case 'rtc': { // apresentação WebRTC entre dois companheiros (oferta/resposta/caminhos de rede)
+      if (!m.s || typeof m.s !== 'object') return;
+      const raw = JSON.stringify(m.s); if (raw.length > 12000) return;
+      const t = Date.now(); if (t - (c.rtcWin || 0) > 1000) { c.rtcWin = t; c.rtcN = 0; } if (++c.rtcN > 60) return;
+      const o = voiceGroup(c).find((x) => x.uid === (m.to | 0)); if (!o) return;
+      return o.sendRaw('{"t":"rtc","from":' + c.uid + ',"s":' + raw + '}');
     }
     case 'wteam': if (c.wroom) c.wroom.wteam(c, m.team); return;
     case 'wstart': if (c.wroom) c.wroom.wstart(c); return;
     case 'in': if (room) room.sim.handleInputs(c.pid, m.l); return;
     case 'act': if (room) room.sim.handleAction(c.pid, m); return;
-    case 'team': if (room && !room.ranked && !S.isFFA(room.mode)) { room.sim.setTeam(c.pid, m.team); room.system(`${c.profile.name} trocou de equipe`); } return;
+    case 'team': if (room && !room.ranked && !S.isFFA(room.mode)) { room.sim.setTeam(c.pid, m.team); room.system(`${c.profile.name} trocou de equipe`); pushVG([...room.members.values()]); } return;
     case 'chat': if (room) room.chat(c, m.m, m.team); return;
     case 'buy': {
       const err = S.buy(c.profile, String(m.item));
       if (err) c.send({ t: 'err', m: err }); else { saveProfiles(); c.send({ t: 'profile', profile: c.profile }); }
       return;
     }
-    case 'equip': S.equip(c.profile, { primary: m.primary, secondary: m.secondary, uniform: m.uniform, char: m.char, shirt: m.shirt, pants: m.pants, wskin: m.wskin }); saveProfiles(); return c.send({ t: 'profile', profile: c.profile });
+    case 'equip': S.equip(c.profile, { primary: m.primary, secondary: m.secondary, uniform: m.uniform, char: m.char, shirt: m.shirt, pants: m.pants, wskin: m.wskin }); saveProfiles(); if (c.party) pushParty(c.party); return c.send({ t: 'profile', profile: c.profile });
     case 'rename': c.profile.name = S.sanitizeName(m.name); saveProfiles(); broadcastOnline(); return c.send({ t: 'profile', profile: c.profile });
     case 'invite': {
       const to = clients.get(m.to | 0);
