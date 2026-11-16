@@ -553,8 +553,9 @@
     const train = { z: 0, x0: -146, x1: 209.5, speed: 7, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
     // carros (McLaren) para dirigir: nas ruas, longe da linha do trem
     const cars = [];
-    for (const [x0, z0, yaw] of [[-45, 95, 0], [45, -95, 3.14], [-130, -88, 0], [130, 88, 3.14], [-90, 40, 1.57], [90, -40, -1.57], [-200, 128, 1.57], [200, -128, -1.57], [-260, 20, 0], [260, -20, 3.14]]) {
-      for (let g = 0; g < 60; g++) { const x = x0 + (g ? rr(-4, 4) : 0), z = z0 + (g ? rr(-12, 12) : 0); if (Math.abs(z) > 9 && carFree(solids, x, z)) { cars.push([Math.round(x * 10) / 10, Math.round(z * 10) / 10, yaw]); break; } }
+    for (const [x0, z0, yaw, t] of [[-45, 95, 0], [45, -95, 3.14], [-130, -88, 0], [130, 88, 3.14], [-90, 40, 1.57], [90, -40, -1.57], [-200, 128, 1.57], [200, -128, -1.57], [-260, 20, 0], [260, -20, 3.14],
+      [-45, -95, 0, 'luaz'], [45, 95, 3.14, 'luaz'], [-130, 92, 0, 'luaz'], [130, -92, 3.14, 'luaz'], [0, 128, 1.57, 'luaz'], [0, -128, -1.57, 'luaz']]) { // McLaren e LUAZ
+      for (let g = 0; g < 60; g++) { const x = x0 + (g ? rr(-4, 4) : 0), z = z0 + (g ? rr(-12, 12) : 0); if (Math.abs(z) > 9 && carFree(solids, x, z) && !cars.some((c) => Math.hypot(c[0] - x, c[1] - z) < 7)) { cars.push(t ? [Math.round(x * 10) / 10, Math.round(z * 10) / 10, yaw, t] : [Math.round(x * 10) / 10, Math.round(z * 10) / 10, yaw]); break; } }
     }
     return { id: 'aberto', name: 'Cidade', solids, deco, spawns, medkits, weapons, ammo, props, sx: SX, sz: SZ, train, cars };
   })();
@@ -811,8 +812,9 @@
     for (const [x, y, z] of weapons) for (const [dx, dz] of [[1.0, 0], [-1.0, 0], [0, 1.0], [0, -1.0], [0.8, 0.8], [-0.8, -0.8]]) if (ammoFree(x + dx, y, z + dz)) { ammo.push([Math.round((x + dx) * 10) / 10, y, Math.round((z + dz) * 10) / 10]); break; }
     // ---- carros (McLaren) espalhados em terra, longe de paredes
     const cars = [];
-    for (const [x0, z0] of [[-60, 25], [20, 25], [-130, 25], [90, 30], [0, 100], [-100, 70], [60, 80], [-180, 40]]) {
-      for (let g = 0; g < 300; g++) { const x = x0 + rr(-12, 12), z = z0 + rr(-8, 8); if (carFree(solids, x, z) && land(x, z, 4) && Math.abs(z - RAILZ) > 8) { cars.push([Math.round(x * 10) / 10, Math.round(z * 10) / 10, Math.round(rr(0, 6.28) * 100) / 100]); break; } }
+    for (const [x0, z0, t] of [[-60, 25], [20, 25], [-130, 25], [90, 30], [0, 100], [-100, 70], [60, 80], [-180, 40],
+      [-30, 30, 'luaz'], [40, 60, 'luaz'], [-150, 30, 'luaz'], [110, 60, 'luaz'], [-20, 130, 'luaz'], [-200, 80, 'luaz']]) { // McLaren e LUAZ
+      for (let g = 0; g < 300; g++) { const x = x0 + rr(-12, 12), z = z0 + rr(-8, 8); if (carFree(solids, x, z) && land(x, z, 4) && Math.abs(z - RAILZ) > 8 && !cars.some((c) => Math.hypot(c[0] - x, c[1] - z) < 7)) { const yaw = Math.round(rr(0, 6.28) * 100) / 100; cars.push(t ? [Math.round(x * 10) / 10, Math.round(z * 10) / 10, yaw, t] : [Math.round(x * 10) / 10, Math.round(z * 10) / 10, yaw]); break; } }
     }
     const train = { z: RAILZ, x0: -175, x1: RX1 - 2, speed: 7, delay: 12, cars: 3, len: 20.85, gap: 0.8, hw: 1.45, y0: 0.32, y1: 4.2 };
     return { id: 'ilha', name: 'Ilha', solids, deco, spawns, medkits, weapons, ammo, props: [], sx: SX, sz: SZ, train, cars, zone, zoneW: NW, zoneH: NH, zoneG: ZG, sea: true };
@@ -932,21 +934,27 @@
   }
   // ---------------------------------------------------------------- carros (McLaren: motorista no centro, passageiro ao lado)
   const CAR = { MAXV: 31, REV: 9, ACC: 10.5, BRK: 26, ROLL: 3.2, WB: 2.36, STEER: 0.62, R: 0.9, H: 1.1, OFF: [-1.45, 0, 1.45], SEATS: [[0, -0.05], [-0.62, 0.3]] };
+  // tipos de carro: McLaren (rápida e baixa) e LUAZ (jipinho mais lento, alto e curto). Os dois levam motorista + carona.
+  const CAR_T = {
+    f1: Object.assign({}, CAR, { name: 'McLaren F1', model: 'car_f1' }),
+    luaz: Object.assign({}, CAR, { name: 'LUAZ', model: 'car_luaz', MAXV: 22, ACC: 8, BRK: 22, WB: 1.85, STEER: 0.7, R: 0.86, H: 1.55, OFF: [-1.05, 0, 1.05], SEATS: [[-0.34, 0.05], [0.34, 0.05]] }),
+  };
+  const ctype = (c) => CAR_T[c.t] || CAR_T.f1;
   const carFwd = (yaw) => [-Math.sin(yaw), -Math.cos(yaw)];
   function seatPos(c, seat) { // posição do assento no mundo
-    const [lx, lz] = CAR.SEATS[seat], f = carFwd(c.yaw), r = [Math.cos(c.yaw), -Math.sin(c.yaw)];
+    const [lx, lz] = ctype(c).SEATS[seat], f = carFwd(c.yaw), r = [Math.cos(c.yaw), -Math.sin(c.yaw)];
     return [c.x + r[0] * lx - f[0] * lz, c.z + r[1] * lx - f[1] * lz];
   }
   function carBlocked(c, x, z, yaw) {
-    const f = carFwd(yaw);
-    for (const o of CAR.OFF) {
+    const f = carFwd(yaw), T = ctype(c);
+    for (const o of T.OFF) {
       const px = x + f[0] * o, pz = z + f[1] * o;
       if (Math.abs(px) > MAP.sx - 1.5 || Math.abs(pz) > MAP.sz - 1.5 || waterAt(px, pz)) return true;
-      if (collides(px, 0.36, pz, CAR.R - 0.05, 0.75, true)) return true;
+      if (collides(px, 0.36, pz, T.R - 0.05, 0.75, true)) return true;
       for (const o2 of CARL) {
         if (o2 === c || o2.id === c.id || Math.abs(o2.x - x) > 6 || Math.abs(o2.z - z) > 6) continue;
-        const g = carFwd(o2.yaw);
-        for (const k of CAR.OFF) { const dx = o2.x + g[0] * k - px, dz = o2.z + g[1] * k - pz; if (dx * dx + dz * dz < (CAR.R * 2) * (CAR.R * 2)) return true; }
+        const g = carFwd(o2.yaw), T2 = ctype(o2);
+        for (const k of T2.OFF) { const dx = o2.x + g[0] * k - px, dz = o2.z + g[1] * k - pz; if (dx * dx + dz * dz < (T.R + T2.R) * (T.R + T2.R)) return true; }
       }
     }
     return false;
@@ -954,13 +962,14 @@
   // um passo do carro (determinístico: o celular de quem dirige prevê, o servidor confirma)
   function carStep(c, f, s, dt) {
     f = clamp(num(f), -1, 1); s = clamp(num(s), -1, 1);
-    if (f > 0.05) { if (c.v < -0.4) c.v = Math.min(0, c.v + CAR.BRK * f * dt); else c.v += CAR.ACC * f * dt * (1 - Math.max(0, c.v) / CAR.MAXV * 0.6); }
-    else if (f < -0.05) { if (c.v > 0.4) c.v = Math.max(0, c.v + CAR.BRK * f * dt); else c.v += CAR.ACC * 0.7 * f * dt; }
-    else { const d = CAR.ROLL * dt; c.v = Math.abs(c.v) <= d ? 0 : c.v - Math.sign(c.v) * d; }
-    c.v = clamp(c.v, -CAR.REV, CAR.MAXV);
-    const tgt = s * CAR.STEER / (1 + Math.abs(c.v) / 13);
+    const T = ctype(c);
+    if (f > 0.05) { if (c.v < -0.4) c.v = Math.min(0, c.v + T.BRK * f * dt); else c.v += T.ACC * f * dt * (1 - Math.max(0, c.v) / T.MAXV * 0.6); }
+    else if (f < -0.05) { if (c.v > 0.4) c.v = Math.max(0, c.v + T.BRK * f * dt); else c.v += T.ACC * 0.7 * f * dt; }
+    else { const d = T.ROLL * dt; c.v = Math.abs(c.v) <= d ? 0 : c.v - Math.sign(c.v) * d; }
+    c.v = clamp(c.v, -T.REV, T.MAXV);
+    const tgt = s * T.STEER / (1 + Math.abs(c.v) / 13);
     c.st += (tgt - c.st) * Math.min(1, dt * 8);
-    const ny = c.yaw - (c.v / CAR.WB) * Math.tan(c.st) * dt, fw = carFwd(ny);
+    const ny = c.yaw - (c.v / T.WB) * Math.tan(c.st) * dt, fw = carFwd(ny);
     const nx = c.x + fw[0] * c.v * dt, nz = c.z + fw[1] * c.v * dt;
     if (carBlocked(c, nx, nz, ny)) {
       c.v = Math.abs(c.v) > 6 ? -c.v * 0.25 : 0;
@@ -974,7 +983,7 @@
   const CARBOX = [];
   function carBoxes() {
     let n = 0;
-    for (const c of CARL) { const f = carFwd(c.yaw); for (const o of CAR.OFF) { const b = CARBOX[n] || (CARBOX[n] = [0, 0.15, 0, 0, CAR.H, 0, 'car', null]); const x = c.x + f[0] * o, z = c.z + f[1] * o; b[0] = x - CAR.R * 0.85; b[2] = z - CAR.R * 0.85; b[3] = x + CAR.R * 0.85; b[5] = z + CAR.R * 0.85; b.car = c.id; n++; } }
+    for (const c of CARL) { const T = ctype(c), f = carFwd(c.yaw); for (const o of T.OFF) { const b = CARBOX[n] || (CARBOX[n] = [0, 0.15, 0, 0, 1, 0, 'car', null]); const x = c.x + f[0] * o, z = c.z + f[1] * o; b[0] = x - T.R * 0.85; b[2] = z - T.R * 0.85; b[3] = x + T.R * 0.85; b[4] = T.H; b[5] = z + T.R * 0.85; b.car = c.id; n++; } }
     CARBOX.length = n; return CARBOX;
   }
   function collides(x, y, z, r, h, noCars) {
@@ -1318,7 +1327,7 @@
       this.mode = isFFA(o.mode) || isRounds(o.mode) ? o.mode : 'tdm';
       this.map = indexMap(mapFor(this.mode, o.map)); this.mapId = this.map.id; this.dyn = [];
       this.shop = !!this.map.shops && !o.training; // arenas: lojinha no chão
-      this.cars = (this.map.cars || []).map(([x, z, yaw], id) => ({ id, x, z, yaw, v: 0, st: 0, seats: [0, 0], home: [x, z, yaw], idle: 0 })); this.trainX = this.map.train ? this.map.train.x0 : 0; this.trainSt = 0;
+      this.cars = (this.map.cars || []).map(([x, z, yaw, t], id) => ({ id, t: t || 'f1', x, z, yaw, v: 0, st: 0, seats: [0, 0], home: [x, z, yaw], idle: 0 })); this.trainX = this.map.train ? this.map.train.x0 : 0; this.trainSt = 0;
       this.rounds = isRounds(this.mode); this.teamSize = this.rounds ? +this.mode[1] : 0;
       this.training = !!o.training;
       this.ranked = !!o.ranked;
@@ -1467,7 +1476,7 @@
         for (const p of this.players.values()) {
           if (!p.alive || p.car || p.y > 1.3 || p.team === d.team || this.time < (p.carHitAt || 0)) continue;
           let hit = false;
-          for (const o of CAR.OFF) { const dx = p.x - (c.x + f[0] * o), dz = p.z - (c.z + f[1] * o); if (dx * dx + dz * dz < (CAR.R + C.R + 0.1) ** 2) hit = true; }
+          const T = ctype(c); for (const o of T.OFF) { const dx = p.x - (c.x + f[0] * o), dz = p.z - (c.z + f[1] * o); if (dx * dx + dz * dz < (T.R + C.R + 0.1) ** 2) hit = true; }
           if (!hit) continue;
           p.carHitAt = this.time + 1.0;
           // atropelado: cai, perde 50 de vida e levanta depois (2ª vez sem curar = eliminado)
@@ -1985,7 +1994,7 @@
 
   return {
     isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
-    clamp, collides, applyInput, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf,
+    clamp, collides, applyInput, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, CAR_T, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,
   };
