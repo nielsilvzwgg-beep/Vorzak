@@ -12,6 +12,7 @@
   // ---------------------------------------------------------------- constantes
   const C = {
     GRAV: 22, JUMP: 7.2, WALK: 5.0, SPRINT: 7.4, CROUCH: 2.4,
+    CAR_DMG: 50, DOWN_TIME: 1.7, // atropelamento: perde 50 de vida, cai e levanta
     SHOP_START: 800, SHOP_KILL: 150, SHOP_ROUND: 400, SHOP_MAX: 4000, SHOP_DIST: 3.4, // fichas da lojinha das arenas
     R: 0.38, H: 1.8, HC: 1.2, EYE: 1.62, EYEC: 1.05, STEP: 0.55,
     DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
@@ -1022,6 +1023,7 @@
     else if (p.crouch && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
     const h = p.crouch ? C.HC : C.H;
     let f = clamp(num(inp.f), -1, 1), s = clamp(num(inp.s), -1, 1);
+    if (p.down) { f = 0; s = 0; } // caído (atropelado): não anda até levantar
     const len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; }
     const w = weaponOf(p);
@@ -1033,9 +1035,9 @@
     if (p.y < 0.4 && waterAt(p.x, p.z)) { speed *= 0.5; p.sprint = false; } // água rasa
     const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
     const wx = (-sy * f + cy * s) * speed, wz = (-cy * f - sy * s) * speed;
-    const k = p.onGround ? Math.min(1, dt * 14) : Math.min(1, dt * 2.5);
+    const k = p.down ? Math.min(1, dt * 3) : p.onGround ? Math.min(1, dt * 14) : Math.min(1, dt * 2.5);
     p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k;
-    if ((b & BTN.JUMP) && p.onGround && !p.crouch) { p.vy = C.JUMP; p.onGround = false; }
+    if ((b & BTN.JUMP) && p.onGround && !p.crouch && !p.down) { p.vy = C.JUMP; p.onGround = false; }
     p.vy -= C.GRAV * dt;
     if (p.vy < -40) p.vy = -40;
     // eixo X
@@ -1457,18 +1459,23 @@
           continue;
         }
         c.idle = 0;
-        if (Math.abs(c.v) < 6) continue;
+        // velocidade real (quanto o carro andou de fato): carro parado não atropela ninguém
+        const mv = c.px == null ? 0 : Math.hypot(c.x - c.px, c.z - c.pz) / Math.max(dt, 1e-3); c.px = c.x; c.pz = c.z;
+        c.as = (c.as || 0) + (mv - (c.as || 0)) * 0.35;
+        if (Math.abs(c.v) < 6 || c.as < 4) continue;
         const f = carFwd(c.yaw);
         for (const p of this.players.values()) {
           if (!p.alive || p.car || p.y > 1.3 || p.team === d.team || this.time < (p.carHitAt || 0)) continue;
           let hit = false;
           for (const o of CAR.OFF) { const dx = p.x - (c.x + f[0] * o), dz = p.z - (c.z + f[1] * o); if (dx * dx + dz * dz < (CAR.R + C.R + 0.1) ** 2) hit = true; }
           if (!hit) continue;
-          p.carHitAt = this.time + 0.8;
-          const dmg = Math.round(clamp(Math.abs(c.v) * 4.5, 25, 100));
-          p.vx = f[0] * Math.sign(c.v) * 9; p.vz = f[1] * Math.sign(c.v) * 9; p.vy = 4; p.onGround = false;
-          c.v *= 0.8;
-          if (this.time >= p.spawnProt) this.damage(p, d, dmg, false, 'car');
+          p.carHitAt = this.time + 1.0;
+          // atropelado: cai, perde 50 de vida e levanta depois (2ª vez sem curar = eliminado)
+          p.vx = f[0] * Math.sign(c.v) * 7; p.vz = f[1] * Math.sign(c.v) * 7; p.vy = 3.5; p.onGround = false;
+          p.down = true; p.downUntil = this.time + C.DOWN_TIME; p.medUntil = 0; p.reloadUntil = 0; p.ads = false;
+          c.v *= 0.85;
+          this.events.push({ e: 'runover', id: p.id, by: d.id });
+          if (this.time >= p.spawnProt) this.damage(p, d, C.CAR_DMG, false, 'car');
         }
       }
     }
@@ -1508,7 +1515,7 @@
       if (!keep) { p.helmet = 0; p.vest = 0; }
       if (p.baseW && !keep) p.weapons = p.baseW.slice();
       p.hp = C.MAXHP; p.alive = true; p.streak = 0; p.cur = 0; p.bloom = 0;
-      p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0;
+      p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0; p.down = false;
       if (this.shop && p.bot && !keep) { // bots também passam na lojinha
         const w = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'maverick', 'sniper'][Math.floor(Math.random() * 8)]; p.weapons[0] = w;
         if (p.money >= 350 && Math.random() < 0.7) { p.money -= 350; p.vest = 100; }
@@ -1541,7 +1548,7 @@
       if (!p || !a || this.state !== 'playing') return;
       if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'trem') this.leap(p); if (this.ph !== 'trem' || p.train) return; }
       switch (a.a) {
-        case 'shoot': if (p.car && p.seat === 0) return; return this.shoot(p, a); // motorista não atira
+        case 'shoot': if ((p.car && p.seat === 0) || p.down) return; return this.shoot(p, a); // motorista e quem está caído não atiram
         case 'reload': return this.reload(p);
         case 'switch': {
           const s = a.s === 1 ? 1 : 0;
@@ -1553,7 +1560,7 @@
         case 'car': return this.enterCar(p, a.id, a.seat);
         case 'carx': return this.leaveCar(p);
         case 'med':
-          if (p.alive && p.medkits > 0 && p.hp < C.MAXHP && !p.medUntil) { p.medUntil = this.time + C.MEDTIME; p.reloadUntil = 0; this.events.push({ e: 'medstart', id: p.id }); }
+          if (p.alive && !p.down && p.medkits > 0 && p.hp < C.MAXHP && !p.medUntil) { p.medUntil = this.time + C.MEDTIME; p.reloadUntil = 0; this.events.push({ e: 'medstart', id: p.id }); }
           return;
       }
     }
@@ -1650,6 +1657,7 @@
     }
     kill(v, k, wid, head) {
       if (v.car) this.leaveCar(v, true);
+      v.down = false;
       v.alive = false; v.deaths++; v.respawnAt = this.time + C.RESPAWN; v.streak = 0; v.reloadUntil = 0; v.medUntil = 0;
       this.events.push({ e: 'kill', k: k.id, v: v.id, w: wid, hs: head ? 1 : 0 });
       if (this.rounds) return this.roundKill(v, k);
@@ -1779,6 +1787,7 @@
         if (!p.alive) { if (this.time >= p.respawnAt) this.spawn(p); continue; }
         if (p.train) { p.x = this.trainX - p.train.off; p.z = this.map.train.z + p.train.dz; p.y = this.map.train.y0 + 0.02; p.vx = p.vy = p.vz = 0; continue; }
         if (p.car && p.seat === 1) { const sp = seatPos(p.car, 1); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; }
+        if (p.down && this.time >= p.downUntil) p.down = false; // levantou
         if (p.reloadUntil && this.time >= p.reloadUntil) {
           p.reloadUntil = 0;
           const w = weaponOf(p), am = p.ammo[w.id];
@@ -1944,7 +1953,7 @@
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
       }
       const mk = maskOf(this.medkits);
@@ -1966,7 +1975,7 @@
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
         tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
-        $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
+        dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
       };
     }
   }

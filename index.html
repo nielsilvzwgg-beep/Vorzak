@@ -293,6 +293,8 @@ body.setopen #hud,body.setopen #touch{display:none!important}
 .tbtn.carb{background:rgba(30,90,170,.45);border-color:#6fb6ff;font-weight:800;letter-spacing:.5px;font-size:13px}
 .tbtn.pedal{background:rgba(40,170,90,.35);border-color:#5f5;font-weight:800;border-radius:16px}
 .tbtn.pedal.brk{background:rgba(200,60,50,.35);border-color:#ff7a6a}
+.tbtn.pedal.steer{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.6);font-size:30px;border-radius:50%}
+body.driving #joy,body.riding #joy{display:none!important}
 .tbtn.pedal.dn{filter:brightness(1.6)}
 body.driving #touch .tbtn[data-id=fire],body.driving #touch .tbtn[data-id=fire2],body.driving #touch .tbtn[data-id=ads],body.driving #touch .tbtn[data-id=jump],body.driving #touch .tbtn[data-id=crouch],body.driving #touch .tbtn[data-id=reload],body.driving #touch .tbtn[data-id=med],body.driving #touch .tbtn[data-id=swap],body.driving #touch .tbtn[data-id=grab],body.driving #touch .tbtn[data-id=sprint],body.riding #touch .tbtn[data-id=jump],body.riding #touch .tbtn[data-id=crouch],body.riding #touch .tbtn[data-id=sprint],body.riding #touch .tbtn[data-id=grab]{display:none!important}
 body.driving #cross{visibility:hidden}
@@ -747,6 +749,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
   // ---------------------------------------------------------------- constantes
   const C = {
     GRAV: 22, JUMP: 7.2, WALK: 5.0, SPRINT: 7.4, CROUCH: 2.4,
+    CAR_DMG: 50, DOWN_TIME: 1.7, // atropelamento: perde 50 de vida, cai e levanta
     SHOP_START: 800, SHOP_KILL: 150, SHOP_ROUND: 400, SHOP_MAX: 4000, SHOP_DIST: 3.4, // fichas da lojinha das arenas
     R: 0.38, H: 1.8, HC: 1.2, EYE: 1.62, EYEC: 1.05, STEP: 0.55,
     DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
@@ -1757,6 +1760,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     else if (p.crouch && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
     const h = p.crouch ? C.HC : C.H;
     let f = clamp(num(inp.f), -1, 1), s = clamp(num(inp.s), -1, 1);
+    if (p.down) { f = 0; s = 0; } // caído (atropelado): não anda até levantar
     const len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; }
     const w = weaponOf(p);
@@ -1768,9 +1772,9 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     if (p.y < 0.4 && waterAt(p.x, p.z)) { speed *= 0.5; p.sprint = false; } // água rasa
     const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
     const wx = (-sy * f + cy * s) * speed, wz = (-cy * f - sy * s) * speed;
-    const k = p.onGround ? Math.min(1, dt * 14) : Math.min(1, dt * 2.5);
+    const k = p.down ? Math.min(1, dt * 3) : p.onGround ? Math.min(1, dt * 14) : Math.min(1, dt * 2.5);
     p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k;
-    if ((b & BTN.JUMP) && p.onGround && !p.crouch) { p.vy = C.JUMP; p.onGround = false; }
+    if ((b & BTN.JUMP) && p.onGround && !p.crouch && !p.down) { p.vy = C.JUMP; p.onGround = false; }
     p.vy -= C.GRAV * dt;
     if (p.vy < -40) p.vy = -40;
     // eixo X
@@ -2192,18 +2196,23 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
           continue;
         }
         c.idle = 0;
-        if (Math.abs(c.v) < 6) continue;
+        // velocidade real (quanto o carro andou de fato): carro parado não atropela ninguém
+        const mv = c.px == null ? 0 : Math.hypot(c.x - c.px, c.z - c.pz) / Math.max(dt, 1e-3); c.px = c.x; c.pz = c.z;
+        c.as = (c.as || 0) + (mv - (c.as || 0)) * 0.35;
+        if (Math.abs(c.v) < 6 || c.as < 4) continue;
         const f = carFwd(c.yaw);
         for (const p of this.players.values()) {
           if (!p.alive || p.car || p.y > 1.3 || p.team === d.team || this.time < (p.carHitAt || 0)) continue;
           let hit = false;
           for (const o of CAR.OFF) { const dx = p.x - (c.x + f[0] * o), dz = p.z - (c.z + f[1] * o); if (dx * dx + dz * dz < (CAR.R + C.R + 0.1) ** 2) hit = true; }
           if (!hit) continue;
-          p.carHitAt = this.time + 0.8;
-          const dmg = Math.round(clamp(Math.abs(c.v) * 4.5, 25, 100));
-          p.vx = f[0] * Math.sign(c.v) * 9; p.vz = f[1] * Math.sign(c.v) * 9; p.vy = 4; p.onGround = false;
-          c.v *= 0.8;
-          if (this.time >= p.spawnProt) this.damage(p, d, dmg, false, 'car');
+          p.carHitAt = this.time + 1.0;
+          // atropelado: cai, perde 50 de vida e levanta depois (2ª vez sem curar = eliminado)
+          p.vx = f[0] * Math.sign(c.v) * 7; p.vz = f[1] * Math.sign(c.v) * 7; p.vy = 3.5; p.onGround = false;
+          p.down = true; p.downUntil = this.time + C.DOWN_TIME; p.medUntil = 0; p.reloadUntil = 0; p.ads = false;
+          c.v *= 0.85;
+          this.events.push({ e: 'runover', id: p.id, by: d.id });
+          if (this.time >= p.spawnProt) this.damage(p, d, C.CAR_DMG, false, 'car');
         }
       }
     }
@@ -2243,7 +2252,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       if (!keep) { p.helmet = 0; p.vest = 0; }
       if (p.baseW && !keep) p.weapons = p.baseW.slice();
       p.hp = C.MAXHP; p.alive = true; p.streak = 0; p.cur = 0; p.bloom = 0;
-      p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0;
+      p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0; p.down = false;
       if (this.shop && p.bot && !keep) { // bots também passam na lojinha
         const w = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'maverick', 'sniper'][Math.floor(Math.random() * 8)]; p.weapons[0] = w;
         if (p.money >= 350 && Math.random() < 0.7) { p.money -= 350; p.vest = 100; }
@@ -2276,7 +2285,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
       if (!p || !a || this.state !== 'playing') return;
       if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'trem') this.leap(p); if (this.ph !== 'trem' || p.train) return; }
       switch (a.a) {
-        case 'shoot': if (p.car && p.seat === 0) return; return this.shoot(p, a); // motorista não atira
+        case 'shoot': if ((p.car && p.seat === 0) || p.down) return; return this.shoot(p, a); // motorista e quem está caído não atiram
         case 'reload': return this.reload(p);
         case 'switch': {
           const s = a.s === 1 ? 1 : 0;
@@ -2288,7 +2297,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         case 'car': return this.enterCar(p, a.id, a.seat);
         case 'carx': return this.leaveCar(p);
         case 'med':
-          if (p.alive && p.medkits > 0 && p.hp < C.MAXHP && !p.medUntil) { p.medUntil = this.time + C.MEDTIME; p.reloadUntil = 0; this.events.push({ e: 'medstart', id: p.id }); }
+          if (p.alive && !p.down && p.medkits > 0 && p.hp < C.MAXHP && !p.medUntil) { p.medUntil = this.time + C.MEDTIME; p.reloadUntil = 0; this.events.push({ e: 'medstart', id: p.id }); }
           return;
       }
     }
@@ -2385,6 +2394,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     }
     kill(v, k, wid, head) {
       if (v.car) this.leaveCar(v, true);
+      v.down = false;
       v.alive = false; v.deaths++; v.respawnAt = this.time + C.RESPAWN; v.streak = 0; v.reloadUntil = 0; v.medUntil = 0;
       this.events.push({ e: 'kill', k: k.id, v: v.id, w: wid, hs: head ? 1 : 0 });
       if (this.rounds) return this.roundKill(v, k);
@@ -2514,6 +2524,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         if (!p.alive) { if (this.time >= p.respawnAt) this.spawn(p); continue; }
         if (p.train) { p.x = this.trainX - p.train.off; p.z = this.map.train.z + p.train.dz; p.y = this.map.train.y0 + 0.02; p.vx = p.vy = p.vz = 0; continue; }
         if (p.car && p.seat === 1) { const sp = seatPos(p.car, 1); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; }
+        if (p.down && this.time >= p.downUntil) p.down = false; // levantou
         if (p.reloadUntil && this.time >= p.reloadUntil) {
           p.reloadUntil = 0;
           const w = weaponOf(p), am = p.ammo[w.id];
@@ -2679,7 +2690,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
       }
       const mk = maskOf(this.medkits);
@@ -2701,7 +2712,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
         tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
-        $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
+        dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
       };
     }
   }
@@ -4893,7 +4904,7 @@ const Voice = (() => {
       const L = this.local, fw = this.fw;
       const wasAlive = L.alive;
       this.me = me;
-      L.weapons = me.w; L.medUntil = me.mu > 0 ? 1 : 0; L.money = me.$; L.helmet = me.hm || 0; L.vest = me.vs || 0;
+      L.weapons = me.w; L.medUntil = me.mu > 0 ? 1 : 0; L.down = !!me.dn; L.money = me.$; L.helmet = me.hm || 0; L.vest = me.vs || 0;
       if (now() - fw.switchAt > 0.6) L.cur = me.cur;
       L.alive = !!me.al;
       const wasRiding = this.riding; this.riding = !!me.tn; this.rideOff = [me.to || 0, me.tz || 0];
@@ -5009,6 +5020,10 @@ const Voice = (() => {
           else if (e.ph === 'trem') Sfx.horn();
           else if (e.ph === 'livre') center('🚉 O trem chegou: todos desceram!', 2.5);
           break;
+        case 'runover':
+          if (e.id === me) { center('🚗 Você foi atropelado! −50 de vida', 1.6); if (CFG.vib) vibrate([60, 40, 90]); Sfx.land && Sfx.land(); }
+          else if (e.by === me) { xpPop('Atropelou ' + this.name(e.id)); if (CFG.vibk) vibrate(30); }
+          break;
         case 'buy': if (e.id === me) { Sfx.pick(); xpPop('Comprou ' + (W[e.it] ? W[e.it].name : S.SHOP[e.it] ? S.SHOP[e.it].name : e.it)); } break;
         case 'buyno': if (e.id === me) toast('Fichas insuficientes.', 1500); break;
         case 'ammo': if (e.id === me) { Sfx.pick(); xpPop('+30 munição · ' + (W[e.w] ? W[e.w].name : '')); } break;
@@ -5119,10 +5134,11 @@ const Voice = (() => {
         if (keys.ShiftLeft || keys.ShiftRight || Touch.sprintLock) b |= S.BTN.SPRINT;
         const ads = (mouse.r || this.adsToggle) && !L.medUntil && !this.reloading();
         if (ads) b |= S.BTN.ADS;
+        if (L.down) { f = 0; s = 0; b = 0; } // caído: espera levantar
         if (L.car) { // dirigindo: acelerar/freio (botões, analógico ou W/S) e volante (analógico ou A/D)
           if (L.seat === 0) {
             const gas = Touch.held.cgas || keys.KeyW || keys.ArrowUp, brk = Touch.held.cbrk || keys.KeyS || keys.ArrowDown || keys.Space;
-            f = gas ? 1 : brk ? -1 : -Touch.joy[1]; s = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + Touch.joy[0];
+            f = gas ? 1 : brk ? -1 : 0; s = (keys.KeyD || keys.ArrowRight || Touch.held.cright ? 1 : 0) - (keys.KeyA || keys.ArrowLeft || Touch.held.cleft ? 1 : 0); // no carro: só botões (sem analógico)
             if (Math.abs(f) < 0.15) f = 0; b = 0;
           } else { f = 0; s = 0; b &= S.BTN.ADS; }
         }
@@ -5215,7 +5231,7 @@ const Voice = (() => {
       const adsWant = inputOn && (mouse.r || this.adsToggle) && !L.medUntil && !this.reloading() && t - fw.switchAt > C.SWITCH;
       fw.adsT = Math.max(0, Math.min(1, fw.adsT + (adsWant ? dt : -dt) * 7));
       if (!me || !inputOn) { fw.semi = true; return; }
-      const trigger = mouse.l || Touch.held.fire || Touch.held.fire2;
+      const trigger = (mouse.l || Touch.held.fire || Touch.held.fire2) && !L.down; // caído não atira
       if (!trigger) fw.semi = true;
       if (keys._reload) { keys._reload = false; this.tryReload(); }
       if (keys._swap !== undefined) { const s = keys._swap; keys._swap = undefined; this.swap(s); }
@@ -5392,7 +5408,8 @@ const Voice = (() => {
       const L = this.local, E = Touch.els, near = this.carNear(), inCar = !!L.car;
       const show = (el, on) => { if (el && (el.style.display === 'none') === on) el.style.display = on ? '' : 'none'; };
       show(E.cdrive, !!near && !near.seats[0]); show(E.cpass, !!near && !near.seats[1]);
-      show(E.cexit, inCar); show(E.cgas, inCar && L.seat === 0); show(E.cbrk, inCar && L.seat === 0);
+      show(E.cexit, inCar); show(E.cgas, inCar && L.seat === 0); show(E.cbrk, inCar && L.seat === 0); show(E.cleft, inCar && L.seat === 0); show(E.cright, inCar && L.seat === 0);
+      if (inCar && Touch.joyId !== null) { Touch.joyId = null; Touch.joy = [0, 0]; $('joy').style.display = 'none'; }
       document.body.classList.toggle('driving', inCar && L.seat === 0); document.body.classList.toggle('riding', inCar && L.seat === 1);
       const sp = $('carspd'); if (inCar && L.seat === 0) { sp.style.display = ''; setT(sp, Math.round(Math.abs(L.car.v) * 3.6) + ' km/h'); } else if (sp.style.display !== 'none') sp.style.display = 'none';
       this.carNearC = near;
@@ -5471,7 +5488,7 @@ const Voice = (() => {
         const w0 = this.curW();
         if (this.riding) cam = this.trainCam(eye);
         else if (L.car && L.seat === 0) cam = this.carCam();
-        else if (CFG.tps && fw.adsT < 0.6) cam = this.tpsCam(eye); // mirando (MIRA): vai para a visão da arma, como nos battle royale
+        else if ((CFG.tps || L.down) && fw.adsT < 0.6) cam = this.tpsCam(eye); // caído: vê o próprio corpo // mirando (MIRA): vai para a visão da arma, como nos battle royale
       }
       else {
         const dt0 = this.deathInfo ? Math.min(1, (t - this.deathInfo.t) / 0.7) : 1;
@@ -5543,7 +5560,7 @@ const Voice = (() => {
       const dt = Math.min(0.1, Math.max(0.001, t - rp.lt)); rp.lt = t;
       const c = rp.cur, an = rp.anim;
       c.x = L.x + this.visOff[0]; c.y = L.y + this.visOff[1]; c.z = L.z + this.visOff[2]; c.yaw = this.look.yaw; c.pitch = this.look.pitch;
-      c.fl = 1 | (L.crouch ? 2 : 0) | (this.reloading() ? 8 : 0) | (L.medUntil ? 16 : 0) | (L.onGround ? 32 : 0) | (L.sprint && L.onGround ? 128 : 0);
+      c.fl = 1 | (L.crouch ? 2 : 0) | (this.reloading() ? 8 : 0) | (L.medUntil ? 16 : 0) | (L.onGround ? 32 : 0) | (L.sprint && L.onGround ? 128 : 0) | (L.down ? 2048 : 0);
       const sp = Math.hypot(L.vx, L.vz), kv = Math.min(1, dt * 12);
       an.speed = lerp(an.speed, Math.min(sp, 9), kv); an.vx = lerp(an.vx || 0, L.vx, kv); an.vz = lerp(an.vz || 0, L.vz, kv); an.vy = L.vy || 0; an.alive = true; an.deadAt = 0;
       moveAnim(an, c.yaw, dt);
@@ -5574,6 +5591,9 @@ const Voice = (() => {
       const crouch = !!(c.fl & 2), onG = !!(c.fl & 32);
       let fall = 0;
       if (an.deadAt) fall = Math.min(1, (t - an.deadAt) / 0.55);
+      // atropelado: cai de costas, fica no chão e levanta
+      if (c.fl & 2048) { if (!an.downAt) { an.downAt = t; an.upAt = 0; } fall = Math.max(fall, Math.min(1, (t - an.downAt) / 0.35)); }
+      else if (an.downAt) { if (!an.upAt) an.upAt = t; const u = 1 - (t - an.upAt) / 0.5; if (u <= 0) an.downAt = an.upAt = 0; else fall = Math.max(fall, u); }
       if (!an.alive && !an.deadAt) return;
       const sp = Math.min(1, an.speed / 5), ph = an.ph, run = crouch ? 0 : Math.max(0, Math.min(1, (an.speed - 5.3) / 1.8));
       const legYaw = fall ? 0 : an.legYaw || 0;
@@ -6035,6 +6055,8 @@ const Voice = (() => {
     { id: 'cdrive', label: '🚗 DIRIGIR', x: 0.53, y: 0.7, s: 66, cls: 'carb' }, // entrar no carro como motorista
     { id: 'cpass', label: '💺 CARONA', x: 0.53, y: 0.86, s: 58, cls: 'carb' }, // entrar como passageiro
     { id: 'cexit', label: 'SAIR', x: 0.72, y: 0.22, s: 56, cls: 'carb' }, // sair do carro
+    { id: 'cleft', label: '◀', x: 0.08, y: 0.78, s: 84, cls: 'pedal steer' }, // volante: esquerda
+    { id: 'cright', label: '▶', x: 0.22, y: 0.78, s: 84, cls: 'pedal steer' }, // volante: direita
     { id: 'cgas', label: 'ACELERAR', x: 0.9, y: 0.68, s: 92, cls: 'pedal' }, // acelerador
     { id: 'cbrk', label: 'FREIO', x: 0.75, y: 0.8, s: 74, cls: 'pedal brk' }, // freio e ré
   ];
@@ -6252,7 +6274,7 @@ const Voice = (() => {
         const el = Touch.els[id]; el.classList.add('dn'); el._tid = t.identifier;
         switch (id) {
           case 'fire': case 'fire2': Touch.held[id] = true; Touch.look.set(t.identifier, [lx(t), ly(t), id]); break;
-          case 'cgas': case 'cbrk': Touch.held[id] = true; break;
+          case 'cgas': case 'cbrk': case 'cleft': case 'cright': Touch.held[id] = true; break;
           case 'cdrive': Game.carAct(0); break;
           case 'shop': Game.openShop(); break;
           case 'cpass': Game.carAct(1); break;
@@ -6278,7 +6300,7 @@ const Voice = (() => {
       }
       if (e.target !== cv && !$('touch').contains(e.target)) continue;
       e.preventDefault();
-      if (lx(t) < VW() * 0.42 && Touch.joyId === null) {
+      if (lx(t) < VW() * 0.42 && Touch.joyId === null && !(Game.active && Game.local.car)) { // no carro o analógico some (só botões)
         Touch.joyId = t.identifier; Touch.joyO = [lx(t), ly(t)];
         const j = $('joy'); j.style.display = 'block'; j.style.left = lx(t) + 'px'; j.style.top = ly(t) + 'px'; j.firstChild.style.transform = '';
       } else Touch.look.set(t.identifier, [lx(t), ly(t), null]);
@@ -6308,7 +6330,7 @@ const Voice = (() => {
       Touch.look.delete(t.identifier);
       for (const id in Touch.els) {
         const el = Touch.els[id];
-        if (el._tid === t.identifier) { el._tid = null; if (!['ads', 'crouch', 'score', 'sprint'].includes(id)) el.classList.remove('dn'); if (id === 'fire' || id === 'fire2' || id === 'jump' || id === 'cgas' || id === 'cbrk') Touch.held[id] = false; }
+        if (el._tid === t.identifier) { el._tid = null; if (!['ads', 'crouch', 'score', 'sprint'].includes(id)) el.classList.remove('dn'); if (id === 'fire' || id === 'fire2' || id === 'jump' || id === 'cgas' || id === 'cbrk' || id === 'cleft' || id === 'cright') Touch.held[id] = false; }
       }
     }
     Touch.syncToggles();
