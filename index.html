@@ -3305,7 +3305,11 @@ const Engine = (() => {
     float d = length(uCam - vW);
     col = mix(col, uFog, clamp(1.0 - exp(-d*uFogD), 0.0, 1.0));
     col = col*(2.51*col+0.03)/(col*(2.43*col+0.59)+0.14);
-    o = vec4(pow(clamp(col,0.0,1.0), vec3(1.0/2.2)), uTint.a);
+    col = pow(clamp(col,0.0,1.0), vec3(1.0/2.2));
+    float lum = dot(col, vec3(0.299,0.587,0.114));
+    col = mix(vec3(lum), col, 1.22); // cores mais vivas
+    col = (col-0.5)*1.06+0.5; // um pouco mais de contraste
+    o = vec4(clamp(col,0.0,1.0), uTint.a);
   }`;
   const DVS = `#version 300 es
   layout(location=0) in vec3 aPos; layout(location=2) in vec2 aUv; layout(location=4) in vec4 aJ; layout(location=5) in vec4 aW; layout(location=6) in vec4 aI; layout(location=7) in float aIs;
@@ -3354,7 +3358,7 @@ const Engine = (() => {
       this.vp = M4.create(); this.view = M4.create(); this.proj = M4.create(); this.shVP = M4.create(); this.tmp = M4.create(); this.inv = M4.create();
       this.ident = M4.create();
       this.sun = norm([0.45, 0.8, 0.3]);
-      this.env = { sunCol: [2.6, 2.4, 2.1], sky: [0.42, 0.5, 0.62], gnd: [0.22, 0.2, 0.16], fog: [0.62, 0.68, 0.74], fogD: 0.009, top: [0.22, 0.42, 0.72], hor: [0.68, 0.76, 0.84] };
+      this.env = { sunCol: [2.9, 2.65, 2.25], sky: [0.4, 0.5, 0.66], gnd: [0.24, 0.22, 0.17], fog: [0.6, 0.74, 0.9], fogD: 0.0007, top: [0.13, 0.38, 0.82], hor: [0.6, 0.76, 0.93] }; // céu limpo, sem neblina (só um véu bem leve lá no fim do mapa)
       this.setQuality({ shadows: 1024, pcf: false, scale: 1 });
       // buffers dinâmicos
       this.pbuf = gl.createBuffer(); this.pvao = gl.createVertexArray();
@@ -3479,7 +3483,7 @@ const Engine = (() => {
       if (this.cv.width !== w || this.cv.height !== h) { this.cv.width = w; this.cv.height = h; }
     }
     // cam: {x,y,z,yaw,pitch,roll,fov}
-    setCamera(cam, near = 0.05, far = 400) {
+    setCamera(cam, near = 0.1, far = 750) {
       const asp = this.cv.width / this.cv.height;
       M4.persp(this.proj, cam.fov, asp, near, far);
       M4.compose(this.tmp, cam.x, cam.y, cam.z, cam.yaw, cam.pitch, cam.roll || 0);
@@ -4829,9 +4833,9 @@ const Voice = (() => {
 
   // ================================================================ configurações
   const PRESETS = {
-    low: { shadows: 0, pcf: false, scale: 0.6, parts: 0.35, fogD: 0.014 },
-    medium: { shadows: 1024, pcf: false, scale: 0.85, parts: 0.7, fogD: 0.01 },
-    high: { shadows: 2048, pcf: true, scale: 1, parts: 1, fogD: 0.008 },
+    low: { shadows: 0, pcf: false, scale: 0.6, parts: 0.35, fogD: 0.0009 },
+    medium: { shadows: 1024, pcf: false, scale: 0.85, parts: 0.7, fogD: 0.0007 },
+    high: { shadows: 2048, pcf: true, scale: 1, parts: 1, fogD: 0.0006 },
   };
   const lowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 4) || (isTouch && Math.min(screen.width, screen.height) < 500);
   const defQ = isTouch ? (lowEnd ? 'low' : 'medium') : 'high';
