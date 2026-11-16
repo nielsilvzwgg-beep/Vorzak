@@ -175,8 +175,8 @@ function newRoomId() { let id; do { id = 100000 + crypto.randomInt(900000); } wh
 class Room {
   constructor(o) {
     this.id = newRoomId(); nextRoomId++; this.name = S.sanitizeChat(o.name).slice(0, 28) || 'Sala ' + this.id;
-    this.mode = o.mode === 'ffa' || S.isRounds(o.mode) ? o.mode : 'tdm'; this.priv = !!o.priv; this.ranked = !!o.ranked; this.persistent = !!o.persistent;
-    this.max = S.isRounds(this.mode) ? 2 * +this.mode[1] : S.clamp(o.max | 0 || 10, 2, 12); this.code = String(this.id); this.owner = o.owner || 0;
+    this.mode = S.isFFA(o.mode) || S.isRounds(o.mode) ? o.mode : 'tdm'; this.priv = !!o.priv; this.ranked = !!o.ranked; this.persistent = !!o.persistent;
+    this.max = S.isRounds(this.mode) ? 2 * +this.mode[1] : this.mode === 'aberto' ? S.clamp(o.max | 0 || 30, 2, 30) : S.clamp(o.max | 0 || 10, 2, 12); this.code = String(this.id); this.owner = o.owner || 0;
     this.sim = new S.GameSim({ mode: this.mode, ranked: this.ranked });
     this.sim.onMatchEnd = (results, win) => this.onMatchEnd(results, win);
     this.members = new Map(); // pid -> client
@@ -185,9 +185,9 @@ class Room {
     this.expiresAt = this.waiting ? Date.now() + WAIT_MS : 0;
     rooms.set(this.id, this);
   }
-  teamSize() { return S.isRounds(this.mode) ? +this.mode[1] : this.mode === 'ffa' ? this.max : Math.ceil(this.max / 2); }
+  teamSize() { return S.isRounds(this.mode) ? +this.mode[1] : S.isFFA(this.mode) ? this.max : Math.ceil(this.max / 2); }
   wcount(t) { let n = 0; for (const w of this.wait.values()) if (w.team === t) n++; return n; }
-  canStart() { return this.mode === 'ffa' ? this.wait.size >= 2 : this.wcount(0) >= 1 && this.wcount(1) >= 1; }
+  canStart() { return S.isFFA(this.mode) ? this.wait.size >= 2 : this.wcount(0) >= 1 && this.wcount(1) >= 1; }
   wstate() {
     return { t: 'wroom', room: { id: this.id, name: this.name, mode: this.mode, priv: this.priv, max: this.max, size: this.teamSize() }, owner: this.owner, msLeft: Math.max(0, this.expiresAt - Date.now()), canStart: this.canStart(),
       players: [...this.wait.values()].map((w) => ({ uid: w.c.uid, name: w.c.profile.name, level: w.c.profile.level, team: w.team, char: S.lookOf(w.c.profile).c })) };
@@ -198,13 +198,13 @@ class Room {
     if (this.wait.size >= this.max) return c.send({ t: 'err', m: 'Sala cheia' });
     if (c.room) c.room.leave(c);
     if (c.wroom) c.wroom.wleave(c);
-    const team = this.mode === 'ffa' ? 0 : this.wcount(0) <= this.wcount(1) ? 0 : 1;
+    const team = S.isFFA(this.mode) ? 0 : this.wcount(0) <= this.wcount(1) ? 0 : 1;
     this.wait.set(c.uid, { c, team }); c.wroom = this;
     this.wbroadcast(); broadcastOnline();
   }
   wteam(c, team) {
     const w = this.wait.get(c.uid);
-    if (!w || this.mode === 'ffa' || (team !== 0 && team !== 1) || w.team === team || this.wcount(team) >= this.teamSize()) return;
+    if (!w || S.isFFA(this.mode) || (team !== 0 && team !== 1) || w.team === team || this.wcount(team) >= this.teamSize()) return;
     w.team = team; this.wbroadcast();
   }
   wleave(c, quiet) {
@@ -221,14 +221,23 @@ class Room {
   }
   wstart(c) {
     if (!this.waiting || c.uid !== this.owner) return c.send({ t: 'err', m: 'Só o criador da sala pode iniciar a partida.' });
-    if (!this.canStart()) return c.send({ t: 'err', m: this.mode === 'ffa' ? 'Espere pelo menos mais 1 jogador.' : 'Espere um jogador entrar no outro time.' });
+    if (!this.canStart()) return c.send({ t: 'err', m: S.isFFA(this.mode) ? 'Espere pelo menos mais 1 jogador.' : 'Espere um jogador entrar no outro time.' });
     this.waiting = false;
     const list = [...this.wait.values()]; this.wait.clear();
     for (const w of list) { w.c.wroom = null; this.join(w.c, w.team); }
     this.system('A partida começou! Boa sorte.');
+    this.fillBots();
     broadcastRooms();
   }
-  info() { const tc = [0, 0]; if (this.waiting) { for (const w of this.wait.values()) tc[w.team]++; } else for (const p of this.sim.players.values()) if (p.team === 0 || p.team === 1) tc[p.team]++; return { waiting: this.waiting, msLeft: this.waiting ? Math.max(0, this.expiresAt - Date.now()) : 0, id: this.id, name: this.name, mode: this.mode, ranked: this.ranked, n: this.waiting ? this.wait.size : this.members.size, max: this.max, priv: this.priv, teams: this.mode === 'ffa' ? null : tc }; }
+  // mapa aberto: completa com bots até 12 jogadores (saem quando entra gente de verdade)
+  fillBots() {
+    if (this.mode !== 'aberto' || this.waiting) return;
+    const want = Math.max(0, 12 - this.members.size);
+    let bots = [...this.sim.players.values()].filter((p) => p.bot);
+    while (bots.length > want) { const b = bots.pop(); this.sim.removePlayer(b.id); }
+    for (let i = bots.length; i < want; i++) this.sim.addBot();
+  }
+  info() { const tc = [0, 0]; if (this.waiting) { for (const w of this.wait.values()) tc[w.team]++; } else for (const p of this.sim.players.values()) if (p.team === 0 || p.team === 1) tc[p.team]++; return { waiting: this.waiting, msLeft: this.waiting ? Math.max(0, this.expiresAt - Date.now()) : 0, id: this.id, name: this.name, mode: this.mode, ranked: this.ranked, n: this.waiting ? this.wait.size : this.members.size, max: this.max, priv: this.priv, teams: S.isFFA(this.mode) ? null : tc }; }
   join(c, team) {
     if (this.waiting) return this.wjoin(c);
     if (this.members.size >= this.max) return c.send({ t: 'err', m: 'Sala cheia' });
@@ -239,6 +248,7 @@ class Room {
     c.room = this; c.pid = pl.id; this.members.set(pl.id, c);
     c.send({ t: 'joined', pid: pl.id, room: { id: this.id, name: this.name, mode: this.mode, code: this.code, priv: this.priv, ranked: this.ranked } });
     this.system(`${p.name} entrou na sala`);
+    this.fillBots();
     broadcastRooms(); broadcastOnline();
   }
   leave(c) {
@@ -247,6 +257,7 @@ class Room {
     this.system(`${c.profile ? c.profile.name : 'Jogador'} saiu`);
     c.room = null; c.pid = 0;
     if (c.alive) c.send({ t: 'left' });
+    this.fillBots();
     if (!this.members.size && !this.persistent) rooms.delete(this.id);
     broadcastRooms(); broadcastOnline();
   }
@@ -280,6 +291,7 @@ class Room {
 // salas públicas permanentes
 new Room({ name: 'Mata-mata #1 (público)', mode: 'tdm', persistent: true, max: 12 });
 new Room({ name: 'Todos contra todos #1', mode: 'ffa', persistent: true, max: 10 });
+new Room({ name: 'Mapa aberto #1', mode: 'aberto', persistent: true, max: 30 });
 
 function roomList() { return [...rooms.values()].filter((r) => !r.priv).map((r) => r.info()); }
 function broadcastRooms() { const s = JSON.stringify({ t: 'rooms', list: roomList() }); for (const c of clients.values()) if (c.hello && !c.room) c.sendRaw(s); }
@@ -341,10 +353,10 @@ function handle(c, m) {
       return r.join(c);
     }
     case 'quick': {
-      const ranked = m.mode === 'ranked', mode = ranked ? 'tdm' : m.mode === 'ffa' || S.isRounds(m.mode) ? m.mode : 'tdm';
+      const ranked = m.mode === 'ranked', mode = ranked ? 'tdm' : S.isFFA(m.mode) || S.isRounds(m.mode) ? m.mode : 'tdm';
       let best = null;
       for (const r of rooms.values()) if (!r.priv && r.mode === mode && r.ranked === ranked && !r.waiting && r.members.size < r.max && (!best || r.members.size > best.members.size)) best = r;
-      if (!best) best = new Room({ name: ranked ? 'Ranqueado #' + nextRoomId : (mode === 'ffa' ? 'Todos contra todos' : S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata'), mode, ranked, max: ranked ? 10 : 12 });
+      if (!best) best = new Room({ name: ranked ? 'Ranqueado #' + nextRoomId : (mode === 'aberto' ? 'Mapa aberto' : mode === 'ffa' ? 'Todos contra todos' : S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata'), mode, ranked, max: ranked ? 10 : mode === 'aberto' ? 30 : 12 });
       return best.join(c);
     }
     case 'leave': if (room) room.leave(c); else if (c.wroom) c.wroom.wleave(c); return;
@@ -352,7 +364,7 @@ function handle(c, m) {
     case 'wstart': if (c.wroom) c.wroom.wstart(c); return;
     case 'in': if (room) room.sim.handleInputs(c.pid, m.l); return;
     case 'act': if (room) room.sim.handleAction(c.pid, m); return;
-    case 'team': if (room && !room.ranked && room.mode !== 'ffa') { room.sim.setTeam(c.pid, m.team); room.system(`${c.profile.name} trocou de equipe`); } return;
+    case 'team': if (room && !room.ranked && !S.isFFA(room.mode)) { room.sim.setTeam(c.pid, m.team); room.system(`${c.profile.name} trocou de equipe`); } return;
     case 'chat': if (room) room.chat(c, m.m, m.team); return;
     case 'buy': {
       const err = S.buy(c.profile, String(m.item));
