@@ -64,11 +64,13 @@ label{display:block;margin:10px 0 4px;color:var(--dim);font-size:15px;text-trans
 /* HUD */
 #hud{position:fixed;inset:0;display:none;pointer-events:none}
 #hud.on{display:block}
-#cross{position:fixed;left:50%;top:50%;width:0;height:0}
-#cross i{position:absolute;background:#fff;box-shadow:0 0 2px #000}
-#cross .t{width:2px;height:8px;left:-1px}#cross .b{width:2px;height:8px;left:-1px}#cross .l{height:2px;width:8px;top:-1px}#cross .r{height:2px;width:8px;top:-1px}
-#cross.on i{background:#ff3b30}
-#cross .d{width:2px;height:2px;left:-1px;top:-1px}
+/* mira redonda (estilo Free Fire): círculo fixo no centro + ponto; fica vermelha em cima do inimigo */
+#cross{position:fixed;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;pointer-events:none;transform:scale(var(--cs,1));transition:opacity .12s}
+#cross svg{display:block;overflow:visible}
+#cross g{fill:none;stroke-linecap:round}
+#cross g.o{stroke:rgba(0,0,0,.55);stroke-width:3.6}#cross g.o circle{fill:rgba(0,0,0,.55);stroke:none}
+#cross g.f{stroke:#fff;stroke-width:1.8}#cross g.f circle{fill:#fff;stroke:none}
+#cross.on g.f{stroke:#ff3b30}#cross.on g.f circle{fill:#ff3b30}
 #hitm{position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px;opacity:0}
 #hitm:before,#hitm:after{content:'';position:absolute;left:12px;top:-2px;width:2px;height:30px;background:#fff;transform:rotate(45deg)}
 #hitm:after{transform:rotate(-45deg)}#hitm.k:before,#hitm.k:after{background:var(--red)}
@@ -691,7 +693,7 @@ body.short .btn{padding:7px 14px;font-size:17px;margin-bottom:5px}body.short .bt
 <!-- HUD -->
 <div id="hud">
   <div id="scope"></div>
-  <div id="cross"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="d"></i></div>
+  <div id="cross"><svg viewBox="-20 -20 40 40" width="40" height="40"><g class="o"><path d="M14.55 3.63 A15 15 0 0 1 3.63 14.55"/><path d="M-3.63 14.55 A15 15 0 0 1 -14.55 3.63"/><path d="M-14.55 -3.63 A15 15 0 0 1 -3.63 -14.55"/><path d="M3.63 -14.55 A15 15 0 0 1 14.55 -3.63"/><circle cx="0" cy="0" r="1.9"/></g><g class="f"><path d="M14.55 3.63 A15 15 0 0 1 3.63 14.55"/><path d="M-3.63 14.55 A15 15 0 0 1 -14.55 3.63"/><path d="M-14.55 -3.63 A15 15 0 0 1 -3.63 -14.55"/><path d="M3.63 -14.55 A15 15 0 0 1 14.55 -3.63"/><circle cx="0" cy="0" r="1.9"/></g></svg></div>
   <div id="hitm"></div>
   <div id="vig"></div><div id="lowhp"></div><div id="healfx"></div>
   <div id="dmgdir"><i></i></div>
@@ -5163,7 +5165,7 @@ const Voice = (() => {
       const L = this.local, fw = this.fw, cr = $('cross');
       this.aimUp *= Math.exp(-dt * 5);
       const off = () => { this.lockId = 0; this.headLock = false; cr.classList.remove('on'); };
-      if (!CFG.assist || !inputOn) return off();
+      if (!inputOn) return off();
       const eye = this.eye(), fwd = S.aimDir(this.look.yaw, this.look.pitch), w = this.curW();
       const cone = fw.adsT > 0.5 ? 0.075 : 0.11;
       let best = null, bestA = 1e9;
@@ -5177,19 +5179,22 @@ const Voice = (() => {
         const lim = cone + Math.atan(0.45 / d) + (rp.id === this.lockId ? 0.04 : 0);
         if (a > lim || a >= bestA) continue;
         if (S.raycastWorld(eye[0], eye[1], eye[2], dx, dy, dz, d) < d - 0.4) continue;
-        best = rp; bestA = a;
+        best = rp; bestA = a; this._bestD = d;
       }
       if (!best) return off();
       if (best.id !== this.lockId) { this.lockId = best.id; this.headLock = false; }
       if (CFG.head && this.aimUp > 0.012) this.headLock = true;
-      cr.classList.add('on');
+      // mira vermelha só com o inimigo dentro do círculo
+      const ringA = Math.atan((cr._r || 15) / Math.max(1, cv.clientHeight / 2) * Math.tan((this.camFov || 1.2) / 2)) + Math.atan(0.3 / Math.max(1, this._bestD || 10));
+      cr.classList.toggle('on', bestA < ringA);
+      if (!CFG.assist) return;
       const c = best.cur, h = (c.fl & 2) ? C.HC : C.H;
       const hx = c.x - eye[0], hz = c.z - eye[2], hd = Math.hypot(hx, hz);
       const wantYaw = Math.atan2(-hx, -hz);
       const chestP = Math.atan2(c.y + ((c.fl & 2) ? 0.75 : 1.2) - eye[1], hd);
       const headP = Math.atan2(c.y + h - 0.14 - eye[1], hd);
       const firing = mouse.l || Touch.held.fire || Touch.held.fire2;
-      const str = CFG.astr * (firing ? 1 : 0.5) * (isTouch && CFG.touch ? 1 : 0.6);
+      const str = firing ? CFG.astr * (isTouch && CFG.touch ? 1 : 0.6) : 0; // só ajuda enquanto atira (não puxa a câmera para os lados à toa)
       const k = 1 - Math.exp(-dt * 9 * str);
       this.look.yaw = angLerp(this.look.yaw, wantYaw, k);
       if (this.headLock) {
@@ -5247,7 +5252,7 @@ const Voice = (() => {
       if (w.pump || w.id === 'sniper') { fw.pumpT = 0; setTimeout(() => Sfx.pump(), 250); }
       const rk = w.recoil * (this.fw.adsT > 0.5 ? 0.7 : 1) * (L.crouch ? 0.8 : 1);
       this.look.pitch = Math.min(1.5, this.look.pitch + rk); fw.recoilAcc += rk;
-      this.look.yaw += (Math.random() - 0.5) * 2 * w.recoilYaw;
+      // sem recuo para os lados: a mira fica reta (só sobe um pouco e volta)
       // traçante e impacto locais (visual)
       const eye = this.eye(), d = S.aimDir(sYaw, sPitch);
       const spread = (fw.adsT > 0.5 ? w.adsSpread : w.spread) * (Math.hypot(L.vx, L.vz) > 1.5 || !L.onGround ? w.moveMul : 1);
@@ -5878,13 +5883,13 @@ const Voice = (() => {
       // mira dinâmica
       const spd = Math.hypot(L.vx, L.vz);
       const sp = (fw.adsT > 0.5 ? w.adsSpread : w.spread) * (spd > 1.5 || !L.onGround ? w.moveMul : 1) * (L.crouch ? 0.8 : 1);
-      const px = Math.max(3, sp / Math.tan(this.camFov / 2) * (cv.clientHeight / 2)) + fw.kick * 6;
+      const px = sp / Math.tan(this.camFov / 2) * (cv.clientHeight / 2); // raio onde as balas caem
       const cr = $('cross'), ads = fw.adsT > 0.6;
-      cr.style.opacity = ads ? 0 : 1;
-      if (cr._px !== Math.round(px)) {
-        cr._px = Math.round(px); const g = cr._px;
-        cr.children[0].style.top = -(g + 8) + 'px'; cr.children[1].style.top = g + 'px'; cr.children[2].style.left = -(g + 8) + 'px'; cr.children[3].style.left = g + 'px';
-      }
+      cr.style.opacity = ads || this.local.car && this.local.seat === 0 ? 0 : 1;
+      const want = Math.max(13, Math.min(38, px));
+      cr._r = cr._r == null ? want : cr._r + (want - cr._r) * Math.min(1, dt * 6);
+      const sc = Math.round(cr._r / 15 * 20) / 20;
+      if (cr._sc !== sc) { cr._sc = sc; cr.style.setProperty('--cs', sc); }
       $('scope').style.display = w.scope && fw.adsT > 0.85 && L.alive ? 'block' : 'none';
       // barra do kit
       const mb = $('medbar');
