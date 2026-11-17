@@ -1683,10 +1683,20 @@
         md += Math.random() * 6;
         if (md > bestD) { bestD = md; best = s; }
       }
+      // modos por equipe: nasce no ponto da base mais perto de um companheiro de verdade (amigos juntos)
+      if (!isFFA(this.mode) && !p.bot) {
+        const mate = [...this.players.values()].find((o) => o !== p && o.alive && !o.bot && o.team === p.team);
+        if (mate) { let bd = 1e9; for (const s of list) { const d = Math.hypot(s[0] - mate.x, s[2] - mate.z) + Math.random() * 0.5; if (d < bd) { bd = d; best = s; } } }
+      }
       p.x = best[0] + (Math.random() - 0.5); p.y = best[1]; p.z = best[2] + (Math.random() - 0.5); p.yaw = best[3]; p.pitch = 0;
+      for (const o of this.players.values()) { // não nascer um dentro do outro: afasta 1,2 m para um lado livre
+        if (o === p || !o.alive || Math.hypot(o.x - p.x, o.z - p.z) >= 1.1) continue;
+        for (const [ox, oz] of [[1.2, 0], [-1.2, 0], [0, 1.2], [0, -1.2]]) if (!collides(o.x + ox, p.y + 0.05, o.z + oz, C.R, C.H)) { p.x = o.x + ox; p.z = o.z + oz; break; }
+        break;
+      }
       // mapa aberto em equipe: renasce perto de um companheiro vivo
-      if (this.mode === 'aberto' && p.team >= 100000 && this.ph === 'livre') {
-        const mates = [...this.players.values()].filter((o) => o !== p && o.alive && o.team === p.team && !o.train && o.onGround);
+      if (this.mode === 'aberto' && p.team >= 100000 && (!this.br || this.ph === 'livre')) { // vale também no grupo contra bots
+        const mates = [...this.players.values()].filter((o) => o !== p && o.alive && o.team === p.team && !o.plane && !o.sky && o.onGround);
         for (const m of mates) {
           let ok = false;
           for (let k = 0; k < 8 && !ok; k++) { const a = Math.random() * 6.283, x = m.x + Math.cos(a) * 3, z = m.z + Math.sin(a) * 3; if (!collides(x, m.y + 0.05, z, C.R, C.H)) { p.x = x; p.y = m.y; p.z = z; p.yaw = m.yaw; ok = true; } }
@@ -1804,9 +1814,12 @@
       p.lastShot = this.time; am.mag--;
       const yaw = num(a.yaw, p.yaw), pitch = clamp(num(a.pitch, p.pitch), -1.5, 1.5);
       const moving = Math.hypot(p.vx, p.vz) > 1.5 || !p.onGround;
-      let spread = (p.ads ? w.adsSpread : w.spread) * (moving ? w.moveMul : 1) * (p.crouch ? 0.8 : 1) + p.bloom;
-      p.bloom = Math.min(w.bloomMax, p.bloom + w.bloom);
-      const ex = p.x, ey = p.y + (p.crouch ? C.EYEC : C.EYE), ez = p.z;
+      // jogador: o tiro vai exatamente para o centro da mira (escopeta: bolinhas num círculo fechado em volta dela); bots erram um pouco
+      let spread = p.bot ? (p.ads ? w.adsSpread : w.spread) * (moving ? w.moveMul : 1) * (p.crouch ? 0.8 : 1) + p.bloom : w.pellets > 1 ? w.spread * 0.45 : 0;
+      if (p.bot) p.bloom = Math.min(w.bloomMax, p.bloom + w.bloom);
+      let ex = p.x, ey = p.y + (p.crouch ? C.EYEC : C.EYE), ez = p.z;
+      // o tiro sai do olho que o celular usou para mirar (se estiver perto do que o servidor conhece: sem trapaça)
+      if (Array.isArray(a.o) && a.o.length === 3) { const ox = num(a.o[0], ex), oy = num(a.o[1], ey), oz = num(a.o[2], ez); if (Math.hypot(ox - ex, oy - ey, oz - ez) < 1.6) { ex = ox; ey = oy; ez = oz; } }
       const fwd = aimDir(yaw, pitch), sy = Math.sin(yaw), cy = Math.cos(yaw), sp = Math.sin(pitch), cp = Math.cos(pitch);
       const right = [cy, 0, -sy], up = [sy * sp, cp, cy * sp];
       // compensação de latência
@@ -1815,7 +1828,7 @@
       const dmgMap = new Map();
       let firstEnd = null;
       for (let k = 0; k < w.pellets; k++) {
-        const r = Math.sqrt(Math.random()) * spread, th = Math.random() * Math.PI * 2;
+        const r = k === 0 && !p.bot ? 0 : Math.sqrt(Math.random()) * spread, th = Math.random() * Math.PI * 2; // 1ª bolinha sempre no centro
         const ox = Math.cos(th) * r, oy = Math.sin(th) * r;
         let dx = fwd[0] + right[0] * ox + up[0] * oy, dy = fwd[1] + right[1] * ox + up[1] * oy, dz = fwd[2] + right[2] * ox + up[2] * oy;
         const l = Math.hypot(dx, dy, dz); dx /= l; dy /= l; dz /= l;
