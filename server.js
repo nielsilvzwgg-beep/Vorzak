@@ -240,7 +240,8 @@ class Room {
     this.sqs = this.mode === 'aberto' ? ([1, 2, 4].includes(o.sqs) ? o.sqs : 1) : 1; // mapa aberto: solo (1), duo (2) ou squad (4)
     this.squads = new Map(); this.nextSq = 1; // equipes da sala: id -> { n, open }
     this.mapId = this.mode === 'aberto' ? (S.OPEN_MAPS.includes(o.map) ? o.map : 'aberto') : this.mode === 'tdm' || S.isRounds(this.mode) ? (S.ARENAS.includes(o.map) ? o.map : 'arena_cidade') : 'base'; // mapa aberto: Cidade ou Ilha · mata-mata e X1–X4: arenas
-    this.sim = new S.GameSim({ mode: this.mode, map: this.mapId, ranked: this.ranked, br: this.mode === 'aberto', brBusca: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0, brLobby: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0 }); // mapa aberto online: procurar jogadores -> lobby -> trem
+    this.vsBots = !!o.vsBots; // grupo de amigos contra bots (sala privada criada pelo líder)
+    this.sim = new S.GameSim({ mode: this.mode, map: this.mapId, ranked: this.ranked, br: this.mode === 'aberto' && !this.vsBots, botSkill: o.botSkill, timeLimit: o.timeLimit, brBusca: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0, brLobby: process.env.BR_FAST ? +process.env.BR_FAST || 2 : 0 }); // mapa aberto online: procurar jogadores -> lobby -> trem
     this.sim.onMatchEnd = (results, win) => this.onMatchEnd(results, win);
     this.members = new Map(); // pid -> client
     // sala criada por um jogador: começa numa sala de espera; só o criador inicia a partida
@@ -294,7 +295,7 @@ class Room {
   }
   // mapa aberto online: só jogadores de verdade (tira qualquer bot que tenha sobrado)
   fillBots() {
-    if (this.mode !== 'aberto' || this.waiting) return;
+    if (this.vsBots || this.mode !== 'aberto' || this.waiting) return;
     const want = 0;
     let bots = [...this.sim.players.values()].filter((p) => p.bot);
     while (bots.length > want) { const b = bots.pop(); this.sim.removePlayer(b.id); }
@@ -425,6 +426,29 @@ function quickOpen(c, m) {
   for (const o of group) { if (o.wroom) o.wroom.wleave(o, true); best.join(o, undefined, sq); }
   if (pt) pushParty(pt);
 }
+// grupo contra bots: o líder aperta Jogar e o grupo inteiro entra na mesma partida, na mesma equipe, contra os bots
+function partyBots(c, m) {
+  const pt = c.party && c.party.members.length > 1 ? c.party : null;
+  if (!pt) return c.send({ t: 'err', m: 'Forme um grupo com seus amigos para jogar contra os bots juntos.' });
+  if (pt.leader !== c.uid) return c.send({ t: 'err', m: 'Só o líder do grupo inicia a partida.' });
+  const mode = S.isFFA(m.mode) || S.isRounds(m.mode) ? m.mode : 'tdm';
+  if (mode === 'training') return c.send({ t: 'err', m: 'O treino é só para um jogador.' });
+  const group = pt.members.slice(), k = group.length;
+  const busy = group.find((o) => o !== c && o.room);
+  if (busy) return c.send({ t: 'err', m: busy.profile.name + ' ainda está em uma partida. Espere ele voltar ao menu.' });
+  const per = S.isRounds(mode) ? +mode[1] : 4; // X1–X4: n de cada lado · mata-mata: 4 contra 4
+  if (!S.isFFA(mode) && k > per) return c.send({ t: 'err', m: `O grupo tem ${k} jogadores: escolha um modo com pelo menos ${k} de cada lado.` });
+  const name = (mode === 'aberto' ? 'Mapa aberto' : mode === 'ffa' ? 'Todos contra todos' : S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata') + ' · grupo vs bots';
+  const r = new Room({ name, mode, map: m.map, priv: true, vsBots: true, botSkill: S.clamp(m.diff | 0, 0, 2), timeLimit: mode === 'aberto' ? 600 : 300, max: mode === 'aberto' ? 30 : mode === 'ffa' ? 12 : 2 * per, sqs: mode === 'aberto' ? (k > 2 ? 4 : 2) : 1 });
+  const sq = mode === 'aberto' ? r.newSquad() : 0;
+  for (const o of group) { if (o.wroom) o.wroom.wleave(o, true); r.join(o, S.isFFA(mode) ? undefined : 0, sq); }
+  // bots: mesma quantidade da partida offline
+  if (mode === 'aberto') for (let i = 0; i < 16 - k; i++) r.sim.addBot();
+  else if (mode === 'ffa') for (let i = 0; i < S.clamp(m.bots | 0 || 7, 1, 11); i++) r.sim.addBot();
+  else { for (let i = 0; i < per - k; i++) r.sim.addBot(0); for (let i = 0; i < per; i++) r.sim.addBot(1); }
+  r.system('Partida do grupo contra bots. Boa sorte!');
+  pushParty(pt); broadcastRooms();
+}
 // quem escuta a voz: companheiros da mesma equipe na partida; no menu, os outros membros do grupo
 function voiceGroup(c) {
   const out = [];
@@ -551,6 +575,7 @@ function handle(c, m) {
       if (!best) best = new Room({ name: ranked ? 'Ranqueado #' + nextRoomId : (mode === 'aberto' ? 'Mapa aberto #' + nextRoomId : mode === 'ffa' ? 'Todos contra todos' : (S.isRounds(mode) ? mode.toUpperCase() : 'Mata-mata') + (arena === 'arena_ilha' ? ' · Arena Ilha' : ' · Arena Cidade')), mode, ranked, map: arena, max: mode === 'aberto' ? 30 : mode === 'tdm' ? 8 : 12 });
       return best.join(c);
     }
+    case 'pbots': return partyBots(c, m);
     case 'leave': if (room) room.leave(c); else if (c.wroom) c.wroom.wleave(c); return;
     // ---------------- grupo do mapa aberto (solo / duo / squad)
     case 'psize': {

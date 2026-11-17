@@ -7054,6 +7054,11 @@ const Voice = (() => {
   $('pstart').onclick = () => {
     Sfx.init();
     FS.auto();
+    // grupo com amigos contra bots: a partida vai para o servidor e o grupo inteiro entra junto
+    if (!playOnline() && PL.mode !== 'training' && Party.st && (Party.st.members || []).length > 1) {
+      if (!Party.leader()) { $('pstatus').innerHTML = 'Só o líder do grupo inicia a partida.'; return; }
+      online(() => Net.send({ t: 'pbots', mode: PL.mode, map: mapOf(PL.mode), diff: PL.diff, bots: PL.bots }), $('pstatus')); return;
+    }
     if (playOnline()) { online(() => Net.send({ t: 'quick', mode: PL.mode === 'tdm' && PL.ranked ? 'ranked' : PL.mode, sq: PL.mode === 'aberto' ? Party.size() : 1, map: mapOf(PL.mode) }), $('pstatus')); return; }
     const conn = new LocalConn({ mode: PL.mode, map: mapOf(PL.mode), diff: PL.mode === 'training' ? 0 : PL.diff, bots: PL.bots }, (m) => Game.onMsg(m));
     Game.start(conn, {});
