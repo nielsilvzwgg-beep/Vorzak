@@ -473,6 +473,9 @@ body.driving #wpanel,body.riding #wpanel{display:none}
 .tbtn.vbtn.off svg{opacity:.55}
 .tbtn.vbtn:not(.off){border-color:#5fe08a}
 .tbtn.gear svg{width:60%;height:60%}
+.tbtn.joyb{border:2px dashed rgba(255,255,255,.6);background:rgba(255,255,255,.08);flex-direction:column}
+.tbtn.joyb i{width:44%;height:44%;border-radius:50%;background:rgba(255,255,255,.35)}
+.tbtn.joyb span{position:absolute;top:-18px;font-size:12px;letter-spacing:.5px;white-space:nowrap}
 .tbtn.vaultb{border-color:#ffcf3a;background:rgba(255,190,40,.22);box-shadow:0 0 10px rgba(255,200,60,.45)}
 .tbtn.vaultb.dn{background:rgba(255,190,40,.45)}
 </style>
@@ -2051,14 +2054,31 @@ body.driving #wpanel,body.riding #wpanel{display:none}
 
   // ---------------------------------------------------------------- navegação dos bots (grade A*)
   let NAV = null;
+  // mapa de caminhos dos bots: em vez de testar cada ponto contra o mapa (lento no mapa grande), marca a área de cada
+  // caixa de uma vez numa grade de meio metro (os pontos da grade e os meios das ligações) — mesmo resultado, muito mais rápido
   function buildNav() {
     if (MAP.nav) return (NAV = MAP.nav);
     const SXn = MAP.sx - 1.5, SZn = MAP.sz - 1.5, step = 1;
     const ni = Math.floor((2 * SXn) / step) + 1, nj = Math.floor((2 * SZn) / step) + 1, N2 = ni * nj;
     const free = new Uint8Array(N2);
     const px = (i) => -SXn + i * step, pz = (j) => -SZn + j * step;
-    const saveDyn = DYN; DYN = [];
-    for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) free[i * nj + j] = collides(px(i), 0.05, pz(j), C.R + 0.05, C.H - 0.1, true) || waterAt(px(i), pz(j)) ? 0 : 1; // bots não entram no mar
+    const hi = 2 * ni - 1, hj = 2 * nj - 1, blk = new Uint8Array(hi * hj), r = C.R + 0.05, y = 0.05, h = C.H - 0.1;
+    for (const b of SOL) {
+      if (!(y + h > b[1] && y < b[4])) continue;
+      const a0 = Math.max(0, Math.floor((b[0] - r + SXn) * 2) - 1), a1 = Math.min(hi - 1, Math.ceil((b[3] + r + SXn) * 2) + 1);
+      const c0 = Math.max(0, Math.floor((b[2] - r + SZn) * 2) - 1), c1 = Math.min(hj - 1, Math.ceil((b[5] + r + SZn) * 2) + 1);
+      const ramp = b[6] === 'ramp';
+      for (let a = a0; a <= a1; a++) {
+        const x = -SXn + a / 2; if (!(x + r > b[0] && x - r < b[3])) continue;
+        for (let c = c0; c <= c1; c++) {
+          const z = -SZn + c / 2; if (!(z + r > b[2] && z - r < b[5])) continue;
+          if (ramp && !(y < rampTop(b, x, z, r) - 0.001)) continue;
+          blk[a * hj + c] = 1;
+        }
+      }
+    }
+    const bk = (a, c) => blk[a * hj + c];
+    for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) free[i * nj + j] = bk(2 * i, 2 * j) || waterAt(px(i), pz(j)) ? 0 : 1; // bots não entram no mar
     const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
     const edges = new Uint8Array(N2); // bitmask
     for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) {
@@ -2068,13 +2088,11 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         const a = i + DIRS[d][0], c = j + DIRS[d][1];
         if (a < 0 || c < 0 || a >= ni || c >= nj || !free[a * nj + c]) continue;
         if (d >= 4 && (!free[a * nj + j] || !free[i * nj + c])) continue;
-        const mx = (px(i) + px(a)) / 2, mz = (pz(j) + pz(c)) / 2;
-        if (collides(mx, 0.05, mz, C.R + 0.05, C.H - 0.1)) continue;
+        if (bk(i + a, j + c)) continue; // meio da ligação
         m |= 1 << d;
       }
       edges[id] = m;
     }
-    DYN = saveDyn;
     const freeList = [];
     for (let id = 0; id < N2; id++) if (free[id] && edges[id]) freeList.push(id);
     NAV = MAP.nav = { ni, nj, n: nj, step, free, edges, DIRS, px, pz, freeList, g: new Float32Array(N2), came: new Int32Array(N2), mark: new Uint32Array(N2), gen: 0, heap: new Int32Array(N2 + 8), hf: new Float32Array(N2 + 8), sxn: SXn, szn: SZn };
@@ -3774,18 +3792,21 @@ const Assets = (() => {
       return [x0 + (x1 - x0) * v, y, z1 - (z1 - z0) * u];
     };
     const C = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2];
-    const face = (q) => {
+    const face = (q, up) => { // up: superfície de cima (sempre virada para cima)
       const e1 = [q[1][0] - q[0][0], q[1][1] - q[0][1], q[1][2] - q[0][2]], e2 = [q[2][0] - q[1][0], q[2][1] - q[1][1], q[2][2] - q[1][2]];
       let n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];
       const L = Math.hypot(n[0], n[1], n[2]) || 1; n = n.map((v) => v / L);
       const f = [0, 1, 2].map((k) => (q[0][k] + q[1][k] + q[2][k] + q[3][k]) / 4 - C[k]);
-      if (n[0] * f[0] + n[1] * f[1] + n[2] * f[2] < 0) { q = [q[3], q[2], q[1], q[0]]; n = n.map((v) => -v); }
+      if (n[0] * f[0] + n[1] * f[1] + n[2] * f[2] < 0 || (up && n[1] < 0)) { q = [q[3], q[2], q[1], q[0]]; n = n.map((v) => -v); }
       // uv planar pelo eixo dominante da normal
       const ax = Math.abs(n[0]) > Math.abs(n[1]) && Math.abs(n[0]) > Math.abs(n[2]) ? 0 : Math.abs(n[1]) >= Math.abs(n[2]) ? 1 : 2;
       const uv = []; for (const p of q) { if (ax === 0) uv.push(p[2] * sc, p[1] * sc); else if (ax === 1) uv.push(p[0] * sc, p[2] * sc); else uv.push(p[0] * sc, p[1] * sc); }
       g.quad(q[0], q[1], q[2], q[3], n, uv, col);
+      // também do lado de trás: a rampa aparece de qualquer ângulo (antes, vista de um dos lados, sumia: "escada invisível")
+      const ub = []; for (let k = 3; k >= 0; k--) ub.push(uv[k * 2], uv[k * 2 + 1]);
+      g.quad(q[3], q[2], q[1], q[0], n.map((v) => -v), ub, col.map((c) => c * 0.8));
     };
-    face([P(0, 0, y0), P(0, 1, y0), P(1, 1, y1), P(1, 0, y1)]); // superfície lisa
+    face([P(0, 0, y0), P(0, 1, y0), P(1, 1, y1), P(1, 0, y1)], true); // superfície lisa
     face([P(1, 0, y0), P(1, 1, y0), P(1, 1, y1), P(1, 0, y1)]); // frente alta
     face([P(0, 0, y0), P(1, 0, y0), P(1, 0, y1), P(1, 0, y1)]); // laterais (triângulos)
     face([P(0, 1, y0), P(1, 1, y0), P(1, 1, y1), P(1, 1, y1)]);
@@ -4519,46 +4540,68 @@ const Sfx = (() => {
     } catch (e) { ctx = null; }
   }
   function setVolume(v) { vol = v; if (master) master.gain.value = v; if (gun) gun.out.gain.value = v * 1.15; }
-  // ------------------------------------------------------------ tiros (sem silenciador): canal próprio, alto e limpo
-  // estalo seco (agudo) + estouro do disparo + grave do impacto + eco do ambiente; um limitador segura o volume sem abafar
+  // ------------------------------------------------------------ tiros (sem silenciador): alto e limpo, e leve para o celular
+  // Cada arma é gravada uma vez (estalo seco + estouro + grave + eco do ambiente) numa renderização offline; cada tiro só
+  // toca essa gravação (4 nós de áudio). Limite de tiros soando juntos e corte de tiros muito longe, para o áudio nunca engasgar.
   function gunBus() {
-    const sat = ctx.createWaveShaper(), n = 2048, c = new Float32Array(n);
-    for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(2.2 * x) / Math.tanh(2.2); } // saturação leve: tiro "estoura"
-    sat.curve = c; sat.oversample = '4x';
     const outG = ctx.createGain(); outG.gain.value = vol * 1.15;
-    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -4; lim.knee.value = 2; lim.ratio.value = 20; lim.attack.value = 0.0008; lim.release.value = 0.09;
-    sat.connect(outG); outG.connect(lim); lim.connect(ctx.destination);
-    // eco/reverberação do ambiente (resposta ao impulso gerada aqui)
-    const len = Math.floor(ctx.sampleRate * 1.6), ir = ctx.createBuffer(2, len, ctx.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = ir.getChannelData(ch); let lp = 0;
-      for (let i = 0; i < len; i++) {
-        const t = i / ctx.sampleRate, slap = t > 0.07 && t < 0.11 ? 2.2 : 1; // reflexo de parede/prédio
-        lp += (Math.random() * 2 - 1 - lp) * (0.55 - 0.4 * Math.min(1, t / 1.2)); // vai ficando mais grave no fim
-        d[i] = lp * Math.pow(1 - i / len, 3.2) * slap * 0.9;
-      }
-    }
-    const rev = ctx.createConvolver(); rev.buffer = ir; rev.normalize = true;
-    const revG = ctx.createGain(); revG.gain.value = 0.9; rev.connect(revG); revG.connect(outG);
-    return { sat, out: outG, rev };
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -4; lim.knee.value = 2; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.1;
+    outG.connect(lim); lim.connect(ctx.destination);
+    const g = { out: outG, buf: {}, live: 0 };
+    renderGuns(g);
+    return g;
   }
-  // perfil de cada arma: estalo (agudo), estouro (faixa média), grave, cauda e mecanismo
+  // perfil de cada arma: estalo (agudo), estouro (faixa média), grave, cauda, eco e mecanismo; vol = volume final da arma
   const GUN = {
-    pistol: { ck: 0.9, ckF: 3200, bd: 0.85, bdF: 1500, bdQ: 0.9, bdT: 0.075, bm: 0.7, b0: 165, b1: 60, bmT: 0.09, tl: 0.32, tlT: 0.32, rv: 0.3, mech: 0.12 },
-    deagle: { ck: 1.1, ckF: 2600, bd: 1.0, bdF: 950, bdQ: 0.8, bdT: 0.12, bm: 1.0, b0: 120, b1: 42, bmT: 0.16, tl: 0.5, tlT: 0.6, rv: 0.42, mech: 0.1 },
-    ak47: { ck: 1.0, ckF: 2400, bd: 1.0, bdF: 1050, bdQ: 0.8, bdT: 0.1, bm: 0.95, b0: 125, b1: 45, bmT: 0.12, tl: 0.42, tlT: 0.5, rv: 0.38, mech: 0.16 },
-    m4a1: { ck: 1.05, ckF: 3400, bd: 0.95, bdF: 1400, bdQ: 0.9, bdT: 0.085, bm: 0.8, b0: 145, b1: 55, bmT: 0.1, tl: 0.38, tlT: 0.45, rv: 0.35, mech: 0.14 },
-    smg: { ck: 0.85, ckF: 3600, bd: 0.8, bdF: 1800, bdQ: 1.0, bdT: 0.06, bm: 0.6, b0: 175, b1: 70, bmT: 0.07, tl: 0.28, tlT: 0.28, rv: 0.28, mech: 0.13 },
-    doze: { ck: 1.0, ckF: 2000, bd: 1.15, bdF: 700, bdQ: 0.7, bdT: 0.16, bm: 1.15, b0: 95, b1: 36, bmT: 0.2, tl: 0.6, tlT: 0.8, rv: 0.45, mech: 0 },
-    maverick: { ck: 1.0, ckF: 1900, bd: 1.2, bdF: 650, bdQ: 0.7, bdT: 0.17, bm: 1.2, b0: 90, b1: 34, bmT: 0.22, tl: 0.62, tlT: 0.85, rv: 0.45, mech: 0 },
-    sniper: { ck: 1.3, ckF: 2800, bd: 1.15, bdF: 800, bdQ: 0.7, bdT: 0.17, bm: 1.3, b0: 85, b1: 30, bmT: 0.28, tl: 0.75, tlT: 1.3, rv: 0.55, mech: 0 },
+    pistol: { ck: 0.9, ckF: 3200, bd: 0.85, bdF: 1500, bdQ: 0.9, bdT: 0.075, bm: 0.7, b0: 165, b1: 60, bmT: 0.09, tl: 0.32, tlT: 0.32, rv: 0.3, mech: 0.12, vol: 0.8 },
+    deagle: { ck: 1.1, ckF: 2600, bd: 1.0, bdF: 950, bdQ: 0.8, bdT: 0.12, bm: 1.0, b0: 120, b1: 42, bmT: 0.16, tl: 0.5, tlT: 0.6, rv: 0.42, mech: 0.1, vol: 0.95 },
+    ak47: { ck: 1.0, ckF: 2400, bd: 1.0, bdF: 1050, bdQ: 0.8, bdT: 0.1, bm: 0.95, b0: 125, b1: 45, bmT: 0.12, tl: 0.42, tlT: 0.5, rv: 0.38, mech: 0.16, vol: 0.92 },
+    m4a1: { ck: 1.05, ckF: 3400, bd: 0.95, bdF: 1400, bdQ: 0.9, bdT: 0.085, bm: 0.8, b0: 145, b1: 55, bmT: 0.1, tl: 0.38, tlT: 0.45, rv: 0.35, mech: 0.14, vol: 0.88 },
+    smg: { ck: 0.85, ckF: 3600, bd: 0.8, bdF: 1800, bdQ: 1.0, bdT: 0.06, bm: 0.6, b0: 175, b1: 70, bmT: 0.07, tl: 0.28, tlT: 0.28, rv: 0.28, mech: 0.13, vol: 0.8 },
+    doze: { ck: 1.0, ckF: 2000, bd: 1.15, bdF: 700, bdQ: 0.7, bdT: 0.16, bm: 1.15, b0: 95, b1: 36, bmT: 0.2, tl: 0.6, tlT: 0.8, rv: 0.45, mech: 0, vol: 1 },
+    maverick: { ck: 1.0, ckF: 1900, bd: 1.2, bdF: 650, bdQ: 0.7, bdT: 0.17, bm: 1.2, b0: 90, b1: 34, bmT: 0.22, tl: 0.62, tlT: 0.85, rv: 0.45, mech: 0, vol: 1 },
+    sniper: { ck: 1.3, ckF: 2800, bd: 1.15, bdF: 800, bdQ: 0.7, bdT: 0.17, bm: 1.3, b0: 85, b1: 30, bmT: 0.28, tl: 0.75, tlT: 1.3, rv: 0.55, mech: 0, vol: 1 },
   };
-  function burst(t, dur, type, freq, q, gain, dest, atk = 0.0005) { // ruído filtrado com ataque instantâneo
-    const s = ctx.createBufferSource(); s.buffer = noiseBuf;
-    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + atk); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
-    s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * 0.8); s.stop(t + dur + 0.05);
+  // grava cada arma em duas versões: perto (seca e brilhante) e longe (abafada pela distância, mais eco)
+  function renderGuns(g) {
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!OAC) return;
+    const SR = ctx.sampleRate || 44100;
+    for (const w in GUN) for (const far of [0, 1]) {
+      const P = GUN[w], len = Math.ceil(SR * (far ? 2.2 : 1.6));
+      let oc; try { oc = new OAC(2, len, SR); } catch (e) { return; }
+      const nb = oc.createBuffer(1, SR, SR), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+      const sat = oc.createWaveShaper(), n = 1024, c = new Float32Array(n);
+      for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(2.2 * x) / Math.tanh(2.2); } // estouro levemente saturado
+      sat.curve = c; sat.connect(oc.destination);
+      const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = far ? 2600 : 19000; lp.Q.value = 0.5;
+      const dry = oc.createGain(); dry.gain.value = far ? 0.5 : 1; lp.connect(dry); dry.connect(sat);
+      // eco do ambiente (resposta ao impulso com reflexo de parede)
+      const il = Math.floor(SR * 1.6), ir = oc.createBuffer(2, il, SR);
+      for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); let q = 0; for (let i = 0; i < il; i++) { const t = i / SR; q += (Math.random() * 2 - 1 - q) * (0.55 - 0.4 * Math.min(1, t / 1.2)); d[i] = q * Math.pow(1 - i / il, 3.2) * (t > 0.07 && t < 0.11 ? 2.2 : 1) * 0.9; } }
+      const rev = oc.createConvolver(); rev.buffer = ir; const wet = oc.createGain(); wet.gain.value = P.rv * (far ? 2.0 : 0.6); lp.connect(rev); rev.connect(wet); wet.connect(sat);
+      const t = 0.002;
+      const burst = (dur, type, freq, q, gain, atk = 0.0005) => {
+        const s = oc.createBufferSource(); s.buffer = nb; const f = oc.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+        const e = oc.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(gain, t + atk); e.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+        s.connect(f); f.connect(e); e.connect(lp); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
+      };
+      burst(0.012, 'highpass', P.ckF, 0.7, P.ck); burst(0.02, 'bandpass', 5200, 0.6, P.ck * 0.55); burst(P.bdT, 'bandpass', P.bdF, P.bdQ, P.bd, 0.0012); burst(P.tlT, 'lowpass', 1400, 0.5, P.tl, 0.003);
+      const o = oc.createOscillator(), og = oc.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(P.b0, t); o.frequency.exponentialRampToValueAtTime(P.b1, t + P.bmT);
+      og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(P.bm, t + 0.002); og.gain.exponentialRampToValueAtTime(0.0005, t + P.bmT); o.connect(og); og.connect(lp); o.start(t); o.stop(t + P.bmT + 0.05);
+      if (P.mech && !far) { const s2 = oc.createBufferSource(); s2.buffer = nb; const f2 = oc.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 3800; f2.Q.value = 4; const e2 = oc.createGain(); e2.gain.setValueAtTime(0.0001, t + 0.03); e2.gain.exponentialRampToValueAtTime(P.mech, t + 0.0305); e2.gain.exponentialRampToValueAtTime(0.0005, t + 0.05); s2.connect(f2); f2.connect(e2); e2.connect(lp); s2.start(t + 0.03, 0.2); s2.stop(t + 0.1); }
+      const key = w + (far ? '_far' : '');
+      oc.startRendering().then((b) => { // normaliza: todas as armas no mesmo nível de pico, ajustado pelo volume de cada uma
+        let pk = 0; for (let ch = 0; ch < b.numberOfChannels; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < d.length; i++) { const v = Math.abs(d[i]); if (v > pk && isFinite(v)) pk = v; } }
+        if (!(pk > 0)) return; const k = 0.95 * P.vol / pk;
+        for (let ch = 0; ch < b.numberOfChannels; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < d.length; i++) d[i] = isFinite(d[i]) ? d[i] * k : 0; }
+        g.buf[key] = b;
+      }).catch(() => {});
+    }
   }
+  // áudio parado pelo celular (ligação, outro app, engasgo): religa sozinho
+  function keepAlive() { if (ctx && ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume().catch(() => {}); }
+  setInterval(keepAlive, 1500);
+  ['pointerdown', 'touchstart', 'keydown'].forEach((ev) => window.addEventListener(ev, keepAlive, { passive: true, capture: true }));
   // ------------------------------------------------------------ música de suspense (login e menus)
   // Gerada em tempo real: zumbido grave, batida lenta de coração, acordes sombrios e notas de sino com eco.
   const Music = {
@@ -4658,25 +4701,20 @@ const Sfx = (() => {
   // dist em metros, pan -1..1
   function shot(w, dist = 0, pan = 0) {
     if (!ctx || !gun) return;
-    const P = GUN[w] || GUN.m4a1, r = 0.96 + Math.random() * 0.08; // pequena variação: cada tiro soa um pouco diferente
-    const t = ctx.currentTime + Math.min(0.25, dist / 343); // o som chega com a velocidade do som
-    const att = 1 / (1 + dist * 0.035), far = Math.min(1, dist / 80);
-    // caminho seco: posição (estéreo) e perda de agudos com a distância
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.max(1800, 20000 / (1 + dist * 0.06)); lp.Q.value = 0.5;
-    const dry = ctx.createGain(); dry.gain.value = att;
-    let node = lp; if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan || 0)) * 0.85; lp.connect(p); node = p; }
-    node.connect(dry); dry.connect(gun.sat);
-    // eco: de longe ouve-se mais o ambiente que o tiro
-    const wet = ctx.createGain(); wet.gain.value = P.rv * (0.6 + far * 1.4) * Math.max(0.25, att * 1.6); lp.connect(wet); wet.connect(gun.rev);
-    burst(t, 0.012, 'highpass', P.ckF * r, 0.7, P.ck, lp);                // estalo da bala/boca do cano
-    burst(t, 0.02, 'bandpass', 5200 * r, 0.6, P.ck * 0.55, lp);           // brilho do estampido
-    burst(t, P.bdT, 'bandpass', P.bdF * r, P.bdQ, P.bd, lp, 0.0012);      // estouro do disparo
-    burst(t, P.tlT, 'lowpass', 1400 * r, 0.5, P.tl, lp, 0.003);           // rajada de gás/cauda
-    const o = ctx.createOscillator(), og = ctx.createGain();               // grave (pressão)
-    o.type = 'sine'; o.frequency.setValueAtTime(P.b0 * r, t); o.frequency.exponentialRampToValueAtTime(P.b1, t + P.bmT);
-    og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(P.bm, t + 0.002); og.gain.exponentialRampToValueAtTime(0.0005, t + P.bmT);
-    o.connect(og); og.connect(lp); o.start(t); o.stop(t + P.bmT + 0.05);
-    if (P.mech && dist < 25) burst(t + 0.03, 0.02, 'bandpass', 3800, 4, P.mech * att, lp); // ferrolho voltando (só de perto)
+    dist = isFinite(dist) ? Math.max(0, dist) : 0; pan = isFinite(pan) ? pan : 0;
+    if (dist > 170) return; // muito longe: não se ouve
+    const near = dist < 45, b = gun.buf[(GUN[w] ? w : 'm4a1') + (near ? '' : '_far')] || gun.buf[GUN[w] ? w : 'm4a1'];
+    if (!b) return; // gravações ainda sendo preparadas (primeiro segundo)
+    if (gun.live >= (dist < 20 ? 14 : 9)) return; // muitos tiros soando juntos: corta os de longe primeiro
+    const att = 1 / (1 + dist * 0.035);
+    const s = ctx.createBufferSource(); s.buffer = b; s.playbackRate.value = 0.97 + Math.random() * 0.06; // cada tiro um pouco diferente
+    const gn = ctx.createGain(); gn.gain.value = att;
+    let node = s;
+    if (!near) { const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.max(1500, 9000 / (1 + (dist - 45) * 0.03)); s.connect(lp); node = lp; }
+    node.connect(gn);
+    if (ctx.createStereoPanner && pan) { const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)) * 0.85; gn.connect(p); p.connect(gun.out); } else gn.connect(gun.out);
+    gun.live++; s.onended = () => { gun.live--; try { s.disconnect(); gn.disconnect(); } catch (e) { /* ok */ } };
+    s.start(ctx.currentTime + Math.min(0.25, dist / 343)); // o som chega com a velocidade do som
   }
   function click(t, f = 2500, g = 0.25) { noise(t, 0.035, f, 3, g, 'bandpass'); }
   function reload(w, dur) {
@@ -4705,7 +4743,7 @@ const Sfx = (() => {
       o.connect(lp); lp.connect(g); g.connect(master); o.start(t + d); o.stop(t + d + 0.85);
     }
   }
-  return { ctx: () => ctx, init, music, setMusicVolume, setVolume, horn, shot, reload, pump, empty, hit, hurt, step, land, med, heal, ui, pick, levelUp };
+  return { ctx: () => ctx, gunInfo: () => (gun ? { ready: Object.keys(gun.buf).length, live: gun.live } : null), init, music, setMusicVolume, setVolume, horn, shot, reload, pump, empty, hit, hurt, step, land, med, heal, ui, pick, levelUp };
 })();
 
 </script>
@@ -5251,7 +5289,7 @@ const Voice = (() => {
       switch (m.t) {
         case 'joined':
           this.myId = m.pid; this.room = m.room; this.mode = m.room.mode;
-          this.map = S.mapFor(this.mode, m.room.map); this.dyn = []; this.carSnaps = []; this.myCar = null; this.carList = []; this._carO = []; S.useMap(this.map, this.dyn, this.carList); mapItems(this.map);
+          this.map = S.mapFor(this.mode, m.room.map); this.dyn = []; this.carSnaps = []; this.myCar = null; this.carList = []; this._carO = []; this._mk = null; this._ab = null; this._propM = null; /* posições de kits, munição e casas do mapa novo (antes ficavam as do mapa anterior) */ S.useMap(this.map, this.dyn, this.carList); mapItems(this.map);
           this.train = this.map.train ? { x: this.map.train.x0, t: now(), moving: false } : null;
           $('sca').parentNode.className = 'top' + (S.isFFA(this.mode) ? ' ffa' : '');
           if (m.room.code) chatSys(`Sala <b>${esc(m.room.name)}</b> · ID <b>${esc(m.room.code)}</b> — envie para seus amigos!`);
@@ -6527,6 +6565,7 @@ const Voice = (() => {
     { id: 'sprint', ic: 'sprint', x: 0.225, y: 0.56, s: 58, cls: 'run' }, // liga/desliga a corrida
     { id: 'med', ic: 'med', x: 0.34, y: 0.87, s: 56, badge: 'medb' },
     { id: 'grab', label: 'PEGAR', x: 0.62, y: 0.62, s: 66, cls: 'grab' },
+    { id: 'joyz', label: 'ANALÓGICO', x: 0, ox: 70, y: 1, oy: -70, s: 120, cls: 'joyb', editOnly: true }, // analógico: posição e tamanho ajustáveis no PERSONALIZAR
     { id: 'vault', ic: 'vault', x: 0.955, y: 0.5, s: 62, cls: 'vaultb', noedit: true }, // de frente para uma janela: aparece no lugar do PULAR
     { id: 'gear', ic: 'gear', x: 1, ox: -32, y: 0, oy: 31, s: 42, cls: 'gear' }, // configurações (substitui o pausar)
     { id: 'spk', ic: 'spk', x: 0, ox: 146, y: 0, oy: 26, s: 36, cls: 'vbtn' }, // ouvir a equipe (liga/desliga)
@@ -6549,9 +6588,10 @@ const Voice = (() => {
     build(container, edit) {
       for (const b of TBTNS) {
         if (edit && b.noedit) continue; // botão de janela segue o PULAR: não aparece no editor
+        if (!edit && b.editOnly) continue; // analógico: no jogo é a área do dedo (posicionada por placeJoy)
         const c = Object.assign({}, b, CFG.btns[b.id] || {});
         const el = document.createElement('div'); el.className = 'tbtn ' + (b.cls || '') + (b.ic ? ' ic' : ''); el.dataset.id = b.id;
-        if (b.ic) el.innerHTML = IC[b.ic] + (b.badge ? `<b class="bdg"${edit ? '' : ` id="${b.badge}"`}>2</b>` : ''); else el.textContent = b.label;
+        if (b.id === 'joyz') el.innerHTML = '<i></i><span>ANALÓGICO</span>'; else if (b.ic) el.innerHTML = IC[b.ic] + (b.badge ? `<b class="bdg"${edit ? '' : ` id="${b.badge}"`}>2</b>` : ''); else el.textContent = b.label;
         const s = b.s * (c.k || 1), saved = CFG.btns[b.id];
         const L0 = saved ? c.x * 100 + '%' : b.ox ? `calc(${c.x * 100}% + ${b.ox}px)` : c.x * 100 + '%', T0 = saved ? c.y * 100 + '%' : b.oy ? `calc(${c.y * 100}% + ${b.oy}px)` : c.y * 100 + '%';
         Object.assign(el.style, { left: L0, top: T0, width: s + 'px', height: s + 'px' });
@@ -6560,7 +6600,19 @@ const Voice = (() => {
       }
     },
   };
-  Touch.build($('touch'));
+  // analógico no lugar escolhido no PERSONALIZAR (centro e tamanho); sem escolha, fica no canto como antes
+  function joyCfg() {
+    const c = CFG.btns.joyz, k = (c && c.k) || 1;
+    const x = c ? c.x * VW() : 70 + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sal')) || 0);
+    const y = c ? c.y * VH() : VH() - 70 - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab')) || 0);
+    return { x, y, k, set: !!c };
+  }
+  function placeJoy() {
+    const j = joyCfg(), h = $('joyhint'), s = 110 * j.k;
+    Object.assign(h.style, { left: j.x + 'px', top: j.y + 'px', bottom: 'auto', width: s + 'px', height: s + 'px', margin: -s / 2 + 'px' });
+    const jj = $('joy'), s2 = 130 * j.k; Object.assign(jj.style, { width: s2 + 'px', height: s2 + 'px', margin: -s2 / 2 + 'px' });
+  }
+  Touch.build($('touch')); setTimeout(placeJoy, 0); addEventListener('resize', () => setTimeout(placeJoy, 50));
   $('radar').addEventListener('click', () => Game.toggleMap(true));
   $('brleap').addEventListener('click', () => Game.leap()); $('brx').addEventListener('click', () => pause()); $('brleap').addEventListener('touchstart', (e) => { e.preventDefault(); Game.leap(); }, { passive: false }); $('bigmap').addEventListener('click', () => Game.toggleMap(false));
   // ---- rotação de tela: converte coordenadas da tela para o espaço (possivelmente girado) do jogo
@@ -6785,9 +6837,10 @@ const Voice = (() => {
       }
       if (e.target !== cv && !$('touch').contains(e.target)) continue;
       e.preventDefault();
-      if (lx(t) < VW() * 0.42 && Touch.joyId === null && !(Game.active && Game.local.car)) { // no carro o analógico some (só botões)
+      if ((lx(t) < VW() * 0.42 || Math.hypot(lx(t) - joyCfg().x, ly(t) - joyCfg().y) < 85 * joyCfg().k) && Touch.joyId === null && !(Game.active && Game.local.car)) { // no carro o analógico some (só botões)
         Touch.joyId = t.identifier; Touch.joyO = [lx(t), ly(t)];
-        const j = $('joy'); j.style.display = 'block'; j.style.left = lx(t) + 'px'; j.style.top = ly(t) + 'px'; j.firstChild.style.transform = '';
+        const jc = joyCfg(); if (Math.hypot(lx(t) - jc.x, ly(t) - jc.y) < 85 * jc.k) Touch.joyO = [jc.x, jc.y]; // perto do analógico: fica fixo no lugar dele
+        const j = $('joy'); j.style.display = 'block'; j.style.left = Touch.joyO[0] + 'px'; j.style.top = Touch.joyO[1] + 'px'; j.firstChild.style.transform = '';
       } else Touch.look.set(t.identifier, [lx(t), ly(t), null]);
     }
   }
@@ -6796,7 +6849,7 @@ const Voice = (() => {
     for (const t of e.changedTouches) {
       if (t.identifier === Touch.joyId) {
         e.preventDefault();
-        let dx = lx(t) - Touch.joyO[0], dy = ly(t) - Touch.joyO[1]; const l = Math.hypot(dx, dy), R0 = 55;
+        let dx = lx(t) - Touch.joyO[0], dy = ly(t) - Touch.joyO[1]; const l = Math.hypot(dx, dy), R0 = 55 * joyCfg().k;
         if (l > R0) { dx *= R0 / l; dy *= R0 / l; }
         Touch.joy = [dx / R0, dy / R0]; // analógico só anda (correr é no botão CORRER)
         $('joy').firstChild.style.transform = `translate(${dx}px,${dy}px)`;
@@ -6840,27 +6893,42 @@ const Voice = (() => {
     ed.onpointerup = () => { drag = null; };
   }
   $('esize').oninput = () => { if (!editSel) return; const b = TBTNS.find((x) => x.id === editSel.dataset.id); const s = b.s * $('esize').value; editSel.style.width = editSel.style.height = s + 'px'; editSel._k = +$('esize').value; };
-  $('ereset').onclick = () => { CFG.btns = {}; saveSet(); openEditor(); };
+  $('ereset').onclick = () => { CFG.btns = {}; saveSet(); openEditor(); placeJoy(); };
   $('esave').onclick = () => {
     $('edit').querySelectorAll('.tbtn').forEach((el) => {
       const id = el.dataset.id, prev = CFG.btns[id] || {};
       const ed = $('edit'); CFG.btns[id] = { x: el.offsetLeft / (ed.clientWidth || VW()), y: el.offsetTop / (ed.clientHeight || VH()), k: el._k || prev.k || 1 };
     });
     saveSet(); $('edit').style.display = 'none';
-    $('touch').querySelectorAll('.tbtn').forEach((e) => e.remove()); Touch.els = {}; Touch.build($('touch'));
+    $('touch').querySelectorAll('.tbtn').forEach((e) => e.remove()); Touch.els = {}; Touch.build($('touch')); placeJoy();
     toast('Layout dos botões salvo.');
   };
 
   // ================================================================ telas / menus
   let curScreen = 'menu', settingsBack = 'menu';
   function hideScreens() { document.querySelectorAll('.scr').forEach((s) => s.classList.remove('on')); }
+  // prepara com o celular parado no menu: caminhos dos bots de todos os mapas e o mapa 3D do modo escolhido (partida começa na hora)
+  function prewarmNav() {
+    const ids = Object.keys(S.MAPS); let i = 0;
+    const step = () => {
+      if (Game.active) return; if (i >= ids.length) return;
+      try { const m = S.MAPS[ids[i++]]; if (!m.nav) { S.useMap(m, [], []); S.buildNav(); } } catch (e) { /* ok */ }
+      setTimeout(step, 120);
+    };
+    setTimeout(step, 1500);
+  }
+  function prewarmSel() {
+    if (Game.active || curScreen !== 'play') return;
+    try { const m = S.mapFor(PL.mode, mapOf(PL.mode)); if (m) mapItems(m); } catch (e) { /* ok */ }
+  }
+  prewarmNav();
   function go(name) {
     Sfx.ui(); if (VK) VK.close(); document.body.classList.remove('setopen');
     if (name === 'settings' && !Game.active) settingsBack = 'menu';
     hideScreens(); curScreen = name;
     const el = $('s-' + (STORE_SCR.includes(name) ? 'shop' : name)); if (el) el.classList.add('on');
     if (name === 'menu') refreshMenu();
-    if (name === 'play') { renderPlay(); autoConnect(); }
+    if (name === 'play') { renderPlay(); autoConnect(); setTimeout(prewarmSel, 300); }
     if (STORE_SCR.includes(name)) { Store.try = null; renderStore(); }
     if (name === 'events') renderEvents();
     if (name === 'wait') renderWait();

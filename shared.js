@@ -1251,14 +1251,31 @@
 
   // ---------------------------------------------------------------- navegação dos bots (grade A*)
   let NAV = null;
+  // mapa de caminhos dos bots: em vez de testar cada ponto contra o mapa (lento no mapa grande), marca a área de cada
+  // caixa de uma vez numa grade de meio metro (os pontos da grade e os meios das ligações) — mesmo resultado, muito mais rápido
   function buildNav() {
     if (MAP.nav) return (NAV = MAP.nav);
     const SXn = MAP.sx - 1.5, SZn = MAP.sz - 1.5, step = 1;
     const ni = Math.floor((2 * SXn) / step) + 1, nj = Math.floor((2 * SZn) / step) + 1, N2 = ni * nj;
     const free = new Uint8Array(N2);
     const px = (i) => -SXn + i * step, pz = (j) => -SZn + j * step;
-    const saveDyn = DYN; DYN = [];
-    for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) free[i * nj + j] = collides(px(i), 0.05, pz(j), C.R + 0.05, C.H - 0.1, true) || waterAt(px(i), pz(j)) ? 0 : 1; // bots não entram no mar
+    const hi = 2 * ni - 1, hj = 2 * nj - 1, blk = new Uint8Array(hi * hj), r = C.R + 0.05, y = 0.05, h = C.H - 0.1;
+    for (const b of SOL) {
+      if (!(y + h > b[1] && y < b[4])) continue;
+      const a0 = Math.max(0, Math.floor((b[0] - r + SXn) * 2) - 1), a1 = Math.min(hi - 1, Math.ceil((b[3] + r + SXn) * 2) + 1);
+      const c0 = Math.max(0, Math.floor((b[2] - r + SZn) * 2) - 1), c1 = Math.min(hj - 1, Math.ceil((b[5] + r + SZn) * 2) + 1);
+      const ramp = b[6] === 'ramp';
+      for (let a = a0; a <= a1; a++) {
+        const x = -SXn + a / 2; if (!(x + r > b[0] && x - r < b[3])) continue;
+        for (let c = c0; c <= c1; c++) {
+          const z = -SZn + c / 2; if (!(z + r > b[2] && z - r < b[5])) continue;
+          if (ramp && !(y < rampTop(b, x, z, r) - 0.001)) continue;
+          blk[a * hj + c] = 1;
+        }
+      }
+    }
+    const bk = (a, c) => blk[a * hj + c];
+    for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) free[i * nj + j] = bk(2 * i, 2 * j) || waterAt(px(i), pz(j)) ? 0 : 1; // bots não entram no mar
     const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
     const edges = new Uint8Array(N2); // bitmask
     for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++) {
@@ -1268,13 +1285,11 @@
         const a = i + DIRS[d][0], c = j + DIRS[d][1];
         if (a < 0 || c < 0 || a >= ni || c >= nj || !free[a * nj + c]) continue;
         if (d >= 4 && (!free[a * nj + j] || !free[i * nj + c])) continue;
-        const mx = (px(i) + px(a)) / 2, mz = (pz(j) + pz(c)) / 2;
-        if (collides(mx, 0.05, mz, C.R + 0.05, C.H - 0.1)) continue;
+        if (bk(i + a, j + c)) continue; // meio da ligação
         m |= 1 << d;
       }
       edges[id] = m;
     }
-    DYN = saveDyn;
     const freeList = [];
     for (let id = 0; id < N2; id++) if (free[id] && edges[id]) freeList.push(id);
     NAV = MAP.nav = { ni, nj, n: nj, step, free, edges, DIRS, px, pz, freeList, g: new Float32Array(N2), came: new Int32Array(N2), mark: new Uint32Array(N2), gen: 0, heap: new Int32Array(N2 + 8), hf: new Float32Array(N2 + 8), sxn: SXn, szn: SZn };
