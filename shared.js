@@ -19,6 +19,7 @@
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
     MEDKITS_START: 2, MEDKITS_MAX: 3, SWITCH: 0.45, INTERP: 0.1,
     SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, AMMO_BOX: 30, AMMO_RESPAWN: 25, BR_BUSCA: 15, BR_LOBBY: 20,
+    PLANE_Y: 150, PLANE_V: 34, FALL_V: 32, FALL_H: 13, PARA_V: 5.5, PARA_H: 7.5, AUTO_OPEN: 24, // avião, queda livre e paraquedas
   };
   const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8 };
   // pulo de janela (animação "Big Jump" do Mixamo): quadros usados, onde o corpo cruza a parede e o avanço do quadril por quadro
@@ -1126,6 +1127,23 @@
     p.onGround = f < 13 || f > 44;
     if (f >= VAULT.K1) { p.vault = null; p.vx = p.vz = 0; p.onGround = true; if (collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = true; }
   }
+  // queda livre (rápida, direção pelo analógico) e paraquedas (lento, plana); abre tocando no botão ou sozinho perto do chão
+  function skyStep(p, inp, b, dt) {
+    let f = clamp(num(inp.f), -1, 1), s = clamp(num(inp.s), -1, 1); const len = Math.hypot(f, s); if (len > 1) { f /= len; s /= len; }
+    const ground = floorAt(p.x, p.z, p.y + 0.5);
+    if (p.sky === 1 && ((b & BTN.JUMP) || p.y - ground < C.AUTO_OPEN)) p.sky = 2; // abre o paraquedas
+    const H = p.sky === 1 ? C.FALL_H : C.PARA_H, V = p.sky === 1 ? -C.FALL_V : -C.PARA_V;
+    const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
+    const wx = (-sy * f + cy * s) * H, wz = (-cy * f - sy * s) * H, k = Math.min(1, dt * 2.2);
+    p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k; p.vy += (V - p.vy) * Math.min(1, dt * (p.sky === 2 ? 3 : 1.2));
+    p.crouch = false; p.sprint = false; p.ads = false; p.onGround = false;
+    const m = MAP, h = C.H;
+    let nx = clamp(p.x + p.vx * dt, -m.sx + 2, m.sx - 2); if (!collides(nx, p.y, p.z, C.R, h)) p.x = nx; else p.vx = 0;
+    let nz = clamp(p.z + p.vz * dt, -m.sz + 2, m.sz - 2); if (!collides(p.x, p.y, nz, C.R, h)) p.z = nz; else p.vz = 0;
+    const ny = p.y + p.vy * dt, hit = collides(p.x, ny, p.z, C.R, h);
+    if (hit) { p.y = Math.max(hit[4], 0) + (hit === GROUND ? 0 : 0.001); p.vy = 0; p.vx *= 0.3; p.vz *= 0.3; p.onGround = true; p.sky = 0; } // pousou
+    else p.y = ny;
+  }
   function applyInput(p, inp) {
     const dt = clamp(num(inp.dt, 0), 0, 0.05);
     p.yaw = num(inp.yaw, p.yaw);
@@ -1139,6 +1157,7 @@
       return;
     }
     if (p.vault) { vaultStep(p, dt); return; } // pulando a janela: a animação conduz o corpo
+    if (p.sky) { skyStep(p, inp, b, dt); return; } // caindo do avião / de paraquedas
     if (b & BTN.CROUCH) p.crouch = true;
     else if (p.crouch && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
     const h = p.crouch ? C.HC : C.H;
@@ -1507,9 +1526,16 @@
       if (this.br) this.brReset();
     }
     brReset() {
-      this.ph = 'busca'; this.phEnd = this.time + this.brT[0]; this.trainStartAt = 0; this.matchTime = 0;
-      for (const p of this.players.values()) { p.alive = false; p.respawnAt = Infinity; p.train = null; }
+      this.ph = 'busca'; this.phEnd = this.time + this.brT[0]; this.trainStartAt = 0; this.matchTime = 0; this.plane = null;
+      for (const p of this.players.values()) { p.alive = false; p.respawnAt = Infinity; p.plane = false; p.sky = 0; }
     }
+    // rota do avião: atravessa o mapa numa linha sorteada, a 150 m de altura, e some do outro lado
+    makePlane() {
+      const m = this.map, a = Math.random() * Math.PI * 2, dx = Math.cos(a), dz = Math.sin(a);
+      const cx = (Math.random() - 0.5) * m.sx * 0.7, cz = (Math.random() - 0.5) * m.sz * 0.7, L = Math.hypot(m.sx, m.sz) + 40;
+      return { x0: cx - dx * L, z0: cz - dz * L, dx, dz, t0: this.time, dur: (2 * L) / C.PLANE_V, yaw: Math.atan2(-dx, -dz) };
+    }
+    planePos() { const P = this.plane, d = (this.time - P.t0) * C.PLANE_V; return [P.x0 + P.dx * d, P.z0 + P.dz * d]; }
     // pontos do lobby: todos juntos ao lado do trem parado no depósito
     lobbySpot(i) {
       const col = i % 6, row = Math.floor(i / 6) % 5;
@@ -1518,43 +1544,39 @@
     lobbySpawn(p, i) {
       this.spawn(p);
       const [x, y, z] = this.lobbySpot(i); p.x = x + (Math.random() - 0.5) * 0.4; p.y = y; p.z = z; p.yaw = Math.PI / 2;
-      p.spawnProt = this.phEnd + 999; p.train = null;
+      p.spawnProt = this.phEnd + 999; p.plane = false; p.sky = 0;
     }
-    // embarca: cada jogador num lugar dentro de um vagão (2 fileiras de 5 por vagão)
-    board(p, i) {
-      const tr = this.map.train, car = Math.floor(i / 10) % tr.cars, k = i % 10;
-      p.train = { off: car * (tr.len + tr.gap) + 3 + (k >> 1) * 3.4, dz: (k & 1 ? 0.55 : -0.55) };
-      p.x = this.trainX - p.train.off; p.y = tr.y0 + 0.02; p.z = tr.z + p.train.dz; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
-      p.spawnProt = Infinity; p.yaw = -Math.PI / 2;
+    // embarca no avião (todos na cabine; a câmera fica atrás do avião)
+    board(p) {
+      const [x, z] = this.planePos();
+      p.plane = true; p.sky = 0; p.x = x; p.z = z; p.y = C.PLANE_Y - 1.5; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      p.spawnProt = Infinity; p.yaw = this.plane.yaw; p.car = null;
     }
-    // pula do trem: cai do lado (de acordo com o lado do lugar), sem ficar dentro de parede
+    // pula do avião: começa em queda livre um pouco atrás da cauda
     leap(p) {
-      if (!p.train) return;
-      const tr = this.map.train, side = p.train.dz >= 0 ? 1 : -1;
-      p.train = null;
-      let best = null;
-      for (const dx of [0, 1.5, -1.5, 3, -3, 5, -5]) for (const sd of [side, -side]) {
-        const x = p.x + dx, z = tr.z + sd * (tr.hw + C.R + 0.6);
-        if (!collides(x, 0.6, z, C.R, C.H)) { best = [x, z, sd]; break; }
-      }
-      if (!best) best = [p.x, tr.z + side * (tr.hw + 1.2), side];
-      p.x = best[0]; p.z = best[1]; p.y = 0.6; p.vx = 0; p.vz = best[2] * 3; p.vy = 4; p.onGround = false;
-      p.spawnProt = this.time + 2.5;
+      if (!p.plane) return;
+      const [x, z] = this.planePos(), P = this.plane, m = this.map, back = 6 + Math.random() * 3, side = (Math.random() - 0.5) * 4;
+      p.plane = false; p.sky = 1;
+      p.x = clamp(x - P.dx * back - P.dz * side, -m.sx + 4, m.sx - 4); p.z = clamp(z - P.dz * back + P.dx * side, -m.sz + 4, m.sz - 4); p.y = C.PLANE_Y - 4;
+      p.vx = P.dx * 6; p.vz = P.dz * 6; p.vy = -4; p.onGround = false; p.spawnProt = Infinity; p.dropping = true;
       this.events.push({ e: 'leap', id: p.id });
     }
     brTick() {
       const n = this.players.size;
       if (!n) { if (this.ph !== 'busca') this.brReset(); else this.phEnd = this.time + this.brT[0]; return; }
-      if ((this.ph === 'busca' || this.ph === 'lobby') && this.time >= this.phEnd) { // achou jogadores: todos direto para o trem
-        this.ph = 'trem'; this.trainStartAt = this.time; let i = 0;
-        for (const p of this.players.values()) { if (!p.alive) this.spawn(p); this.board(p, i++); }
-        this.events.push({ e: 'br', ph: 'trem' });
-      } else if (this.ph === 'trem') {
-        const tr = this.map.train;
-        this.phEnd = this.time + Math.max(0, (tr.x1 - this.trainX) / tr.speed);
-        if (this.trainX >= tr.x1 - 0.01) { // chegou: quem não pulou desce na estação
-          for (const p of this.players.values()) if (p.train) this.leap(p);
-          this.ph = 'livre'; this.matchTime = 0; this.events.push({ e: 'br', ph: 'livre' });
+      if ((this.ph === 'busca' || this.ph === 'lobby') && this.time >= this.phEnd) { // achou jogadores: todos no avião (o trem segue andando no mapa, vazio)
+        this.ph = 'aviao'; this.trainStartAt = this.time; this.plane = this.makePlane();
+        for (const p of this.players.values()) { if (!p.alive) this.spawn(p); this.board(p); }
+        this.events.push({ e: 'br', ph: 'aviao' });
+      } else if (this.ph === 'aviao') {
+        const P = this.plane; this.phEnd = P.t0 + P.dur;
+        const [x, z] = this.planePos();
+        for (const p of this.players.values()) if (p.plane) { p.x = x; p.z = z; p.y = C.PLANE_Y - 1.5; }
+        // o avião só passa por cima do mapa: quem não pulou é ejetado antes de ele sair
+        const inside = Math.abs(x) < this.map.sx - 6 && Math.abs(z) < this.map.sz - 6, d = (this.time - P.t0) * C.PLANE_V;
+        if (this.time >= P.t0 + P.dur || (!inside && d > (Math.hypot(this.map.sx, this.map.sz) + 40))) {
+          for (const p of this.players.values()) if (p.plane) this.leap(p);
+          this.ph = 'livre'; this.matchTime = 0; this.plane = null; this.events.push({ e: 'br', ph: 'livre' });
         }
       }
     }
@@ -1567,7 +1589,7 @@
       const p = {
         id, name: sanitizeName(info.name), bot: !!info.bot, team, uniform: UNIFORMS[info.uniform] ? info.uniform : 'woodland',
         skin: info.skin != null ? info.skin : id % 4, level: info.level || 1, upgrades: info.upgrades || [], look: sanitizeLook(info.look),
-        weapons: [WEAPONS[lo.primary] && WEAPONS[lo.primary].slot === 0 ? lo.primary : 'smg', WEAPONS[lo.secondary] && WEAPONS[lo.secondary].slot === 1 ? lo.secondary : 'pistol'],
+        weapons: [WEAPONS[lo.primary] && WEAPONS[lo.primary].slot === 0 ? lo.primary : 'smg', null, WEAPONS[lo.secondary] && WEAPONS[lo.secondary].slot === 1 ? lo.secondary : 'pistol'], // arma 1, arma 2 (vazia até pegar) e pistola
         x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: 0, onGround: true, crouch: false, ads: false,
         hp: 100, alive: false, respawnAt: 0, kills: 0, deaths: 0, streak: 0, xp: 0,
         stats: { hs: 0, medUsed: 0, picks: 0, streakMax: 0 },
@@ -1578,7 +1600,7 @@
       this.players.set(id, p);
       if (this.br && this.ph === 'busca') { p.alive = false; p.respawnAt = Infinity; }
       else if (this.br && this.ph === 'lobby') this.lobbySpawn(p, this.players.size - 1);
-      else if (this.br && this.ph === 'trem') { this.spawn(p); this.board(p, this.players.size - 1); }
+      else if (this.br && this.ph === 'aviao') { this.spawn(p); this.board(p); }
       else this.spawn(p);
       this.rosterDirty = true;
       return p;
@@ -1587,7 +1609,7 @@
     // ---- carros: entrar (motorista ou passageiro) e sair
     enterCar(p, id, seat) {
       const c = this.cars[id | 0]; seat = seat ? 1 : 0;
-      if (!c || !p.alive || p.car || p.train || p.medUntil || c.seats[seat]) return;
+      if (!c || !p.alive || p.car || p.plane || p.sky || p.medUntil || c.seats[seat]) return;
       if (Math.hypot(p.x - c.x, p.z - c.z) > 4.2 || p.y > 1.6) return;
       c.seats[seat] = p.id; p.car = c; p.seat = seat; p.reloadUntil = seat === 0 ? 0 : p.reloadUntil; p.ads = false;
       const sp = seatPos(c, seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.crouch = true;
@@ -1686,7 +1708,7 @@
       }
       p.medkits = C.MEDKITS_START + (p.upgrades.includes('medbag') ? 1 : 0);
       p.spawnProt = this.time + C.SPAWN_PROT;
-      for (const w of p.weapons) p.ammo[w] = { mag: WEAPONS[w].mag, res: WEAPONS[w].reserve };
+      for (const w of p.weapons) if (w) p.ammo[w] = { mag: WEAPONS[w].mag, res: WEAPONS[w].reserve };
       if (p.ai) p.ai.path = null;
       this.events.push({ e: 'spawn', id: p.id });
     }
@@ -1700,7 +1722,7 @@
         const inp = { dt: clamp(num(it[1]), 0, 0.05), f: it[2], s: it[3], yaw: it[4], pitch: it[5], b: it[6] };
         if (p.budget < inp.dt - 0.004) { p.ack = seq; continue; } // anti speed-hack
         p.budget -= inp.dt;
-        if (p.train) { p.yaw = num(inp.yaw, p.yaw); p.pitch = clamp(num(inp.pitch, p.pitch), -1.5, 1.5); }
+        if (p.plane) { p.yaw = num(inp.yaw, p.yaw); p.pitch = clamp(num(inp.pitch, p.pitch), -1.5, 1.5); }
         else if (this.state === 'playing') applyInput(p, inp);
         p.ack = seq; p.lastInput = this.time;
       }
@@ -1709,13 +1731,14 @@
       useMap(this.map, this.dyn, this.cars);
       const p = this.players.get(id);
       if (!p || !a || this.state !== 'playing') return;
-      if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'trem') this.leap(p); if (this.ph !== 'trem' || p.train) return; }
+      if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'aviao') this.leap(p); if (this.ph !== 'aviao' || p.plane) return; }
+      if (p.sky && a.a !== 'switch') return; // caindo/planando: não atira, não pega nada
       switch (a.a) {
         case 'shoot': if ((p.car && p.seat === 0) || p.down || p.vault) return; return this.shoot(p, a); // motorista e quem está caído não atiram
         case 'reload': return this.reload(p);
-        case 'switch': {
-          const s = a.s === 1 ? 1 : 0;
-          if (s !== p.cur && p.alive && !p.medUntil) { p.cur = s; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH; }
+        case 'switch': { // 0 = arma 1, 1 = arma 2, 2 = pistola (só se tiver arma nessa posição)
+          const s = a.s === 1 ? 1 : a.s === 2 ? 2 : 0;
+          if (s !== p.cur && p.alive && !p.medUntil && p.weapons[s]) { p.cur = s; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH; }
           return;
         }
         case 'grab': if (p.car) return; return this.grab(p, a);
@@ -1735,7 +1758,7 @@
       for (const o of this.wpicks) if (o.active) near(o);
       for (const o of this.drops) near(o);
       if (!best || !WEAPONS[best.w]) return;
-      const w = WEAPONS[best.w], slot = w.slot, old = p.weapons[slot];
+      const w = WEAPONS[best.w], slot = this.slotFor(p, w.id), old = p.weapons[slot];
       if (old === best.w) { p.ammo[w.id] = { mag: w.mag, res: w.reserve }; }
       else {
         p.weapons = p.weapons.slice(); p.weapons[slot] = w.id; p.ammo[w.id] = { mag: w.mag, res: w.reserve };
@@ -1744,6 +1767,14 @@
       p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
       if (best.until) this.drops.splice(this.drops.indexOf(best), 1); else { best.active = false; best.t = this.time + 30; }
       this.events.push({ e: 'grab', id: p.id, w: w.id });
+    }
+    // onde entra uma arma nova: pistola na posição 3; metralhadora/fuzil na 1 ou 2 (vaga livre; senão troca a que está na mão, ou a 1)
+    slotFor(p, id) {
+      const w = WEAPONS[id]; if (!w) return 0;
+      if (w.slot === 1) return 2;
+      if (p.weapons[0] === id) return 0; if (p.weapons[1] === id) return 1;
+      if (!p.weapons[0]) return 0; if (!p.weapons[1]) return 1;
+      return p.cur === 1 ? 1 : 0;
     }
     reload(p) {
       const w = weaponOf(p), am = p.ammo[w.id];
@@ -1920,7 +1951,7 @@
       if (st !== this.trainSt) { this.trainSt = st; if (st) this.events.push({ e: 'train', s: st }); }
       const back = x - tr.cars * (tr.len + tr.gap);
       for (const p of this.players.values()) {
-        if (!p.alive || p.train || p.x + C.R < back || p.x - C.R > x || Math.abs(p.z - tr.z) > tr.hw + C.R || p.y > tr.y1 - 0.05) continue;
+        if (!p.alive || p.plane || p.x + C.R < back || p.x - C.R > x || Math.abs(p.z - tr.z) > tr.hw + C.R || p.y > tr.y1 - 0.05) continue;
         const h = p.crouch ? C.HC : C.H, side = p.z >= tr.z ? 1 : -1;
         let nz = tr.z + side * (tr.hw + C.R + 0.03);
         if (collides(p.x, p.y, nz, C.R, h)) nz = tr.z - side * (tr.hw + C.R + 0.03);
@@ -1948,7 +1979,8 @@
         p.budget = Math.min(0.5, p.budget + dt);
         p.bloom = Math.max(0, p.bloom - dt * 0.12);
         if (!p.alive) { if (this.time >= p.respawnAt) this.spawn(p); continue; }
-        if (p.train) { p.x = this.trainX - p.train.off; p.z = this.map.train.z + p.train.dz; p.y = this.map.train.y0 + 0.02; p.vx = p.vy = p.vz = 0; continue; }
+        if (p.plane) { p.vx = p.vy = p.vz = 0; continue; }
+        if (p.dropping && !p.sky) { p.dropping = false; p.spawnProt = this.time + 2; } // pousou: proteção some em 2 s
         if (p.car && p.seat === 1) { const sp = seatPos(p.car, 1); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; }
         if (p.down && this.time >= p.downUntil) p.down = false; // levantou
         if (p.reloadUntil && this.time >= p.reloadUntil) {
@@ -1965,7 +1997,7 @@
         // munição: passa por cima e ganha +30 balas (arma na mão; se estiver cheia, a outra)
         for (const a of this.ammos) {
           if (!a.active || Math.abs(p.y - a.y) > 1.2 || Math.hypot(p.x - a.x, p.z - a.z) > 1.1) continue;
-          const order = [p.cur, 1 - p.cur].map((i) => p.weapons[i]).filter(Boolean);
+          const order = [p.cur, 0, 1, 2].map((i) => p.weapons[i]).filter(Boolean);
           const wid = order.find((id) => p.ammo[id] && p.ammo[id].res < WEAPONS[id].reserve * 2);
           if (!wid) continue;
           p.ammo[wid].res = Math.min(WEAPONS[wid].reserve * 2, p.ammo[wid].res + C.AMMO_BOX);
@@ -1995,8 +2027,8 @@
       if (!this.shop || !p.alive || p.car || !p.ai && !this.nearShop(p)) return;
       const ok = (price) => { if ((p.money | 0) < price) { this.events.push({ e: 'buyno', id: p.id }); return false; } p.money -= price; return true; };
       if (WEAPONS[it]) {
-        const w = WEAPONS[it], slot = w.slot ? 1 : 0;
-        p.weapons[slot] = it; p.ammo[it] = { mag: w.mag, res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
+        const w = WEAPONS[it], slot = this.slotFor(p, it);
+        p.weapons = p.weapons.slice(); p.weapons[slot] = it; p.ammo[it] = { mag: w.mag, res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
       } else if (it === 'kit') { if (p.medkits >= C.MEDKITS_MAX || !ok(SHOP.kit.price)) return; p.medkits++; }
       else if (it === 'helmet') { if (p.helmet >= 100 || !ok(SHOP.helmet.price)) return; p.helmet = 100; }
       else if (it === 'vest') { if (p.vest >= 100 || !ok(SHOP.vest.price)) return; p.vest = 100; }
@@ -2049,7 +2081,7 @@
       const w = weaponOf(p), am = p.ammo[w.id];
       let f = 0, s = 0, b = 0, yaw = p.yaw, pitch = p.pitch;
       const t = ai.target && ai.target.alive ? ai.target : null;
-      if (am.mag === 0 && !p.reloadUntil) { if (am.res > 0) this.reload(p); else if (p.cur === 0) this.handleAction(p.id, { a: 'switch', s: 1 }); }
+      if (am.mag === 0 && !p.reloadUntil) { if (am.res > 0) this.reload(p); else { const nx = [0, 1, 2].find((i) => i !== p.cur && p.weapons[i] && p.ammo[p.weapons[i]] && (p.ammo[p.weapons[i]].mag + p.ammo[p.weapons[i]].res) > 0); if (nx != null) this.handleAction(p.id, { a: 'switch', s: nx }); } }
       if (!t && p.hp < 55 && p.medkits > 0 && !p.medUntil) this.handleAction(p.id, { a: 'med' });
       if (t) {
         const ex = p.y + (p.crouch ? C.EYEC : C.EYE);
@@ -2116,14 +2148,17 @@
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0);
-        pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths, p.vault ? [r2(vaultFrame(p.vault)), r2(p.vault.sh)] : 0]);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0) | (p.plane ? 4096 : 0) | (p.sky === 1 ? 8192 : p.sky === 2 ? 16384 : 0);
+        pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths, p.vault ? [r2(vaultFrame(p.vault)), r2(p.vault.sh)] : 0, p.weapons]);
       }
       const mk = maskOf(this.medkits);
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
       if (this.map.train) s.tr = r2(this.trainX);
       if (this.cars.length) s.cr = this.cars.map((c) => [r2(c.x), r2(c.z), r3(c.yaw), r2(c.v), c.seats[0], c.seats[1], r3(c.st)]);
-      if (this.br) { s.ph = this.ph; s.pe = this.ph === 'livre' ? 0 : Math.max(0, Math.ceil(this.phEnd - this.time)); s.pn = this.players.size; }
+      if (this.br) {
+        s.ph = this.ph; s.pe = this.ph === 'livre' ? 0 : Math.max(0, Math.ceil(this.phEnd - this.time)); s.pn = this.players.size;
+        if (this.plane) { const [x, z] = this.planePos(); let n = 0; for (const p of this.players.values()) if (p.plane) n++; s.pv = [r2(x), r2(z), r3(this.plane.yaw), n, r2(this.plane.x0), r2(this.plane.z0), r3(this.plane.dx), r3(this.plane.dz)]; }
+      }
       if (this.wpicks.length) s.wk = maskOf(this.wpicks);
       if (this.ammos.length) s.ak = maskOf(this.ammos);
       if (this.drops.length) s.dw = this.drops.map((d) => [d.id, r2(d.x), r2(d.y), r2(d.z), WEAPON_LIST.indexOf(d.w)]);
@@ -2136,7 +2171,7 @@
         hp: p.hp, al: p.alive ? 1 : 0, cur: p.cur, w: p.weapons, mag: am.mag, res: am.res,
         rl: p.reloadUntil ? r2(p.reloadUntil - this.time) : 0, mu: p.medUntil ? r2(p.medUntil - this.time) : 0, mk: p.medkits,
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
-        tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
+        pl: p.plane ? 1 : 0, sk: p.sky || 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
         vt: p.vault ? Object.assign({}, p.vault) : 0,
         dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),

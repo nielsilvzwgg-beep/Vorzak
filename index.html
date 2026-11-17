@@ -213,6 +213,16 @@ body.touchui .hp{bottom:calc(6px + var(--sab))}
 input.vkf{box-shadow:0 0 0 2px var(--acc)}
 /* JOGAR AGORA: modos em botões do próprio jogo */
 #wintip{position:absolute;left:50%;top:62%;transform:translateX(-50%);background:rgba(10,12,16,.72);border:1px solid #ffcf3a;color:#fff;padding:6px 14px;font-size:18px;letter-spacing:1px;pointer-events:none;white-space:nowrap}
+/* controles do veículo (configurações) */
+.carctl{display:flex;gap:12px;margin:6px 0 10px}
+.carctl .cc{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font:600 14px Rajdhani,sans-serif;cursor:pointer}
+.carctl .cc.on{border-color:#ffcf3a;background:rgba(255,190,40,.12)}
+.carctl .cc b{font-size:16px}.carctl .cc small{opacity:.75;font-size:12px}
+.carctl .ccimg{display:flex;align-items:center;gap:6px;height:52px}
+.carctl .ccimg i{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:20px;font-weight:800}
+.carctl .ccimg em{width:2px;height:40px;background:rgba(255,255,255,.5);margin:0 6px}
+.carctl .ccimg u{width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:radial-gradient(circle,#ddd 0 26%,transparent 28%)}
+.tbtn .sub{position:absolute;top:100%;margin-top:3px;font:700 12px Rajdhani,sans-serif;letter-spacing:.5px;color:#fff;text-shadow:0 1px 2px #000;white-space:nowrap}
 #grabtip{position:absolute;left:50%;top:62%;transform:translateX(-50%);background:rgba(10,12,16,.72);border:1px solid var(--acc);color:#fff;padding:6px 14px;font-size:18px;letter-spacing:1px;pointer-events:none;white-space:nowrap}
 .tbtn.run{background:rgba(60,200,120,.18);border-color:rgba(90,220,140,.7);font-weight:700}
 .tbtn.run.dn{background:rgba(60,220,120,.55);border-color:#5f5;color:#fff;box-shadow:0 0 14px rgba(80,255,140,.6)}
@@ -291,11 +301,12 @@ body.setopen #hud,body.setopen #touch{display:none!important}
 .shop-it b{font-size:15px}.shop-it small{color:var(--dim);font-size:11px}.shop-it em{font-style:normal;margin-top:3px;font-weight:800;font-size:13px;color:#5f5}
 .shop-it.eq em{color:var(--y)}.shop-it.own{border-color:#5ab0ff;background:rgba(90,176,255,.12)}.shop-it.own em{color:#9fd2ff}.shop-it.poor{opacity:.5}
 /* carro: botões de entrar/sair, pedais e velocímetro */
-.tbtn.carb{background:rgba(30,90,170,.45);border-color:#6fb6ff;font-weight:800;letter-spacing:.5px;font-size:13px}
+.tbtn.carb{background:rgba(20,24,30,.45);border-color:rgba(255,255,255,.6);font-weight:800;letter-spacing:.5px;font-size:13px}
 .tbtn.pedal{background:rgba(40,170,90,.35);border-color:#5f5;font-weight:800;border-radius:16px}
 .tbtn.pedal.brk{background:rgba(200,60,50,.35);border-color:#ff7a6a}
-.tbtn.pedal.steer{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.6);font-size:30px;border-radius:50%}
-body.driving #joy,body.riding #joy{display:none!important}
+.tbtn.pedal.steer{background:rgba(20,24,30,.4);border-color:rgba(255,255,255,.6);font-size:30px;border-radius:50%}
+.tbtn.pedal.steer svg{width:52%;height:52%;stroke-width:2.8}
+body.driving:not(.carjoy) #joy,body.riding #joy{display:none!important}
 .tbtn.pedal.dn{filter:brightness(1.6)}
 body.driving #touch .tbtn[data-id=fire],body.driving #touch .tbtn[data-id=fire2],body.driving #touch .tbtn[data-id=ads],body.driving #touch .tbtn[data-id=jump],body.driving #touch .tbtn[data-id=crouch],body.driving #touch .tbtn[data-id=reload],body.driving #touch .tbtn[data-id=med],body.driving #touch .tbtn[data-id=swap],body.driving #touch .tbtn[data-id=grab],body.driving #touch .tbtn[data-id=sprint],body.riding #touch .tbtn[data-id=jump],body.riding #touch .tbtn[data-id=crouch],body.riding #touch .tbtn[data-id=sprint],body.riding #touch .tbtn[data-id=grab]{display:none!important}
 body.driving #cross{visibility:hidden}
@@ -452,6 +463,7 @@ body.lshort .hp{width:min(280px,calc(var(--gw)*0.3))}body.lshort .hp .v{font-siz
 #wpanel .wp-slots{display:flex;gap:4px;margin-top:4px}
 #wpanel .ws{flex:1;display:flex;align-items:center;gap:5px;height:30px;padding:0 6px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);border-radius:3px;font:700 12px Rajdhani,sans-serif;color:#e9eef4;cursor:pointer;overflow:hidden;white-space:nowrap}
 #wpanel .ws i{font-style:normal;font-size:11px;color:#9aa6b2}
+#wpanel .ws3{flex:0.8}
 #wpanel .ws span{overflow:hidden;text-overflow:ellipsis}
 #wpanel .ws.on{border-color:#ffcf3a;background:rgba(255,190,40,.22);color:#fff}#wpanel .ws.on i{color:#ffcf3a}
 body.lshort #wpanel{width:166px;top:calc(52px + var(--sat))}body.lshort #wpanel .wp-main{height:44px}body.lshort #wpanel .m{font-size:21px}body.lshort #wpanel .ws{height:26px}
@@ -696,6 +708,12 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         <div class="ffrow"><span>Posição e tamanho dos botões</span><button class="ffbtn" id="oedit">Personalizar</button></div>
       </div>
       <div class="ffpane" data-p="partida-controles">
+        <h4>Controles do veículo</h4>
+        <div class="carctl">
+          <button class="cc" data-carctl="duas"><b>Duas mãos</b><span class="ccimg"><i>«</i><i>»</i><em></em><i>˅</i><i>˄</i></span><small>Esquerda/Direita · Avançar/Voltar</small></button>
+          <button class="cc" data-carctl="uma"><b>Com uma mão</b><span class="ccimg"><u></u></span><small>Analógico: todas as direções</small></button>
+        </div>
+        <div class="ffrow"><span>Posição dos botões do carro</span><button class="ffbtn" id="ocaredit">Personalizar</button></div>
         <h4>Tiros</h4>
         <div class="ffrow"><span>Mira assistida<small>puxa a mira para o inimigo</small></span><span class="ffseg" data-chk="oassist"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="oassist" hidden></div>
         <div class="ffrow"><span>Força da mira assistida <b id="oastrv"></b></span><input type="range" id="oastr" min="0.1" max="1" step="0.05"></div>
@@ -720,7 +738,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         <div id="mpstatus" style="margin-bottom:8px">Desconectado</div>
         <div class="row"><input type="text" id="mpurl" placeholder="wss://seu-servidor.com" style="flex:1;min-width:160px"><button class="btn sm" id="mpgo">Conectar</button></div>
         <h4>Créditos</h4>
-        <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0. Casas "Casa Dúplex" por alecsvaldez, "Casas" por Allvis e "Tokyo Japanese House / Casa Japonesa [Low Poly]" por SitoNyaa (Sketchfab), licença CC BY 4.0 (portas retiradas e janelas abertas para o jogo). Arma "Maverick 88" por Alex_Sandro (Sketchfab), licença CC BY 4.0. Personagem "REBECA" por rato biônico games (Sketchfab), licença CC BY 4.0. Personagem "Winter Phone Check" por Grauwolf (Sketchfab), licença CC BY 4.0. Roupas "Blue Sailor Uniform 3d model free" por iGauravRajput e "tan pinstripe women suit" por GangsterKitty (Sketchfab), licença CC BY 4.0, ajustadas ao corpo da Rebeca. Carro "Mclaren F1" por LuizZed36 (Sketchfab), licença CC BY 4.0 (McLaren é marca dos seus donos; o jogo não tem ligação com a empresa). Carro "LUAZ" por aaadragon (Sketchfab), licença CC BY 4.0. Árvore "Modelo 3D gratuito de baixa poligonagem de um carvalho" por dmann (simplificada para o jogo).</div>
+        <div class="stat" style="opacity:.75;font-size:11px">Modelo 3D do soldado: "German Bundeswehr soldier - rigged" por 42manako (Sketchfab), licença CC BY 4.0. Calça camuflada "F2505 com troca de cor" por Leonardo Matias e "Calça e Botas" por ac.carpes (Sketchfab), licença CC BY 4.0. Trem "TUE Série 9000 (CPTM)" por lael.eugenio (Sketchfab), licença CC BY 4.0. Personagem "Cyberpunk character" por 4d_Bob e "Carter Boy 1" por Roberto Domínguez (Sketchfab), licença CC BY 4.0. Casas "Casa Dúplex" por alecsvaldez, "Casas" por Allvis e "Tokyo Japanese House / Casa Japonesa [Low Poly]" por SitoNyaa (Sketchfab), licença CC BY 4.0 (portas retiradas e janelas abertas para o jogo). Arma "Maverick 88" por Alex_Sandro (Sketchfab), licença CC BY 4.0. Personagem "REBECA" por rato biônico games (Sketchfab), licença CC BY 4.0. Personagem "Winter Phone Check" por Grauwolf (Sketchfab), licença CC BY 4.0. Roupas "Blue Sailor Uniform 3d model free" por iGauravRajput e "tan pinstripe women suit" por GangsterKitty (Sketchfab), licença CC BY 4.0, ajustadas ao corpo da Rebeca. Carro "Mclaren F1" por LuizZed36 (Sketchfab), licença CC BY 4.0 (McLaren é marca dos seus donos; o jogo não tem ligação com a empresa). Carro "LUAZ" por aaadragon (Sketchfab), licença CC BY 4.0. Avião "BC-44 Marabou - fictional arsenal plane" por hannes.thurnherr (Sketchfab), licença CC BY-NC 4.0 (simplificado para o jogo). Árvore "Modelo 3D gratuito de baixa poligonagem de um carvalho" por dmann (simplificada para o jogo).</div>
       </div>
       <div class="ffpane" data-p="partida-sens">
         <h4>Sensibilidade</h4>
@@ -772,11 +790,11 @@ body.driving #wpanel,body.riding #wpanel{display:none}
   <div id="radar"><canvas id="radarc" width="220" height="220"></canvas></div>
   <div id="sqlist" style="display:none"></div>
   <div id="brov"><div class="brbox"><div class="brscan"><i></i><b></b></div><div class="brt" id="brt">PROCURANDO JOGADORES</div><div class="brn" id="brn">15</div><div class="brs" id="brs"></div><div class="brbar"><i id="brbar"></i></div><div class="brx" id="brx">SAIR DA FILA</div></div></div>
-  <div id="brleap">PULAR DO TREM</div>
+  <div id="brleap">PULAR</div>
   <div id="grabtip" style="display:none"></div>
   <div id="wintip" style="display:none">ESPAÇO — pular a janela</div>
   <div id="ffcnt"><span title="Vivos"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 22c0-5 3.6-8 8-8s8 3 8 8z"/></svg><b id="ffal">0</b></span><span title="Abates"><svg viewBox="0 0 24 24"><path d="M12 2C7 2 4 5.5 4 10c0 2.6 1.2 4.4 3 5.4V19h2v2h2v-2h2v2h2v-2h2v-3.6c1.8-1 3-2.8 3-5.4 0-4.5-3-8-8-8zm-3.2 11a2.2 2.2 0 110-4.4 2.2 2.2 0 010 4.4zm6.4 0a2.2 2.2 0 110-4.4 2.2 2.2 0 010 4.4z"/></svg><b id="ffk">0</b></span></div>
-  <div id="wpanel" class="ammo"><div class="wp-main" id="wpmain"><div class="wp-gun"><svg viewBox="0 0 64 24"><path d="M2 9h36l2-3h8l1 3h11v4h-6l-1 2h-9l-3 7h-7l2-7h-8l-2 4h-6l1-4H2z"/></svg></div><div class="wp-info"><div class="w" id="wname">AK-47</div><div class="m" id="mag">30 <small>/ 120</small></div></div></div><div id="rld"></div><div class="wp-slots"><div class="ws" data-s="0"><i>1</i><span id="ws0"></span></div><div class="ws" data-s="1"><i>2</i><span id="ws1"></span></div></div></div>
+  <div id="wpanel" class="ammo"><div class="wp-main" id="wpmain"><div class="wp-gun"><svg viewBox="0 0 64 24"><path d="M2 9h36l2-3h8l1 3h11v4h-6l-1 2h-9l-3 7h-7l2-7h-8l-2 4h-6l1-4H2z"/></svg></div><div class="wp-info"><div class="w" id="wname">AK-47</div><div class="m" id="mag">30 <small>/ 120</small></div></div></div><div id="rld"></div><div class="wp-slots"><div class="ws" data-s="0"><i>1</i><span id="ws0"></span></div><div class="ws" data-s="1"><i>2</i><span id="ws1"></span></div><div class="ws ws3" data-s="2"><i>3</i><span id="ws2"></span></div></div></div>
   <div class="xp"><span id="xplv">Nível 1</span> · <span id="xpv">0 / 600 XP</span> · <span id="xpm" style="color:#ffd54a"></span><div class="bar"><i id="xpb" style="width:0"></i></div></div>
   <div id="roundban"></div>
   <div id="death"><b>ELIMINADO</b><div id="deathby"></div><div id="deatht"></div></div>
@@ -822,6 +840,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
     MEDKITS_START: 2, MEDKITS_MAX: 3, SWITCH: 0.45, INTERP: 0.1,
     SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, AMMO_BOX: 30, AMMO_RESPAWN: 25, BR_BUSCA: 15, BR_LOBBY: 20,
+    PLANE_Y: 150, PLANE_V: 34, FALL_V: 32, FALL_H: 13, PARA_V: 5.5, PARA_H: 7.5, AUTO_OPEN: 24, // avião, queda livre e paraquedas
   };
   const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8 };
   // pulo de janela (animação "Big Jump" do Mixamo): quadros usados, onde o corpo cruza a parede e o avanço do quadril por quadro
@@ -1929,6 +1948,23 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     p.onGround = f < 13 || f > 44;
     if (f >= VAULT.K1) { p.vault = null; p.vx = p.vz = 0; p.onGround = true; if (collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = true; }
   }
+  // queda livre (rápida, direção pelo analógico) e paraquedas (lento, plana); abre tocando no botão ou sozinho perto do chão
+  function skyStep(p, inp, b, dt) {
+    let f = clamp(num(inp.f), -1, 1), s = clamp(num(inp.s), -1, 1); const len = Math.hypot(f, s); if (len > 1) { f /= len; s /= len; }
+    const ground = floorAt(p.x, p.z, p.y + 0.5);
+    if (p.sky === 1 && ((b & BTN.JUMP) || p.y - ground < C.AUTO_OPEN)) p.sky = 2; // abre o paraquedas
+    const H = p.sky === 1 ? C.FALL_H : C.PARA_H, V = p.sky === 1 ? -C.FALL_V : -C.PARA_V;
+    const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
+    const wx = (-sy * f + cy * s) * H, wz = (-cy * f - sy * s) * H, k = Math.min(1, dt * 2.2);
+    p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k; p.vy += (V - p.vy) * Math.min(1, dt * (p.sky === 2 ? 3 : 1.2));
+    p.crouch = false; p.sprint = false; p.ads = false; p.onGround = false;
+    const m = MAP, h = C.H;
+    let nx = clamp(p.x + p.vx * dt, -m.sx + 2, m.sx - 2); if (!collides(nx, p.y, p.z, C.R, h)) p.x = nx; else p.vx = 0;
+    let nz = clamp(p.z + p.vz * dt, -m.sz + 2, m.sz - 2); if (!collides(p.x, p.y, nz, C.R, h)) p.z = nz; else p.vz = 0;
+    const ny = p.y + p.vy * dt, hit = collides(p.x, ny, p.z, C.R, h);
+    if (hit) { p.y = Math.max(hit[4], 0) + (hit === GROUND ? 0 : 0.001); p.vy = 0; p.vx *= 0.3; p.vz *= 0.3; p.onGround = true; p.sky = 0; } // pousou
+    else p.y = ny;
+  }
   function applyInput(p, inp) {
     const dt = clamp(num(inp.dt, 0), 0, 0.05);
     p.yaw = num(inp.yaw, p.yaw);
@@ -1942,6 +1978,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       return;
     }
     if (p.vault) { vaultStep(p, dt); return; } // pulando a janela: a animação conduz o corpo
+    if (p.sky) { skyStep(p, inp, b, dt); return; } // caindo do avião / de paraquedas
     if (b & BTN.CROUCH) p.crouch = true;
     else if (p.crouch && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
     const h = p.crouch ? C.HC : C.H;
@@ -2310,9 +2347,16 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       if (this.br) this.brReset();
     }
     brReset() {
-      this.ph = 'busca'; this.phEnd = this.time + this.brT[0]; this.trainStartAt = 0; this.matchTime = 0;
-      for (const p of this.players.values()) { p.alive = false; p.respawnAt = Infinity; p.train = null; }
+      this.ph = 'busca'; this.phEnd = this.time + this.brT[0]; this.trainStartAt = 0; this.matchTime = 0; this.plane = null;
+      for (const p of this.players.values()) { p.alive = false; p.respawnAt = Infinity; p.plane = false; p.sky = 0; }
     }
+    // rota do avião: atravessa o mapa numa linha sorteada, a 150 m de altura, e some do outro lado
+    makePlane() {
+      const m = this.map, a = Math.random() * Math.PI * 2, dx = Math.cos(a), dz = Math.sin(a);
+      const cx = (Math.random() - 0.5) * m.sx * 0.7, cz = (Math.random() - 0.5) * m.sz * 0.7, L = Math.hypot(m.sx, m.sz) + 40;
+      return { x0: cx - dx * L, z0: cz - dz * L, dx, dz, t0: this.time, dur: (2 * L) / C.PLANE_V, yaw: Math.atan2(-dx, -dz) };
+    }
+    planePos() { const P = this.plane, d = (this.time - P.t0) * C.PLANE_V; return [P.x0 + P.dx * d, P.z0 + P.dz * d]; }
     // pontos do lobby: todos juntos ao lado do trem parado no depósito
     lobbySpot(i) {
       const col = i % 6, row = Math.floor(i / 6) % 5;
@@ -2321,43 +2365,39 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     lobbySpawn(p, i) {
       this.spawn(p);
       const [x, y, z] = this.lobbySpot(i); p.x = x + (Math.random() - 0.5) * 0.4; p.y = y; p.z = z; p.yaw = Math.PI / 2;
-      p.spawnProt = this.phEnd + 999; p.train = null;
+      p.spawnProt = this.phEnd + 999; p.plane = false; p.sky = 0;
     }
-    // embarca: cada jogador num lugar dentro de um vagão (2 fileiras de 5 por vagão)
-    board(p, i) {
-      const tr = this.map.train, car = Math.floor(i / 10) % tr.cars, k = i % 10;
-      p.train = { off: car * (tr.len + tr.gap) + 3 + (k >> 1) * 3.4, dz: (k & 1 ? 0.55 : -0.55) };
-      p.x = this.trainX - p.train.off; p.y = tr.y0 + 0.02; p.z = tr.z + p.train.dz; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
-      p.spawnProt = Infinity; p.yaw = -Math.PI / 2;
+    // embarca no avião (todos na cabine; a câmera fica atrás do avião)
+    board(p) {
+      const [x, z] = this.planePos();
+      p.plane = true; p.sky = 0; p.x = x; p.z = z; p.y = C.PLANE_Y - 1.5; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      p.spawnProt = Infinity; p.yaw = this.plane.yaw; p.car = null;
     }
-    // pula do trem: cai do lado (de acordo com o lado do lugar), sem ficar dentro de parede
+    // pula do avião: começa em queda livre um pouco atrás da cauda
     leap(p) {
-      if (!p.train) return;
-      const tr = this.map.train, side = p.train.dz >= 0 ? 1 : -1;
-      p.train = null;
-      let best = null;
-      for (const dx of [0, 1.5, -1.5, 3, -3, 5, -5]) for (const sd of [side, -side]) {
-        const x = p.x + dx, z = tr.z + sd * (tr.hw + C.R + 0.6);
-        if (!collides(x, 0.6, z, C.R, C.H)) { best = [x, z, sd]; break; }
-      }
-      if (!best) best = [p.x, tr.z + side * (tr.hw + 1.2), side];
-      p.x = best[0]; p.z = best[1]; p.y = 0.6; p.vx = 0; p.vz = best[2] * 3; p.vy = 4; p.onGround = false;
-      p.spawnProt = this.time + 2.5;
+      if (!p.plane) return;
+      const [x, z] = this.planePos(), P = this.plane, m = this.map, back = 6 + Math.random() * 3, side = (Math.random() - 0.5) * 4;
+      p.plane = false; p.sky = 1;
+      p.x = clamp(x - P.dx * back - P.dz * side, -m.sx + 4, m.sx - 4); p.z = clamp(z - P.dz * back + P.dx * side, -m.sz + 4, m.sz - 4); p.y = C.PLANE_Y - 4;
+      p.vx = P.dx * 6; p.vz = P.dz * 6; p.vy = -4; p.onGround = false; p.spawnProt = Infinity; p.dropping = true;
       this.events.push({ e: 'leap', id: p.id });
     }
     brTick() {
       const n = this.players.size;
       if (!n) { if (this.ph !== 'busca') this.brReset(); else this.phEnd = this.time + this.brT[0]; return; }
-      if ((this.ph === 'busca' || this.ph === 'lobby') && this.time >= this.phEnd) { // achou jogadores: todos direto para o trem
-        this.ph = 'trem'; this.trainStartAt = this.time; let i = 0;
-        for (const p of this.players.values()) { if (!p.alive) this.spawn(p); this.board(p, i++); }
-        this.events.push({ e: 'br', ph: 'trem' });
-      } else if (this.ph === 'trem') {
-        const tr = this.map.train;
-        this.phEnd = this.time + Math.max(0, (tr.x1 - this.trainX) / tr.speed);
-        if (this.trainX >= tr.x1 - 0.01) { // chegou: quem não pulou desce na estação
-          for (const p of this.players.values()) if (p.train) this.leap(p);
-          this.ph = 'livre'; this.matchTime = 0; this.events.push({ e: 'br', ph: 'livre' });
+      if ((this.ph === 'busca' || this.ph === 'lobby') && this.time >= this.phEnd) { // achou jogadores: todos no avião (o trem segue andando no mapa, vazio)
+        this.ph = 'aviao'; this.trainStartAt = this.time; this.plane = this.makePlane();
+        for (const p of this.players.values()) { if (!p.alive) this.spawn(p); this.board(p); }
+        this.events.push({ e: 'br', ph: 'aviao' });
+      } else if (this.ph === 'aviao') {
+        const P = this.plane; this.phEnd = P.t0 + P.dur;
+        const [x, z] = this.planePos();
+        for (const p of this.players.values()) if (p.plane) { p.x = x; p.z = z; p.y = C.PLANE_Y - 1.5; }
+        // o avião só passa por cima do mapa: quem não pulou é ejetado antes de ele sair
+        const inside = Math.abs(x) < this.map.sx - 6 && Math.abs(z) < this.map.sz - 6, d = (this.time - P.t0) * C.PLANE_V;
+        if (this.time >= P.t0 + P.dur || (!inside && d > (Math.hypot(this.map.sx, this.map.sz) + 40))) {
+          for (const p of this.players.values()) if (p.plane) this.leap(p);
+          this.ph = 'livre'; this.matchTime = 0; this.plane = null; this.events.push({ e: 'br', ph: 'livre' });
         }
       }
     }
@@ -2370,7 +2410,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       const p = {
         id, name: sanitizeName(info.name), bot: !!info.bot, team, uniform: UNIFORMS[info.uniform] ? info.uniform : 'woodland',
         skin: info.skin != null ? info.skin : id % 4, level: info.level || 1, upgrades: info.upgrades || [], look: sanitizeLook(info.look),
-        weapons: [WEAPONS[lo.primary] && WEAPONS[lo.primary].slot === 0 ? lo.primary : 'smg', WEAPONS[lo.secondary] && WEAPONS[lo.secondary].slot === 1 ? lo.secondary : 'pistol'],
+        weapons: [WEAPONS[lo.primary] && WEAPONS[lo.primary].slot === 0 ? lo.primary : 'smg', null, WEAPONS[lo.secondary] && WEAPONS[lo.secondary].slot === 1 ? lo.secondary : 'pistol'], // arma 1, arma 2 (vazia até pegar) e pistola
         x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: 0, onGround: true, crouch: false, ads: false,
         hp: 100, alive: false, respawnAt: 0, kills: 0, deaths: 0, streak: 0, xp: 0,
         stats: { hs: 0, medUsed: 0, picks: 0, streakMax: 0 },
@@ -2381,7 +2421,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       this.players.set(id, p);
       if (this.br && this.ph === 'busca') { p.alive = false; p.respawnAt = Infinity; }
       else if (this.br && this.ph === 'lobby') this.lobbySpawn(p, this.players.size - 1);
-      else if (this.br && this.ph === 'trem') { this.spawn(p); this.board(p, this.players.size - 1); }
+      else if (this.br && this.ph === 'aviao') { this.spawn(p); this.board(p); }
       else this.spawn(p);
       this.rosterDirty = true;
       return p;
@@ -2390,7 +2430,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     // ---- carros: entrar (motorista ou passageiro) e sair
     enterCar(p, id, seat) {
       const c = this.cars[id | 0]; seat = seat ? 1 : 0;
-      if (!c || !p.alive || p.car || p.train || p.medUntil || c.seats[seat]) return;
+      if (!c || !p.alive || p.car || p.plane || p.sky || p.medUntil || c.seats[seat]) return;
       if (Math.hypot(p.x - c.x, p.z - c.z) > 4.2 || p.y > 1.6) return;
       c.seats[seat] = p.id; p.car = c; p.seat = seat; p.reloadUntil = seat === 0 ? 0 : p.reloadUntil; p.ads = false;
       const sp = seatPos(c, seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.crouch = true;
@@ -2489,7 +2529,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       }
       p.medkits = C.MEDKITS_START + (p.upgrades.includes('medbag') ? 1 : 0);
       p.spawnProt = this.time + C.SPAWN_PROT;
-      for (const w of p.weapons) p.ammo[w] = { mag: WEAPONS[w].mag, res: WEAPONS[w].reserve };
+      for (const w of p.weapons) if (w) p.ammo[w] = { mag: WEAPONS[w].mag, res: WEAPONS[w].reserve };
       if (p.ai) p.ai.path = null;
       this.events.push({ e: 'spawn', id: p.id });
     }
@@ -2503,7 +2543,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         const inp = { dt: clamp(num(it[1]), 0, 0.05), f: it[2], s: it[3], yaw: it[4], pitch: it[5], b: it[6] };
         if (p.budget < inp.dt - 0.004) { p.ack = seq; continue; } // anti speed-hack
         p.budget -= inp.dt;
-        if (p.train) { p.yaw = num(inp.yaw, p.yaw); p.pitch = clamp(num(inp.pitch, p.pitch), -1.5, 1.5); }
+        if (p.plane) { p.yaw = num(inp.yaw, p.yaw); p.pitch = clamp(num(inp.pitch, p.pitch), -1.5, 1.5); }
         else if (this.state === 'playing') applyInput(p, inp);
         p.ack = seq; p.lastInput = this.time;
       }
@@ -2512,13 +2552,14 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       useMap(this.map, this.dyn, this.cars);
       const p = this.players.get(id);
       if (!p || !a || this.state !== 'playing') return;
-      if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'trem') this.leap(p); if (this.ph !== 'trem' || p.train) return; }
+      if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'aviao') this.leap(p); if (this.ph !== 'aviao' || p.plane) return; }
+      if (p.sky && a.a !== 'switch') return; // caindo/planando: não atira, não pega nada
       switch (a.a) {
         case 'shoot': if ((p.car && p.seat === 0) || p.down || p.vault) return; return this.shoot(p, a); // motorista e quem está caído não atiram
         case 'reload': return this.reload(p);
-        case 'switch': {
-          const s = a.s === 1 ? 1 : 0;
-          if (s !== p.cur && p.alive && !p.medUntil) { p.cur = s; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH; }
+        case 'switch': { // 0 = arma 1, 1 = arma 2, 2 = pistola (só se tiver arma nessa posição)
+          const s = a.s === 1 ? 1 : a.s === 2 ? 2 : 0;
+          if (s !== p.cur && p.alive && !p.medUntil && p.weapons[s]) { p.cur = s; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH; }
           return;
         }
         case 'grab': if (p.car) return; return this.grab(p, a);
@@ -2538,7 +2579,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       for (const o of this.wpicks) if (o.active) near(o);
       for (const o of this.drops) near(o);
       if (!best || !WEAPONS[best.w]) return;
-      const w = WEAPONS[best.w], slot = w.slot, old = p.weapons[slot];
+      const w = WEAPONS[best.w], slot = this.slotFor(p, w.id), old = p.weapons[slot];
       if (old === best.w) { p.ammo[w.id] = { mag: w.mag, res: w.reserve }; }
       else {
         p.weapons = p.weapons.slice(); p.weapons[slot] = w.id; p.ammo[w.id] = { mag: w.mag, res: w.reserve };
@@ -2547,6 +2588,14 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
       if (best.until) this.drops.splice(this.drops.indexOf(best), 1); else { best.active = false; best.t = this.time + 30; }
       this.events.push({ e: 'grab', id: p.id, w: w.id });
+    }
+    // onde entra uma arma nova: pistola na posição 3; metralhadora/fuzil na 1 ou 2 (vaga livre; senão troca a que está na mão, ou a 1)
+    slotFor(p, id) {
+      const w = WEAPONS[id]; if (!w) return 0;
+      if (w.slot === 1) return 2;
+      if (p.weapons[0] === id) return 0; if (p.weapons[1] === id) return 1;
+      if (!p.weapons[0]) return 0; if (!p.weapons[1]) return 1;
+      return p.cur === 1 ? 1 : 0;
     }
     reload(p) {
       const w = weaponOf(p), am = p.ammo[w.id];
@@ -2723,7 +2772,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       if (st !== this.trainSt) { this.trainSt = st; if (st) this.events.push({ e: 'train', s: st }); }
       const back = x - tr.cars * (tr.len + tr.gap);
       for (const p of this.players.values()) {
-        if (!p.alive || p.train || p.x + C.R < back || p.x - C.R > x || Math.abs(p.z - tr.z) > tr.hw + C.R || p.y > tr.y1 - 0.05) continue;
+        if (!p.alive || p.plane || p.x + C.R < back || p.x - C.R > x || Math.abs(p.z - tr.z) > tr.hw + C.R || p.y > tr.y1 - 0.05) continue;
         const h = p.crouch ? C.HC : C.H, side = p.z >= tr.z ? 1 : -1;
         let nz = tr.z + side * (tr.hw + C.R + 0.03);
         if (collides(p.x, p.y, nz, C.R, h)) nz = tr.z - side * (tr.hw + C.R + 0.03);
@@ -2751,7 +2800,8 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         p.budget = Math.min(0.5, p.budget + dt);
         p.bloom = Math.max(0, p.bloom - dt * 0.12);
         if (!p.alive) { if (this.time >= p.respawnAt) this.spawn(p); continue; }
-        if (p.train) { p.x = this.trainX - p.train.off; p.z = this.map.train.z + p.train.dz; p.y = this.map.train.y0 + 0.02; p.vx = p.vy = p.vz = 0; continue; }
+        if (p.plane) { p.vx = p.vy = p.vz = 0; continue; }
+        if (p.dropping && !p.sky) { p.dropping = false; p.spawnProt = this.time + 2; } // pousou: proteção some em 2 s
         if (p.car && p.seat === 1) { const sp = seatPos(p.car, 1); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; }
         if (p.down && this.time >= p.downUntil) p.down = false; // levantou
         if (p.reloadUntil && this.time >= p.reloadUntil) {
@@ -2768,7 +2818,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         // munição: passa por cima e ganha +30 balas (arma na mão; se estiver cheia, a outra)
         for (const a of this.ammos) {
           if (!a.active || Math.abs(p.y - a.y) > 1.2 || Math.hypot(p.x - a.x, p.z - a.z) > 1.1) continue;
-          const order = [p.cur, 1 - p.cur].map((i) => p.weapons[i]).filter(Boolean);
+          const order = [p.cur, 0, 1, 2].map((i) => p.weapons[i]).filter(Boolean);
           const wid = order.find((id) => p.ammo[id] && p.ammo[id].res < WEAPONS[id].reserve * 2);
           if (!wid) continue;
           p.ammo[wid].res = Math.min(WEAPONS[wid].reserve * 2, p.ammo[wid].res + C.AMMO_BOX);
@@ -2798,8 +2848,8 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       if (!this.shop || !p.alive || p.car || !p.ai && !this.nearShop(p)) return;
       const ok = (price) => { if ((p.money | 0) < price) { this.events.push({ e: 'buyno', id: p.id }); return false; } p.money -= price; return true; };
       if (WEAPONS[it]) {
-        const w = WEAPONS[it], slot = w.slot ? 1 : 0;
-        p.weapons[slot] = it; p.ammo[it] = { mag: w.mag, res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
+        const w = WEAPONS[it], slot = this.slotFor(p, it);
+        p.weapons = p.weapons.slice(); p.weapons[slot] = it; p.ammo[it] = { mag: w.mag, res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
       } else if (it === 'kit') { if (p.medkits >= C.MEDKITS_MAX || !ok(SHOP.kit.price)) return; p.medkits++; }
       else if (it === 'helmet') { if (p.helmet >= 100 || !ok(SHOP.helmet.price)) return; p.helmet = 100; }
       else if (it === 'vest') { if (p.vest >= 100 || !ok(SHOP.vest.price)) return; p.vest = 100; }
@@ -2852,7 +2902,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       const w = weaponOf(p), am = p.ammo[w.id];
       let f = 0, s = 0, b = 0, yaw = p.yaw, pitch = p.pitch;
       const t = ai.target && ai.target.alive ? ai.target : null;
-      if (am.mag === 0 && !p.reloadUntil) { if (am.res > 0) this.reload(p); else if (p.cur === 0) this.handleAction(p.id, { a: 'switch', s: 1 }); }
+      if (am.mag === 0 && !p.reloadUntil) { if (am.res > 0) this.reload(p); else { const nx = [0, 1, 2].find((i) => i !== p.cur && p.weapons[i] && p.ammo[p.weapons[i]] && (p.ammo[p.weapons[i]].mag + p.ammo[p.weapons[i]].res) > 0); if (nx != null) this.handleAction(p.id, { a: 'switch', s: nx }); } }
       if (!t && p.hp < 55 && p.medkits > 0 && !p.medUntil) this.handleAction(p.id, { a: 'med' });
       if (t) {
         const ex = p.y + (p.crouch ? C.EYEC : C.EYE);
@@ -2919,14 +2969,17 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0);
-        pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths, p.vault ? [r2(vaultFrame(p.vault)), r2(p.vault.sh)] : 0]);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0) | (p.plane ? 4096 : 0) | (p.sky === 1 ? 8192 : p.sky === 2 ? 16384 : 0);
+        pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths, p.vault ? [r2(vaultFrame(p.vault)), r2(p.vault.sh)] : 0, p.weapons]);
       }
       const mk = maskOf(this.medkits);
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
       if (this.map.train) s.tr = r2(this.trainX);
       if (this.cars.length) s.cr = this.cars.map((c) => [r2(c.x), r2(c.z), r3(c.yaw), r2(c.v), c.seats[0], c.seats[1], r3(c.st)]);
-      if (this.br) { s.ph = this.ph; s.pe = this.ph === 'livre' ? 0 : Math.max(0, Math.ceil(this.phEnd - this.time)); s.pn = this.players.size; }
+      if (this.br) {
+        s.ph = this.ph; s.pe = this.ph === 'livre' ? 0 : Math.max(0, Math.ceil(this.phEnd - this.time)); s.pn = this.players.size;
+        if (this.plane) { const [x, z] = this.planePos(); let n = 0; for (const p of this.players.values()) if (p.plane) n++; s.pv = [r2(x), r2(z), r3(this.plane.yaw), n, r2(this.plane.x0), r2(this.plane.z0), r3(this.plane.dx), r3(this.plane.dz)]; }
+      }
       if (this.wpicks.length) s.wk = maskOf(this.wpicks);
       if (this.ammos.length) s.ak = maskOf(this.ammos);
       if (this.drops.length) s.dw = this.drops.map((d) => [d.id, r2(d.x), r2(d.y), r2(d.z), WEAPON_LIST.indexOf(d.w)]);
@@ -2939,7 +2992,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         hp: p.hp, al: p.alive ? 1 : 0, cur: p.cur, w: p.weapons, mag: am.mag, res: am.res,
         rl: p.reloadUntil ? r2(p.reloadUntil - this.time) : 0, mu: p.medUntil ? r2(p.medUntil - this.time) : 0, mk: p.medkits,
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
-        tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
+        pl: p.plane ? 1 : 0, sk: p.sky || 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
         vt: p.vault ? Object.assign({}, p.vault) : 0,
         dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
@@ -4337,6 +4390,28 @@ const Assets = (() => {
     g.box(-w / 2 + 0.2, 0.06, -len / 2 + 1.5, w / 2 - 0.2, 0.5, len / 2 - 1.5, { col: [0.15, 0.15, 0.15], uv: [0, 0, 1, 1] });
     return (trainBox = { mesh: R.mesh(g), tex: tex.plain });
   }
+  // paraquedas: cúpula com gomos azuis e brancos (dos dois lados) e cordas até o jogador; origem = ombros do jogador
+  let paraM = null;
+  function parachute() {
+    if (paraM) return paraM;
+    const g = new Geo(), N = 12, RINGS = 5, Rr = 3.3, Hc = 1.7, Y0 = 4.1, W = [0.95, 0.96, 1], B = [0.16, 0.42, 0.92];
+    const P = (i, r) => { const a = (i / N) * Math.PI * 2, t = r / RINGS, rad = Rr * Math.sin(t * Math.PI / 2), y = Y0 + Hc * Math.cos(t * Math.PI / 2); return [Math.cos(a) * rad, y, Math.sin(a) * rad]; };
+    for (let i = 0; i < N; i++) for (let r = 0; r < RINGS; r++) {
+      const a = P(i, r), b = P(i + 1, r), c2 = P(i + 1, r + 1), d = P(i, r + 1), col = i % 2 ? W : B;
+      const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], e2 = [d[0] - a[0], d[1] - a[1], d[2] - a[2]];
+      let n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]]; const L = Math.hypot(...n) || 1; n = n.map((v) => v / L);
+      if (n[1] < 0) n = n.map((v) => -v);
+      g.quad(a, d, c2, b, n, [0, 0, 0, 1, 1, 1, 1, 0], col); g.quad(a, b, c2, d, n.map((v) => -v), [0, 0, 1, 0, 1, 1, 0, 1], col.map((v) => v * 0.75)); // por fora e por dentro
+    }
+    for (let i = 0; i < N; i++) { // cordas finas
+      const top = P(i, RINGS), bot = [Math.cos((i / N) * Math.PI * 2) * 0.22, 0, Math.sin((i / N) * Math.PI * 2) * 0.22], w = 0.018;
+      const side = [-Math.sin((i / N) * Math.PI * 2) * w, 0, Math.cos((i / N) * Math.PI * 2) * w], dark = [0.12, 0.12, 0.13];
+      const q = [[top[0] - side[0], top[1], top[2] - side[2]], [top[0] + side[0], top[1], top[2] + side[2]], [bot[0] + side[0], bot[1], bot[2] + side[2]], [bot[0] - side[0], bot[1], bot[2] - side[2]]];
+      g.quad(q[0], q[1], q[2], q[3], [0, 0, 1], [0, 0, 1, 0, 1, 1, 0, 1], dark); g.quad(q[3], q[2], q[1], q[0], [0, 0, -1], [0, 0, 1, 0, 1, 1, 0, 1], dark);
+    }
+    g.box(-0.2, -0.05, -0.12, 0.2, 0.05, 0.12, { col: [0.15, 0.15, 0.15], uv: [0, 0, 1, 1] }); // fivela nos ombros
+    return (paraM = { mesh: R.mesh(g), tex: tex.plain });
+  }
   // corpo sem as partes cobertas pela roupa (evita a perna do soldado atravessar a calça)
   function subsetMesh(model, hide) {
     const key = hide.join(','); if (model._sub[key]) return model._sub[key];
@@ -4517,7 +4592,7 @@ const Assets = (() => {
     return P.hip[f0] * (1 - k) + P.hip[f1] * k;
   }
 
-  return { tree, init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, ammoBox, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP, subsetMesh, cloth, prop, simpleTrain, propBoxes, ANIMS, animApply };
+  return { tree, init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, ammoBox, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP, subsetMesh, cloth, prop, simpleTrain, parachute, propBoxes, ANIMS, animApply };
 })();
 
 </script>
@@ -5015,6 +5090,7 @@ const Voice = (() => {
   const CFG_DEF = { quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, real: true, tps: true, vib: true, vibk: true, btns: {} };
   const CFG = Object.assign({}, CFG_DEF, store.get('fps_settings', {}));
   if ((CFG.hudv | 0) < 2) { CFG.btns = {}; CFG.hudv = 2; } // HUD novo (estilo Free Fire): posições antigas não valem mais
+  if ((CFG.hudv | 0) < 3) { for (const k of ['cdrive', 'cpass', 'cexit', 'cleft', 'cright', 'cgas', 'cbrk']) delete (CFG.btns || {})[k]; CFG.hudv = 3; } // botões do carro estilo Free Fire
   const vibrate = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
   const saveSet = () => store.set('fps_settings', CFG);
   // animação de andar: pernas viram para o lado do movimento (o tronco continua mirando), de costas anda para trás
@@ -5266,7 +5342,7 @@ const Voice = (() => {
     start(conn, m) {
       this.conn = conn; this.active = true; this.paused = false;
       this.roster = new Map(); this.remote = new Map(); this.pending = []; this.outbox = []; this.seq = 0;
-      this.local = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, onGround: true, crouch: false, alive: false, ads: false, yaw: 0, pitch: 0, weapons: ['smg', 'pistol'], cur: 0, medUntil: 0 };
+      this.local = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, onGround: true, crouch: false, alive: false, ads: false, yaw: 0, pitch: 0, weapons: ['smg', null, 'pistol'], cur: 0, medUntil: 0 };
       this.me = null; this.matchXp = 0; this.timeOffInit = false; this.lastAlive = false;
       this.fw = { last: -9, shots: [], shotSeq: 0, semi: true, kick: 0, recoilAcc: 0, reloadStart: -9, reloadW: null, switchAt: -9, medStart: -9, flash: 0, pumpT: 9, adsT: 0, bob: 0, swayX: 0, swayY: 0, lastCur: 0, magShown: 0 };
       this.feed = []; this.kills = 0; this.endShown = false; this.dmgT = 0; this.healT = 0; this.stepT = 0; this.prevHp = 100; this.deathInfo = null; this.camRoll = 0;
@@ -5313,6 +5389,7 @@ const Voice = (() => {
       if (s.cr) { const cs = this.carSnaps || (this.carSnaps = []); cs.push({ t: s.tm, c: s.cr }); if (cs.length > 12) cs.shift(); }
       if ((s.ph || null) !== this.brPh) { this.brPh = s.ph || null; this.brT0 = now(); this.brDur = Math.max(1, s.pe || 1); }
       this.brPe = s.pe; this.brPn = s.pn;
+      if (s.pv) { const q = this.planeQ || (this.planeQ = []); q.push({ t: s.tm, x: s.pv[0], z: s.pv[1], yaw: s.pv[2], n: s.pv[3] }); if (q.length > 12) q.shift(); this.planeRoute = s.pv.slice(4); } else if (this.planeQ) { this.planeQ = null; this.planeRoute = null; }
       if (this.train && s.tr != null) { const tr = this.train; tr.moving = s.tr > tr.x + 0.001 || (tr.moving && s.tr < this.map.train.x1); if (s.tr < tr.x - 1) tr.moving = false; tr.x = s.tr; tr.t = now(); }
       if (s.me && this.myId !== s.me.id) this.myId = s.me.id;
       const seen = new Set();
@@ -5323,7 +5400,7 @@ const Voice = (() => {
         if (!rp) { rp = { id, buf: [], anim: { ph: 0, deadAt: 0, alive: true, stepT: 0 }, mats: null }; this.remote.set(id, rp); }
         rp.buf.push({ t: s.tm, x: r[1], y: r[2], z: r[3], yaw: r[4], pitch: r[5], fl: r[6], vf: r[12] ? r[12][0] : 0, vs: r[12] ? r[12][1] : 0 });
         if (rp.buf.length > 30) rp.buf.shift();
-        rp.hp = r[7]; rp.team = r[8]; rp.w = r[9]; rp.k = r[10]; rp.d = r[11];
+        rp.hp = r[7]; rp.team = r[8]; rp.w = r[9]; rp.k = r[10]; rp.d = r[11]; rp.ws = r[13] || null; // armas que carrega (costas/cintura)
       }
       for (const id of [...this.remote.keys()]) if (!seen.has(id)) this.remote.delete(id);
       this.rows = s.p;
@@ -5337,9 +5414,9 @@ const Voice = (() => {
       L.weapons = me.w; L.medUntil = me.mu > 0 ? 1 : 0; L.down = !!me.dn; L.money = me.$; L.helmet = me.hm || 0; L.vest = me.vs || 0;
       if (now() - fw.switchAt > 0.6) L.cur = me.cur;
       L.alive = !!me.al;
-      const wasRiding = this.riding; this.riding = !!me.tn; this.rideOff = [me.to || 0, me.tz || 0];
-      if (me.al && (this.riding || wasRiding)) { // dentro do trem (ou acabou de pular): segue a posição do servidor
-        L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = false; this.pending = []; this.visOff = [0, 0, 0];
+      const wasRiding = this.riding; this.riding = !!me.pl;
+      if (me.al && (this.riding || wasRiding)) { // dentro do avião (ou acabou de pular): segue a posição do servidor
+        L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = false; L.sky = me.sk || 0; this.pending = []; this.visOff = [0, 0, 0];
         if (!wasAlive) { $('death').style.display = 'none'; this.prevHp = me.hp; }
         this.me = me; return;
       }
@@ -5361,7 +5438,7 @@ const Voice = (() => {
       }
       this.pending = this.pending.filter((i) => i.seq > me.ack);
       const px = L.x, py = L.y, pz = L.z;
-      L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = !!me.cr; L.vault = me.vt ? Object.assign({}, me.vt) : null;
+      L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = !!me.cr; L.vault = me.vt ? Object.assign({}, me.vt) : null; L.sky = me.sk || 0;
       for (const i of this.pending) S.applyInput(L, i);
       const dx = px - L.x, dy = py - L.y, dz = pz - L.z;
       if (dx * dx + dy * dy + dz * dz < 4) { this.visOff[0] += dx; this.visOff[1] += dy; this.visOff[2] += dz; } else this.visOff = [0, 0, 0];
@@ -5447,8 +5524,8 @@ const Voice = (() => {
         case 'spawn': break;
         case 'br':
           if (e.ph === 'lobby') { center('👥 LOBBY — todos juntos! Prepare-se', 2.5); Sfx.horn(); }
-          else if (e.ph === 'trem') Sfx.horn();
-          else if (e.ph === 'livre') center('🚉 O trem chegou: todos desceram!', 2.5);
+          else if (e.ph === 'aviao') Sfx.plane && Sfx.plane();
+          else if (e.ph === 'livre') center('✈ O avião foi embora: todos estão no mapa!', 2.5);
           break;
         case 'runover':
           if (e.id === me) { center('🚗 Você foi atropelado! −50 de vida', 1.6); if (CFG.vib) vibrate([60, 40, 90]); Sfx.land && Sfx.land(); }
@@ -5457,7 +5534,7 @@ const Voice = (() => {
         case 'buy': if (e.id === me) { Sfx.pick(); xpPop('Comprou ' + (W[e.it] ? W[e.it].name : S.SHOP[e.it] ? S.SHOP[e.it].name : e.it)); } break;
         case 'buyno': if (e.id === me) toast('Fichas insuficientes.', 1500); break;
         case 'ammo': if (e.id === me) { Sfx.pick(); xpPop('+30 munição · ' + (W[e.w] ? W[e.w].name : '')); } break;
-        case 'leap': if (e.id === me) { center('Boa sorte! Procure armas e kits médicos', 2); this.look.pitch = 0; } break;
+        case 'leap': if (e.id === me) { center('Toque no paraquedas para abrir · ele abre sozinho perto do chão', 2.5); this.look.pitch = -0.6; } break;
         case 'train':
           if (this.brPh) break;
           if (e.s === 1) { center('🚆 O TREM PARTIU DO DEPÓSITO!', 2.2); Sfx.horn(); }
@@ -5543,6 +5620,15 @@ const Voice = (() => {
 
     // ------------------------------------------------ atualização por quadro
     // posição atual do trem (último valor do servidor + o que andou desde então)
+    // avião: posição suavizada entre os pacotes do servidor
+    planeNow() {
+      const q = this.planeQ; if (!q || !q.length) return null;
+      const rt = this.serverNow() - C.INTERP; let a = q[0], b = q[q.length - 1];
+      for (let i = 0; i < q.length - 1; i++) if (q[i].t <= rt && q[i + 1].t >= rt) { a = q[i]; b = q[i + 1]; break; }
+      if (rt > b.t) { const v = S.C.PLANE_V, dt = Math.min(1, rt - b.t); return { x: b.x - Math.sin(b.yaw) * v * dt, z: b.z - Math.cos(b.yaw) * v * dt, yaw: b.yaw, n: b.n }; }
+      const k = b.t > a.t ? Math.max(0, Math.min(1, (rt - a.t) / (b.t - a.t))) : 0;
+      return { x: lerp(a.x, b.x, k), z: lerp(a.z, b.z, k), yaw: b.yaw, n: b.n };
+    },
     trainNow() {
       const tr = this.train, T = this.map.train;
       return tr.moving ? Math.min(T.x1, tr.x + T.speed * Math.min(0.5, now() - tr.t)) : tr.x;
@@ -5568,7 +5654,8 @@ const Voice = (() => {
         if (L.car) { // dirigindo: acelerar/freio (botões, analógico ou W/S) e volante (analógico ou A/D)
           if (L.seat === 0) {
             const gas = Touch.held.cgas || keys.KeyW || keys.ArrowUp, brk = Touch.held.cbrk || keys.KeyS || keys.ArrowDown || keys.Space;
-            f = gas ? 1 : brk ? -1 : 0; s = (keys.KeyD || keys.ArrowRight || Touch.held.cright ? 1 : 0) - (keys.KeyA || keys.ArrowLeft || Touch.held.cleft ? 1 : 0); // no carro: só botões (sem analógico)
+            f = gas ? 1 : brk ? -1 : 0; s = (keys.KeyD || keys.ArrowRight || Touch.held.cright ? 1 : 0) - (keys.KeyA || keys.ArrowLeft || Touch.held.cleft ? 1 : 0); // duas mãos: botões
+            if (CFG.carCtl === 'uma' && (Touch.joy[0] || Touch.joy[1])) { f = Math.abs(Touch.joy[1]) > 0.25 ? -Math.sign(Touch.joy[1]) : f; s = Math.abs(Touch.joy[0]) > 0.2 ? Math.sign(Touch.joy[0]) : s; } // uma mão: o analógico dirige
             if (Math.abs(f) < 0.15) f = 0; b = 0;
           } else { f = 0; s = 0; b &= S.BTN.ADS; }
         }
@@ -5588,8 +5675,8 @@ const Voice = (() => {
         if (L.alive) { this.pending.push(inp); this.outbox.push([inp.seq, step, f, s, inp.yaw, inp.pitch, b]); }
       }
       if (this.pending.length > 120) this.pending.splice(0, this.pending.length - 120);
-      if (this.riding) { // no trem: acompanha o vagão; pular = descer do trem
-        const T = this.map.train; L.x = this.trainNow() - this.rideOff[0]; L.z = T.z + this.rideOff[1]; L.y = T.y0 + 0.02; L.vx = L.vy = L.vz = 0;
+      if (this.riding) { // no avião: acompanha o avião; pular = sair do avião
+        const pp = this.planeNow(); if (pp) { L.x = pp.x; L.z = pp.z; L.y = S.C.PLANE_Y - 1.5; } L.vx = L.vy = L.vz = 0;
         if (keys.Space || Touch.held.jump) this.leap();
       }
       if (this.outbox.length && (this.conn.offline || t - this.lastSend > 0.033)) { this.conn.send({ t: 'in', l: this.outbox.splice(0, 20) }); this.lastSend = t; }
@@ -5693,6 +5780,13 @@ const Voice = (() => {
             const jb = Touch.els.jump, vb = Touch.els.vault;
             if (vb && jb) { if (wn) { vb.style.left = jb.style.left; vb.style.top = jb.style.top; vb.style.width = jb.style.width; vb.style.height = jb.style.height; } vb.style.display = wn ? '' : 'none'; jb.style.display = wn ? 'none' : ''; if (!wn) { jb.classList.remove('dn'); Touch.held.jump = false; } }
           }
+          // em queda livre: o PULAR vira o botão de abrir o paraquedas
+          const fall = L.sky === 1, cb = Touch.els.chute, jb2 = Touch.els.jump;
+          if (cb && jb2 && (cb.style.display === 'none') === fall) {
+            if (fall) { cb.style.left = jb2.style.left; cb.style.top = jb2.style.top; cb.style.width = jb2.style.width; cb.style.height = jb2.style.height; }
+            cb.style.display = fall ? '' : 'none'; if (!this.winNear) jb2.style.display = fall ? 'none' : '';
+            $('wintip').style.display = fall && !isTouch ? '' : this.winNear && !isTouch ? '' : 'none'; setT($('wintip'), fall ? 'ESPAÇO — abrir o paraquedas' : 'ESPAÇO — pular a janela');
+          }
         }
       }
       if (keys._med) { keys._med = false; if (me.mk > 0 && me.hp < 100 && !me.mu) { this.conn.send({ t: 'act', a: 'med' }); this.fw.medStart = t; Sfx.med(); } else if (me.hp >= 100) center('Vida cheia', 1); else if (me.mk <= 0) center('Sem kits médicos', 1); }
@@ -5738,8 +5832,9 @@ const Voice = (() => {
       this.fw.reloadStart = now(); this.fw.reloadW = w.id; Sfx.reload(w.id, w.reload);
     },
     swap(s) {
-      const L = this.local; if (s === 'next') s = L.cur === 0 ? 1 : 0;
-      if (s === L.cur || L.medUntil) return;
+      const L = this.local, ws = L.weapons || [];
+      if (s === 'next') { s = L.cur; for (let k = 1; k <= 3; k++) { const i = (L.cur + k) % 3; if (ws[i]) { s = i; break; } } } // próxima arma que tiver
+      if (s === L.cur || L.medUntil || !ws[s]) return;
       L.cur = s; this.fw.switchAt = now(); this.fw.reloadStart = -9; this.fw.shots = [];
       this.conn.send({ t: 'act', a: 'switch', s });
     },
@@ -5890,8 +5985,10 @@ const Voice = (() => {
       const L = this.local, E = Touch.els, near = this.carNear(), inCar = !!L.car;
       const show = (el, on) => { if (el && (el.style.display === 'none') === on) el.style.display = on ? '' : 'none'; };
       show(E.cdrive, !!near && !near.seats[0]); show(E.cpass, !!near && !near.seats[1]);
-      show(E.cexit, inCar); show(E.cgas, inCar && L.seat === 0); show(E.cbrk, inCar && L.seat === 0); show(E.cleft, inCar && L.seat === 0); show(E.cright, inCar && L.seat === 0);
-      if (inCar && Touch.joyId !== null) { Touch.joyId = null; Touch.joy = [0, 0]; $('joy').style.display = 'none'; }
+      const two = CFG.carCtl !== 'uma', drv = inCar && L.seat === 0;
+      show(E.cexit, inCar); show(E.cgas, drv && two); show(E.cbrk, drv && two); show(E.cleft, drv && two); show(E.cright, drv && two);
+      document.body.classList.toggle('carjoy', drv && !two);
+      if (inCar && (two || L.seat !== 0) && Touch.joyId !== null) { Touch.joyId = null; Touch.joy = [0, 0]; $('joy').style.display = 'none'; }
       document.body.classList.toggle('driving', inCar && L.seat === 0); document.body.classList.toggle('riding', inCar && L.seat === 1);
       const sp = $('carspd'); if (inCar && L.seat === 0) { sp.style.display = ''; setT(sp, Math.round(Math.abs(L.car.v) * 3.6) + ' km/h'); } else if (sp.style.display !== 'none') sp.style.display = 'none';
       this.carNearC = near;
@@ -5905,6 +6002,9 @@ const Voice = (() => {
     buildFrame() {
       const base = mapItems(this.map || S.MAPS.base), L = this.local, fw = this.fw, t = now();
       const tl = this.treeList(base), items = tl ? base.filter((it) => !it.oldTree).concat(tl) : base.slice();
+      // avião (mapa aberto online: leva todos e some do outro lado)
+      const pp = this.planeQ ? this.planeNow() : null;
+      if (pp) { const PM = Assets.prop('plane'); if (PM) { const m = this._planeM || (this._planeM = M4.create()); M4.compose(m, pp.x, S.C.PLANE_Y, pp.z, pp.yaw, 0, 0); items.push({ mesh: PM.mesh, tex: PM.tex, model: m, spec: 0.3 }); } }
       // trem
       if (this.train) {
         const T = this.map.train, x = this.trainNow(), P = Assets.prop('train'), car = P || Assets.simpleTrain(T.len, T.hw * 2, T.y1);
@@ -5961,7 +6061,7 @@ const Voice = (() => {
       // carros
       this.carItems(items);
       // jogadores (quem está dentro de um carro fica escondido pela carroceria)
-      for (const rp of this.remote.values()) if (rp.cur && !(rp.cur.fl & 256)) this.soldierItems(rp, items);
+      for (const rp of this.remote.values()) if (rp.cur && !(rp.cur.fl & 256) && !(rp.cur.fl & 4096)) this.soldierItems(rp, items); // no carro / no avião: não aparece
       // câmera
       const eye = this.eye();
       let cam;
@@ -5969,7 +6069,7 @@ const Voice = (() => {
       if (L.alive) {
         this.camRoll = lerp(this.camRoll, 0, 0.2); cam = { x: eye[0], y: eye[1], z: eye[2], yaw: this.look.yaw, pitch: this.look.pitch, roll: this.camRoll };
         const w0 = this.curW();
-        if (this.riding) cam = this.trainCam(eye);
+        if (this.riding) cam = this.planeCam();
         else if (L.car && L.seat === 0) cam = this.carCam();
         else if ((CFG.tps || L.down) && fw.adsT < 0.6) cam = this.tpsCam(eye); // caído: vê o próprio corpo // mirando (MIRA): vai para a visão da arma, como nos battle royale
       }
@@ -6012,6 +6112,12 @@ const Voice = (() => {
     },
     // no trem: câmera alta atrás do jogador, para ver o mapa e escolher onde pular
     // no trem: câmera dentro do vagão, atrás do ombro (vê os outros jogadores e a paisagem pelas janelas)
+    planeCam() {
+      const pp = this.planeNow() || { x: this.local.x, z: this.local.z }, yaw = this.look.yaw, pitch = Math.min(-0.25, Math.max(-1.1, this.look.pitch)), f = S.aimDir(yaw, pitch), D = 46;
+      const ty = S.C.PLANE_Y + 2, cam = { x: pp.x - f[0] * D, y: ty - f[1] * D, z: pp.z - f[2] * D, yaw, pitch, roll: 0 };
+      this.look.pitch = pitch; this.tpsOn = true; this.camD = 9; this.camPos = [cam.x, cam.y, cam.z];
+      return cam;
+    },
     trainCam(eye) {
       const T = this.map.train, yaw = this.look.yaw, pitch = this.look.pitch, f = S.aimDir(yaw, pitch), rx = Math.cos(yaw), rz = -Math.sin(yaw), D = 2.3;
       let x = eye[0] + rx * 0.45 - f[0] * D, y = eye[1] + 0.25 - f[1] * D, z = eye[2] + rz * 0.45 - f[2] * D;
@@ -6025,19 +6131,19 @@ const Voice = (() => {
     brHud() {
       const ov = $('brov'), lp = $('brleap'), ph = this.active ? this.brPh : null;
       const left = ph ? Math.max(0, Math.ceil((this.brDur || 1) - (now() - (this.brT0 || now())))) : 0;
-      const sec = ph === 'trem' ? this.brPe : Math.min(this.brPe != null ? this.brPe : left, left || this.brPe || 0);
-      const cls = ph === 'busca' ? 'brfull' : (ph === 'lobby' || ph === 'trem') && this.riding ? 'brtop' : ''; // depois de pular: só o HUD normal
+      const sec = ph === 'aviao' ? this.brPe : Math.min(this.brPe != null ? this.brPe : left, left || this.brPe || 0);
+      const cls = ph === 'busca' ? 'brfull' : (ph === 'lobby' || ph === 'aviao') && this.riding ? 'brtop' : ''; // depois de pular: só o HUD normal
       if (ov.className !== cls) ov.className = cls;
       // procurando partida e dentro do trem: sem HUD (só aparece depois de pular)
-      const hide = ph === 'busca' || (ph === 'trem' && this.riding);
+      const hide = ph === 'busca' || (ph === 'aviao' && this.riding);
       if (document.body.classList.contains('brhide') !== hide) document.body.classList.toggle('brhide', hide);
-      lp.style.display = ph === 'trem' && this.riding ? 'block' : 'none';
+      lp.style.display = ph === 'aviao' && this.riding ? 'block' : 'none';
       if (!cls) return;
       const n = this.brPn || 1;
-      if (ph === 'busca') { setT($('brt'), 'PROCURANDO JOGADORES'); setT($('brs'), n + (n === 1 ? ' jogador encontrado' : ' jogadores encontrados') + ' · até 30 · depois todos entram no trem'); }
-      else if (ph === 'lobby') { setT($('brt'), 'LOBBY · A PARTIDA COMEÇA EM'); setT($('brs'), n + (n === 1 ? ' jogador' : ' jogadores') + ' · depois todos entram no trem'); }
-      else { setT($('brt'), 'TODOS NO TREM, PULE ONDE QUISER!'); setT($('brs'), ''); }
-      setT($('brn'), ph === 'trem' ? sec + 's' : String(sec));
+      if (ph === 'busca') { setT($('brt'), 'PROCURANDO JOGADORES'); setT($('brs'), n + (n === 1 ? ' jogador encontrado' : ' jogadores encontrados') + ' · até 30 · depois todos entram no avião'); }
+      else if (ph === 'lobby') { setT($('brt'), 'LOBBY · A PARTIDA COMEÇA EM'); setT($('brs'), n + (n === 1 ? ' jogador' : ' jogadores') + ' · depois todos entram no avião'); }
+      else { const pp = this.planeNow(); setT($('brt'), 'RESTAM NA CABINE: ' + (pp ? pp.n : n) + ' · PULE ANTES DO AVIÃO SUMIR'); setT($('brs'), ''); }
+      setT($('brn'), ph === 'aviao' ? sec + 's' : String(sec));
       const tot = ph === 'busca' ? 15 : ph === 'lobby' ? 20 : this.brDur || 50;
       $('brbar').style.width = Math.max(0, Math.min(100, (1 - sec / tot) * 100)) + '%';
     },
@@ -6050,11 +6156,12 @@ const Voice = (() => {
       const c = rp.cur, an = rp.anim;
       c.x = L.x + this.visOff[0]; c.y = L.y + this.visOff[1]; c.z = L.z + this.visOff[2]; c.yaw = this.look.yaw; c.pitch = this.look.pitch;
       c.vf = L.vault ? S.VAULT.K0 + L.vault.t * 30 * S.VAULT.SPD : 0; c.vs = L.vault ? L.vault.sh : 0;
-      c.fl = 1 | (L.crouch ? 2 : 0) | (this.reloading() ? 8 : 0) | (L.medUntil ? 16 : 0) | (L.onGround ? 32 : 0) | (L.sprint && L.onGround ? 128 : 0) | (L.down ? 2048 : 0);
+      if (this.riding) return; // dentro do avião: não aparece
+      c.fl = 1 | (L.crouch ? 2 : 0) | (this.reloading() ? 8 : 0) | (L.medUntil ? 16 : 0) | (L.onGround ? 32 : 0) | (L.sprint && L.onGround ? 128 : 0) | (L.down ? 2048 : 0) | (L.sky === 1 ? 8192 : L.sky === 2 ? 16384 : 0);
       const sp = Math.hypot(L.vx, L.vz), kv = Math.min(1, dt * 12);
       an.speed = lerp(an.speed, Math.min(sp, 9), kv); an.vx = lerp(an.vx || 0, L.vx, kv); an.vz = lerp(an.vz || 0, L.vz, kv); an.vy = L.vy || 0; an.alive = true; an.deadAt = 0;
       moveAnim(an, c.yaw, dt);
-      rp.w = L.weapons[L.cur];
+      rp.w = L.weapons[L.cur]; rp.ws = L.weapons;
       if (this.camD < 0.45) return; // câmera colada (parede atrás): não desenha o próprio corpo
       this.soldierItems(rp, items);
       if (rp.mats) { const wm = Assets.weapon(rp.w), mz = wm.muzzle; this.muzzleWorld = Engine.xform(rp.mats[11], mz[0], mz[1], mz[2]);
@@ -6085,7 +6192,8 @@ const Voice = (() => {
       if (c.fl & 2048) { if (!an.downAt) { an.downAt = t; an.upAt = 0; } fall = Math.max(fall, Math.min(1, (t - an.downAt) / 0.35)); }
       else if (an.downAt) { if (!an.upAt) an.upAt = t; const u = 1 - (t - an.upAt) / 0.5; if (u <= 0) an.downAt = an.upAt = 0; else fall = Math.max(fall, u); }
       if (!an.alive && !an.deadAt) return;
-      const sp = Math.min(1, an.speed / 5), ph = an.ph, run = crouch ? 0 : Math.max(0, Math.min(1, (an.speed - 5.3) / 1.8));
+      const sky = c.fl & 8192 ? 1 : c.fl & 16384 ? 2 : 0; // queda livre / paraquedas
+      const sp = sky ? 0 : Math.min(1, an.speed / 5), ph = an.ph, run = crouch || sky ? 0 : Math.max(0, Math.min(1, (an.speed - 5.3) / 1.8));
       const legYaw = fall ? 0 : an.legYaw || 0;
       const pm3 = look.p && S.COSMETICS[look.p] && S.COSMETICS[look.p].model, cm3 = look.c && S.COSMETICS[look.c] && S.COSMETICS[look.c].model;
       const realOK = !!(Assets.Models.soldier && CFG.real !== false && (cm3 || ((!look.c || look.c === 'ch_soldado') && !look.s && (!look.p || pm3))));
@@ -6093,6 +6201,8 @@ const Voice = (() => {
       const hipY = lvf ? 0 : (crouch ? 0.62 : 0.98) + (onG ? Math.abs(Math.sin(ph)) * (0.03 + 0.03 * run) * sp - 0.03 * run : 0) + (onG ? 0 : 0.04);
       // raiz (quadril vira para onde está andando); pulando janela: gira o corpo junto com o mergulho
       if (lvf) M4.compose(m[0], c.x, c.y + vtab(Assets.ANIMS.vault.hip, lvf) + vaultShift(lvf, c.vs || 0), c.z, c.yaw, -vtab(VA.ang, lvf), 0);
+      else if (sky === 1) M4.compose(m[0], c.x, c.y + 0.55, c.z, c.yaw, -1.35 + Math.sin(t * 2.3) * 0.04, Math.sin(t * 1.7) * 0.05); // queda livre: deitado de barriga, braços abertos
+      else if (sky === 2) M4.compose(m[0], c.x, c.y, c.z, c.yaw, Math.sin(t * 1.3) * 0.04, Math.sin(t * 0.9) * 0.05); // paraquedas: pendurado
       else M4.compose(m[0], c.x, c.y + (fall ? -0.05 * fall : 0), c.z, c.yaw + legYaw, fall * 1.45, 0);
       M4.compose(tmp, 0, hipY, 0, -legYaw, (crouch ? -0.25 : -0.05 * sp - 0.16 * run) + c.pitch * 0.35 * (1 - fall), 0); M4.mul(m[1], m[0], tmp); // tronco
       M4.compose(tmp, 0, 0.52, 0, 0, c.pitch * 0.45 * (1 - fall), 0); M4.mul(m[2], m[1], tmp); // cabeça
@@ -6119,6 +6229,7 @@ const Voice = (() => {
         if (sp < 0.15) { const br = Math.sin(t * 1.7) * 0.012; tl += br; tr -= br; } // parado: respiração
       }
       if (fall) { tl = lerp(tl, 0.3, fall); tr = lerp(tr, -0.1, fall); sl = lerp(sl, -0.2, fall); sr = lerp(sr, -0.1, fall); }
+      if (sky === 1) { tl = 0.2; tr = 0.35; sl = -0.55; sr = -0.75; } else if (sky === 2) { tl = 0.12; tr = 0.04; sl = -0.18; sr = -0.1; }
       if (lvf) { // mergulho: pernas encolhidas; levantando: pernas para baixo (compensa o tronco inclinado)
         if (lvf < 45) { tl = tr = 1.5; sl = sr = -1.9; }
         else { const k = Math.min(1, (lvf - 45) / 8), up = Math.max(0, vtab(VA.ang, lvf)), bend = Math.max(0.15, 1 - (lvf - 45) / 24); tl = tr = lerp(1.5, up + 0.9 * bend, k); sl = sr = lerp(-1.9, -1.6 * bend, k); }
@@ -6156,15 +6267,19 @@ const Voice = (() => {
         an.vW = (an.vW || 0) + ((inV ? 1 : 0) - (an.vW || 0)) * Math.min(1, (an.dt || 0.016) * (inV ? 20 : 8));
         const vW = an.vW > 0.01 ? an.vW : 0, nv = 1 - vW;
         const walkW = (WA && onG && !crouch && !fall ? Math.max(0, Math.min(1, (an.speed - 0.4) / 1.4)) * (1 - runW) : 0) * nv;
-        this.realBody(BM, rp, c, m, tmp, it, { hipY, crouch, pistol, reload, med, fall, sp, run, legYaw: legYaw * nv, jumpW: jumpW * nv, jumpT, crW: crW * nv, crT, vW, vF: an.vF || 0, vS: an.vS || 0, runW: runW * nv, runT: RA ? (an.rt || 0) * RA.dur : 0, walkW, walkT: WA ? (an.wt || 0) * WA.dur : 0, ph: an.ph, onG, tl, tr, sl, sr, wm, wid, teamCol, prot, team: ro.team, t, pants: BM === RM ? pm3 || null : (look.c && S.COSMETICS[look.c].outfit) || null });
+        if (sky === 2) this.chuteItem(rp, c, it, t);
+        this.holsterItems(rp, c, m, hipY, sky, fall, look, it, prot);
+        this.realBody(BM, rp, c, m, tmp, it, { sky, hipY, crouch, pistol, reload, med, fall, sp, run, legYaw: legYaw * nv, jumpW: jumpW * nv, jumpT, crW: crW * nv, crT, vW, vF: an.vF || 0, vS: an.vS || 0, runW: runW * nv, runT: RA ? (an.rt || 0) * RA.dur : 0, walkW, walkT: WA ? (an.wt || 0) * WA.dur : 0, ph: an.ph, onG, tl, tr, sl, sr, wm, wid, teamCol, prot, team: ro.team, t, pants: BM === RM ? pm3 || null : (look.c && S.COSMETICS[look.c].outfit) || null });
         for (const x of it) items.push(x);
         return;
       }
+      if (sky === 2) this.chuteItem(rp, c, it, t); // boneco simples também tem paraquedas
+      this.holsterItems(rp, c, m, hipY, sky, fall, look, it, prot);
       P(of.torso, m[1]); P(of.head, m[2]);
       P(of.upper, m[3]); P(of.fore, m[4]); P(of.upper, m[5]); P(of.fore, m[6]);
       if (ro.team !== -1 && !S.isFFA(this.mode)) { P(of.band, m[3], { tex: Assets.tex.plain, tint: teamCol, emis: 0.25 }); P(of.band, m[5], { tex: Assets.tex.plain, tint: teamCol, emis: 0.25 }); }
       P(of.thigh, m[7]); P(of.shin, m[8]); P(of.thigh, m[9]); P(of.shin, m[10]);
-      if (!med || fall) { P(wm.body, m[11]); if (!reload) P(wm.mag, m[12]); if (wm.pump) P(wm.pump, m[11]); }
+      if ((!med || fall) && !sky) { P(wm.body, m[11]); if (!reload) P(wm.mag, m[12]); if (wm.pump) P(wm.pump, m[11]); }
       for (const x of it) items.push(x);
     },
     // corpo realista (modelo 3D com ossos): pernas e tronco por rotação, mãos na arma por IK
@@ -6173,7 +6288,7 @@ const Voice = (() => {
       const st = rp.rig, Q = st.Q, B = RM.bi, rot = Assets.rot;
       const lean = (o.crouch ? -0.25 : -0.05 * o.sp - 0.16 * o.run) + c.pitch * 0.35 * (1 - o.fall) + Math.sin(o.t * 1.8) * 0.012 * (1 - o.sp);
       const ly = -o.legYaw; // tronco gira de volta: o quadril vai para o movimento, o peito continua na mira
-      const aim = !o.med && !o.fall;
+      const aim = !o.med && !o.fall && !o.sky;
       for (const q of Q) rot(q, 0, 0, 0);
       // tronco: inclinação + giro de quem segura fuzil (ombro esquerdo para frente)
       const tw = o.pistol || !aim ? 0 : -0.45;
@@ -6216,7 +6331,9 @@ const Voice = (() => {
       } else if (o.med) {
         const by = o.hipY + 0.28;
         st.ik.Right = { t: [0.08, by, -0.28], pole: [0.7, -1, 0.3] }; st.ik.Left = { t: [-0.08, by, -0.28], pole: [-0.7, -1, 0.3] };
-      } else { // caindo: braços soltos
+      } else if (o.sky === 2) { // paraquedas: mãos nas cordas, acima da cabeça
+        st.ik.Right = { t: [0.24, o.hipY + 1.05, 0.02], pole: [0.8, 0, 0.6] }; st.ik.Left = { t: [-0.24, o.hipY + 1.05, 0.02], pole: [-0.8, 0, 0.6] };
+      } else { // caindo (ou em queda livre): braços abertos
         rot(Q[B.LeftArm], 0, 0, 1.2); rot(Q[B.RightArm], 0, 0, -1.2);
       }
       Assets.rigSolve(RM, st, hipY + 0.05);
@@ -6229,12 +6346,44 @@ const Voice = (() => {
         M4.mul(bm, m[0], st.bones.subarray(bd.bone * 16, bd.bone * 16 + 16));
         it.push({ mesh: bd.mesh, tex: Assets.tex.plain, model: bm, tint: o.teamCol, emis: 0.2 });
       }
-      if (!o.med || o.fall) {
+      if ((!o.med || o.fall) && !o.sky) {
         M4.mul(m[11], m[0], wC); M4.compose(tmp, wm.magPos[0], wm.magPos[1], wm.magPos[2], 0, 0, 0); M4.mul(m[12], m[11], tmp);
         it.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: m[11], emis: o.prot, spec: wm.body.spec });
         if (!o.reload) it.push({ mesh: wm.mag.mesh, tex: wm.mag.tex, model: m[12], emis: o.prot, spec: wm.mag.spec });
         if (wm.pump) it.push({ mesh: wm.pump.mesh, tex: wm.pump.tex, model: m[11], emis: o.prot, spec: wm.pump.spec });
       }
+    },
+    // armas guardadas: a outra metralhadora/fuzil nas costas (as duas cruzadas quando está de pistola) e a pistola na cintura
+    holsterItems(rp, c, m, hipY, sky, fall, look, it, prot) {
+      const ws = rp.ws; if (!ws || fall || c.vf > 0) return;
+      const cur = sky ? null : rp.w; // caindo do avião: tudo guardado
+      let usedCur = false; const back = [], hip = [];
+      for (let i = 0; i < 3; i++) { const id = ws[i]; if (!id) continue; if (!usedCur && id === cur) { usedCur = true; continue; } (i === 2 ? hip : back).push(id); }
+      if (!back.length && !hip.length) return;
+      const H = rp.holM || (rp.holM = [M4.create(), M4.create(), M4.create(), M4.create(), M4.create(), M4.create()]), base = rp.holB || (rp.holB = M4.create()), tmp = rp.holT || (rp.holT = M4.create());
+      if (sky === 1) base.set(m[0]); else M4.compose(base, c.x, c.y, c.z, c.yaw, 0, 0);
+      const dy = sky === 1 ? -0.55 : hipY - 0.98; // agachado: tudo desce junto com o tronco
+      let k = 0;
+      const put = (id, x, y, z, yaw, pitch, roll) => {
+        const wsk = S.COSMETICS[(look.w || {})[id]], wm = Assets.weapon(id, wsk ? wsk.pat : null); if (!wm) return;
+        const A = H[k++], B2 = H[k++], t2 = rp.holT2 || (rp.holT2 = M4.create());
+        // posição + inclinação no plano das costas (roll), depois deita a arma (pitch): fica na diagonal
+        M4.compose(tmp, x, y + dy, z, yaw, 0, roll); M4.mul(A, base, tmp); M4.compose(t2, 0, 0, 0, 0, pitch, 0); M4.mul(A, A, t2);
+        it.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: A, emis: prot, spec: wm.body.spec });
+        M4.compose(tmp, wm.magPos[0], wm.magPos[1], wm.magPos[2], 0, 0, 0); M4.mul(B2, A, tmp);
+        it.push({ mesh: wm.mag.mesh, tex: wm.mag.tex, model: B2, emis: prot, spec: wm.mag.spec });
+        if (wm.pump) it.push({ mesh: wm.pump.mesh, tex: wm.pump.tex, model: A, emis: prot, spec: wm.pump.spec });
+      };
+      // costas (por cima da mochila), na diagonal; duas = em X
+      if (back.length === 1) put(back[0], 0, 1.28, 0.33, 0, Math.PI / 2, 0.75);
+      else if (back.length >= 2) { put(back[0], 0.02, 1.28, 0.33, 0, Math.PI / 2, 0.75); put(back[1], -0.02, 1.28, 0.37, 0, Math.PI / 2, -0.75); }
+      // cintura direita, cano para baixo
+      if (hip.length && k < 6) put(hip[0], 0.24, 0.98, 0.04, 0, -Math.PI / 2, 0);
+    },
+    chuteItem(rp, c, it, t) {
+      const P = Assets.parachute(), m = rp.chuteM || (rp.chuteM = M4.create());
+      M4.compose(m, c.x, c.y + 1.5, c.z, c.yaw, Math.sin(t * 1.3) * 0.05, Math.sin(t * 0.9) * 0.06);
+      it.push({ mesh: P.mesh, tex: P.tex, model: m, spec: 0.15 });
     },
     viewmodel(cam, vm, vmAdd) {
       const fw = this.fw, L = this.local, t = now(), w = this.curW(), myR = this.roster.get(this.myId) || {}, uni = myR.uniform || Prof.cur.uniform, myLook = myR.look || S.lookOf(Prof.cur), myCh = S.COSMETICS[myLook.c] || {}, tone = myCh.tone != null ? myCh.tone : myR.skin == null ? 1 : myR.skin, wsk = S.COSMETICS[myLook.w[w.id]], wm = Assets.weapon(w.id, wsk ? wsk.pat : null);
@@ -6320,6 +6469,13 @@ const Voice = (() => {
     },
     // jogadores e trem no radar/mapa: aliados sempre; inimigos só quando atiram (ou bem perto)
     radarMarks(x, toP, size, t) {
+      if (this.planeRoute) { // rota do avião (tracejada) e o avião
+        const [x0, z0, dx, dz] = this.planeRoute, L = 2000, a = toP(x0, z0), b = toP(x0 + dx * L, z0 + dz * L);
+        x.save(); x.setLineDash([6 * size, 5 * size]); x.strokeStyle = 'rgba(255,255,255,.85)'; x.lineWidth = 2 * size; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.stroke(); x.restore();
+        const pp = this.planeNow();
+        if (pp) { const q = toP(pp.x, pp.z); x.save(); x.translate(q[0], q[1]); x.rotate(Math.atan2(dz, dx) + Math.PI / 2); x.fillStyle = '#4fd1ff'; x.strokeStyle = '#000'; x.lineWidth = 1.5;
+          x.beginPath(); x.moveTo(0, -9 * size); x.lineTo(2.2 * size, -2 * size); x.lineTo(9 * size, 1 * size); x.lineTo(2.2 * size, 2 * size); x.lineTo(1.6 * size, 7 * size); x.lineTo(4 * size, 9 * size); x.lineTo(-4 * size, 9 * size); x.lineTo(-1.6 * size, 7 * size); x.lineTo(-2.2 * size, 2 * size); x.lineTo(-9 * size, 1 * size); x.lineTo(-2.2 * size, -2 * size); x.closePath(); x.stroke(); x.fill(); x.restore(); }
+      }
       if (this.train) {
         const T = this.map.train, fx = this.trainNow(), a = toP(fx, T.z), b = toP(fx - T.cars * (T.len + T.gap), T.z);
         x.strokeStyle = '#e8e8ee'; x.lineWidth = 5 * size; x.lineCap = 'round'; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.stroke();
@@ -6400,7 +6556,7 @@ const Voice = (() => {
       const SN = { pistol: 'G17', deagle: 'Desert Eagle', ak47: 'AK-47', m4a1: 'M4A1', doze: 'Doze Nova', maverick: 'Maverick 88', smg: 'MP5', sniper: 'AWM' };
       setT($('wname'), SN[(L.weapons || [])[L.cur]] || w.name);
       const ws = L.weapons || me.weapons || [];
-      for (let i = 0; i < 2; i++) { const el = $('ws' + i); if (!el) continue; const ww = W[ws[i]]; setT(el, ww ? SN[ws[i]] || ww.name : '—'); const on = L.cur === i; if (el.parentNode._on !== on) { el.parentNode._on = on; el.parentNode.classList.toggle('on', on); } }
+      for (let i = 0; i < 3; i++) { const el = $('ws' + i); if (!el) continue; const ww = W[ws[i]]; setT(el, ww ? SN[ws[i]] || ww.name : '—'); const on = L.cur === i; if (el.parentNode._on !== on) { el.parentNode._on = on; el.parentNode.classList.toggle('on', on); } }
       { const rows = this.rows || [], mine = rows.find((r) => r[0] === this.myId); setT($('ffal'), String(rows.filter((r) => r[6] & 1).length || 1)); setT($('ffk'), String(mine ? mine[10] | 0 : 0)); }
       const mag = this.localMag(), sameW = me.cur === L.cur;
       setH($('mag'), `${mag} <small>/ ${sameW ? me.res : '—'}</small>`);
@@ -6486,6 +6642,7 @@ const Voice = (() => {
     if (e.code === 'KeyR') keys._reload = true;
     if (e.code === 'Digit1') keys._swap = 0;
     if (e.code === 'Digit2') keys._swap = 1;
+    if (e.code === 'Digit3') keys._swap = 2;
     if (e.code === 'KeyQ') keys._swap = 'next';
     if (e.code === 'KeyM' && Game.active && !chatOpen) Game.toggleMap();
     if (e.code === 'KeyV' && Game.active && !chatOpen) Game.toggleCam();
@@ -6555,7 +6712,13 @@ const Voice = (() => {
   // ================================================================ entrada (toque)
   // HUD estilo Free Fire: ícones; minimapa quadrado no canto, coluna de voz ao lado dele; arma e slots no canto
   // superior direito (tocar na arma recarrega, tocar no slot troca); tiro grande à direita com pulo e agachar
-  const IC = {"vault": "<svg viewBox=\"0 0 24 24\"><rect x=\"2.5\" y=\"3\" width=\"13\" height=\"16\" rx=\"1\"/><path d=\"M2.5 11h13M9 3v16\"/><circle class=\"fl\" cx=\"19.5\" cy=\"6\" r=\"1.8\"/><path d=\"M12 13.5l4-3 3.5 1.5 2 4M16 10.5l1 5-3 4.5\"/></svg>", "fire": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M9 21.5V10.5Q9 4.5 12 1.8Q15 4.5 15 10.5V21.5Z\"/><path d=\"M8.4 12.5h7.2\" stroke=\"#e7b53a\" stroke-width=\"1.6\"/></svg>", "scope": "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"7.5\"/><path d=\"M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5\"/><circle class=\"fl\" cx=\"12\" cy=\"12\" r=\"1.4\"/></svg>", "jump": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"12\" cy=\"4\" r=\"2.4\"/><path d=\"M12 7.5v6.5M12 9l-4.5-3.5M12 9l4.5-3.5M12 14l-3.5 3.5 1 4M12 14l3.5 3.5-1 4\"/></svg>", "crouch": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"9\" cy=\"5.5\" r=\"2.4\"/><path d=\"M9.5 9l3.5 6M10.5 10.5l5 1M13 15l-5 2 1.5 4.5M13 15l3.5 2.5-.5 4\"/></svg>", "sprint": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"15.5\" cy=\"3.8\" r=\"2.4\"/><path d=\"M14.5 7.5l-3 7M13.5 9l4.5 3M13.5 9l-4.5 1.5M11.5 14.5l4 3v4.5M11.5 14.5l-3 4H4\"/></svg>", "med": "<svg viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M9 7V4.5h6V7\"/><path d=\"M12 10.5v6M9 13.5h6\" stroke-width=\"2.8\"/></svg>", "fire2": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M9 21.5V10.5Q9 4.5 12 1.8Q15 4.5 15 10.5V21.5Z\"/><path d=\"M8.4 12.5h7.2\" stroke=\"#e7b53a\" stroke-width=\"1.6\"/></svg>", "cam": "<svg viewBox=\"0 0 24 24\"><path d=\"M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3.2\"/></svg>", "mic": "<svg viewBox=\"0 0 24 24\"><rect x=\"8.5\" y=\"2\" width=\"7\" height=\"12\" rx=\"3.5\"/><path d=\"M5 11.5a7 7 0 0014 0M12 18.5V22M8.5 22h7\"/></svg>", "spk": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M3 9h4l5-4.5v15L7 15H3z\"/><path d=\"M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13\"/></svg>", "gear": "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"3.3\"/><path d=\"M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3M4.8 4.8l2.1 2.1M17.1 17.1l2.1 2.1M4.8 19.2l2.1-2.1M17.1 6.9l2.1-2.1\"/><circle cx=\"12\" cy=\"12\" r=\"7\"/></svg>"};
+  const IC = {
+    "wheel": "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"2.4\"/><path d=\"M3.4 10.5c3-1.4 5.5-1.6 8.6-1.6s5.6.2 8.6 1.6M12 14.4v6.4M9.8 13l-5.4 4.4M14.2 13l5.4 4.4\"/></svg>",
+    "seat": "<svg viewBox=\"0 0 24 24\"><path d=\"M8 3.5c1.6 0 2.2 1 2.5 2.6l1.6 8.4h5.2c1.3 0 2.2.9 2.2 2.2v.6c0 1.1-.9 2-2 2H9.2c-1 0-1.8-.7-2-1.6L5.3 6.3C5 4.8 6.3 3.5 8 3.5z\"/><path d=\"M9.5 19.3v2M16.5 19.3v2M16.8 3.6l-.6 6.4\"/></svg>",
+    "exit": "<svg viewBox=\"0 0 24 24\"><path d=\"M14 4H6v16h8M10 12h11M17 8l4 4-4 4\"/></svg>",
+    "chevL": "<svg viewBox=\"0 0 24 24\"><path d=\"M11 6l-6 6 6 6M19 6l-6 6 6 6\"/></svg>", "chevR": "<svg viewBox=\"0 0 24 24\"><path d=\"M5 6l6 6-6 6M13 6l6 6-6 6\"/></svg>",
+    "chevU": "<svg viewBox=\"0 0 24 24\"><path d=\"M6 13l6-6 6 6M6 19l6-6 6 6\"/></svg>", "chevD": "<svg viewBox=\"0 0 24 24\"><path d=\"M6 5l6 6 6-6M6 11l6 6 6-6\"/></svg>",
+    "chute": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M2 10.5C2 5.5 6.5 2 12 2s10 3.5 10 8.5c-1.2-1-2.4-1-3.4 0-1.1-1-2.3-1-3.3 0-1.1-1-2.2-1-3.3 0-1.1-1-2.2-1-3.3 0-1-1-2.2-1-3.3 0-1.1-1-2.3-1-3.4 0z\"/><path d=\"M3 11l8 8M21 11l-8 8M8.5 11.5l3 7.5M15.5 11.5l-3 7.5\"/><circle class=\"fl\" cx=\"12\" cy=\"20.5\" r=\"1.6\"/></svg>", "vault": "<svg viewBox=\"0 0 24 24\"><rect x=\"2.5\" y=\"3\" width=\"13\" height=\"16\" rx=\"1\"/><path d=\"M2.5 11h13M9 3v16\"/><circle class=\"fl\" cx=\"19.5\" cy=\"6\" r=\"1.8\"/><path d=\"M12 13.5l4-3 3.5 1.5 2 4M16 10.5l1 5-3 4.5\"/></svg>", "fire": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M9 21.5V10.5Q9 4.5 12 1.8Q15 4.5 15 10.5V21.5Z\"/><path d=\"M8.4 12.5h7.2\" stroke=\"#e7b53a\" stroke-width=\"1.6\"/></svg>", "scope": "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"7.5\"/><path d=\"M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5\"/><circle class=\"fl\" cx=\"12\" cy=\"12\" r=\"1.4\"/></svg>", "jump": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"12\" cy=\"4\" r=\"2.4\"/><path d=\"M12 7.5v6.5M12 9l-4.5-3.5M12 9l4.5-3.5M12 14l-3.5 3.5 1 4M12 14l3.5 3.5-1 4\"/></svg>", "crouch": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"9\" cy=\"5.5\" r=\"2.4\"/><path d=\"M9.5 9l3.5 6M10.5 10.5l5 1M13 15l-5 2 1.5 4.5M13 15l3.5 2.5-.5 4\"/></svg>", "sprint": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"15.5\" cy=\"3.8\" r=\"2.4\"/><path d=\"M14.5 7.5l-3 7M13.5 9l4.5 3M13.5 9l-4.5 1.5M11.5 14.5l4 3v4.5M11.5 14.5l-3 4H4\"/></svg>", "med": "<svg viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M9 7V4.5h6V7\"/><path d=\"M12 10.5v6M9 13.5h6\" stroke-width=\"2.8\"/></svg>", "fire2": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M9 21.5V10.5Q9 4.5 12 1.8Q15 4.5 15 10.5V21.5Z\"/><path d=\"M8.4 12.5h7.2\" stroke=\"#e7b53a\" stroke-width=\"1.6\"/></svg>", "cam": "<svg viewBox=\"0 0 24 24\"><path d=\"M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3.2\"/></svg>", "mic": "<svg viewBox=\"0 0 24 24\"><rect x=\"8.5\" y=\"2\" width=\"7\" height=\"12\" rx=\"3.5\"/><path d=\"M5 11.5a7 7 0 0014 0M12 18.5V22M8.5 22h7\"/></svg>", "spk": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M3 9h4l5-4.5v15L7 15H3z\"/><path d=\"M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13\"/></svg>", "gear": "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"3.3\"/><path d=\"M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3M4.8 4.8l2.1 2.1M17.1 17.1l2.1 2.1M4.8 19.2l2.1-2.1M17.1 6.9l2.1-2.1\"/><circle cx=\"12\" cy=\"12\" r=\"7\"/></svg>"};
   const TBTNS = [
     { id: 'fire', ic: 'fire', x: 0.855, y: 0.66, s: 104, cls: 'fire' },
     { id: 'fire2', ic: 'fire2', x: 0.085, y: 0.42, s: 64, cls: 'fire' }, // tiro esquerdo
@@ -6567,18 +6730,20 @@ const Voice = (() => {
     { id: 'grab', label: 'PEGAR', x: 0.62, y: 0.62, s: 66, cls: 'grab' },
     { id: 'joyz', label: 'ANALÓGICO', x: 0, ox: 70, y: 1, oy: -70, s: 120, cls: 'joyb', editOnly: true }, // analógico: posição e tamanho ajustáveis no PERSONALIZAR
     { id: 'vault', ic: 'vault', x: 0.955, y: 0.5, s: 62, cls: 'vaultb', noedit: true }, // de frente para uma janela: aparece no lugar do PULAR
+    { id: 'chute', ic: 'chute', x: 0.955, y: 0.5, s: 62, cls: 'vaultb', noedit: true }, // em queda livre: abre o paraquedas (no lugar do PULAR)
     { id: 'gear', ic: 'gear', x: 1, ox: -32, y: 0, oy: 31, s: 42, cls: 'gear' }, // configurações (substitui o pausar)
     { id: 'spk', ic: 'spk', x: 0, ox: 146, y: 0, oy: 26, s: 36, cls: 'vbtn' }, // ouvir a equipe (liga/desliga)
     { id: 'mic', ic: 'mic', x: 0, ox: 146, y: 0, oy: 68, s: 36, cls: 'vbtn' }, // microfone da equipe (liga/desliga)
     { id: 'cam', ic: 'cam', x: 0, ox: 146, y: 0, oy: 110, s: 36 }, // câmera 1ª/3ª pessoa
     { id: 'shop', label: '🛒 LOJA', x: 0.53, y: 0.7, s: 66, cls: 'carb shopb' }, // abre a lojinha (perto do balcão)
-    { id: 'cdrive', label: '🚗 DIRIGIR', x: 0.53, y: 0.7, s: 66, cls: 'carb' }, // entrar no carro como motorista
-    { id: 'cpass', label: '💺 CARONA', x: 0.53, y: 0.86, s: 58, cls: 'carb' }, // entrar como passageiro
-    { id: 'cexit', label: 'SAIR', x: 0.72, y: 0.22, s: 56, cls: 'carb' }, // sair do carro
-    { id: 'cleft', label: '◀', x: 0.08, y: 0.78, s: 84, cls: 'pedal steer' }, // volante: esquerda
-    { id: 'cright', label: '▶', x: 0.22, y: 0.78, s: 84, cls: 'pedal steer' }, // volante: direita
-    { id: 'cgas', label: 'ACELERAR', x: 0.9, y: 0.68, s: 92, cls: 'pedal' }, // acelerador
-    { id: 'cbrk', label: 'FREIO', x: 0.75, y: 0.8, s: 74, cls: 'pedal brk' }, // freio e ré
+    // carro (estilo Free Fire): DIRIGIR e ENTRAR lado a lado; duas mãos = « » de um lado e ˄ ˅ do outro
+    { id: 'cdrive', ic: 'wheel', sub: 'DIRIGIR', x: 0.661, y: 0.7, s: 60, cls: 'carb', car: 1 }, // entrar no carro como motorista
+    { id: 'cpass', ic: 'seat', sub: 'ENTRAR', x: 0.733, y: 0.7, s: 60, cls: 'carb', car: 1 }, // entrar como passageiro
+    { id: 'cexit', ic: 'exit', sub: 'SAIR', x: 0.72, y: 0.22, s: 54, cls: 'carb', car: 1 }, // sair do carro
+    { id: 'cleft', ic: 'chevL', x: 0.08, y: 0.78, s: 78, cls: 'pedal steer', car: 1 }, // virar à esquerda
+    { id: 'cright', ic: 'chevR', x: 0.2, y: 0.78, s: 78, cls: 'pedal steer', car: 1 }, // virar à direita
+    { id: 'cgas', ic: 'chevU', x: 0.905, y: 0.64, s: 82, cls: 'pedal steer', car: 1 }, // avançar (acelerar)
+    { id: 'cbrk', ic: 'chevD', x: 0.79, y: 0.78, s: 78, cls: 'pedal steer', car: 1 }, // voltar (freio e ré)
   ];
   const Touch = {
     joy: [0, 0], sprintLock: false, held: {}, score: false, joyId: null, joyO: [0, 0], look: new Map(), els: {},
@@ -6588,15 +6753,16 @@ const Voice = (() => {
     build(container, edit) {
       for (const b of TBTNS) {
         if (edit && b.noedit) continue; // botão de janela segue o PULAR: não aparece no editor
+        if (edit && (edit === 'car') !== !!b.car && !(edit === 'car' && b.id === 'joyz' && CFG.carCtl === 'uma')) continue; // editor do carro: só os botões do carro (e o analógico, no modo uma mão)
         if (!edit && b.editOnly) continue; // analógico: no jogo é a área do dedo (posicionada por placeJoy)
         const c = Object.assign({}, b, CFG.btns[b.id] || {});
         const el = document.createElement('div'); el.className = 'tbtn ' + (b.cls || '') + (b.ic ? ' ic' : ''); el.dataset.id = b.id;
-        if (b.id === 'joyz') el.innerHTML = '<i></i><span>ANALÓGICO</span>'; else if (b.ic) el.innerHTML = IC[b.ic] + (b.badge ? `<b class="bdg"${edit ? '' : ` id="${b.badge}"`}>2</b>` : ''); else el.textContent = b.label;
+        if (b.id === 'joyz') el.innerHTML = '<i></i><span>ANALÓGICO</span>'; else if (b.ic) el.innerHTML = IC[b.ic] + (b.sub ? `<span class="sub">${b.sub}</span>` : '') + (b.badge ? `<b class="bdg"${edit ? '' : ` id="${b.badge}"`}>2</b>` : ''); else el.textContent = b.label;
         const s = b.s * (c.k || 1), saved = CFG.btns[b.id];
         const L0 = saved ? c.x * 100 + '%' : b.ox ? `calc(${c.x * 100}% + ${b.ox}px)` : c.x * 100 + '%', T0 = saved ? c.y * 100 + '%' : b.oy ? `calc(${c.y * 100}% + ${b.oy}px)` : c.y * 100 + '%';
         Object.assign(el.style, { left: L0, top: T0, width: s + 'px', height: s + 'px' });
         container.appendChild(el);
-        if (!edit) { this.els[b.id] = el; if (b.id === 'grab' || b.id === 'vault') el.style.display = 'none'; }
+        if (!edit) { this.els[b.id] = el; if (b.id === 'grab' || b.id === 'vault' || b.id === 'chute') el.style.display = 'none'; }
       }
     },
   };
@@ -6817,6 +6983,7 @@ const Voice = (() => {
           case 'cexit': Game.carAct(-1); break;
           case 'jump': Touch.held.jump = true; break;
           case 'vault': Touch.held.vault = true; keys._vault = true; break; // toque rápido também vale
+          case 'chute': keys._vault = true; vibrate(20); break; // abre o paraquedas
           case 'ads': Game.adsToggle = !Game.adsToggle; break;
           case 'crouch': Game.crouchToggle = !Game.crouchToggle; if (Game.crouchToggle) Touch.sprintLock = false; break;
           case 'sprint': Touch.sprintLock = !Touch.sprintLock; if (Touch.sprintLock) Game.crouchToggle = false; vibrate(15); break;
@@ -6837,7 +7004,7 @@ const Voice = (() => {
       }
       if (e.target !== cv && !$('touch').contains(e.target)) continue;
       e.preventDefault();
-      if ((lx(t) < VW() * 0.42 || Math.hypot(lx(t) - joyCfg().x, ly(t) - joyCfg().y) < 85 * joyCfg().k) && Touch.joyId === null && !(Game.active && Game.local.car)) { // no carro o analógico some (só botões)
+      if ((lx(t) < VW() * 0.42 || Math.hypot(lx(t) - joyCfg().x, ly(t) - joyCfg().y) < 85 * joyCfg().k) && Touch.joyId === null && !(Game.active && Game.local.car && !(CFG.carCtl === 'uma' && Game.local.seat === 0))) { // no carro o analógico some (só botões)
         Touch.joyId = t.identifier; Touch.joyO = [lx(t), ly(t)];
         const jc = joyCfg(); if (Math.hypot(lx(t) - jc.x, ly(t) - jc.y) < 85 * jc.k) Touch.joyO = [jc.x, jc.y]; // perto do analógico: fica fixo no lugar dele
         const j = $('joy'); j.style.display = 'block'; j.style.left = Touch.joyO[0] + 'px'; j.style.top = Touch.joyO[1] + 'px'; j.firstChild.style.transform = '';
@@ -6884,16 +7051,19 @@ const Voice = (() => {
   for (const el of [$('wpanel')]) el.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
   // editor de layout
   let editSel = null;
-  function openEditor() {
+  let editMode = true;
+  function openEditor(mode) {
+    editMode = mode === 'car' ? 'car' : true;
     const ed = $('edit'); ed.querySelectorAll('.tbtn').forEach((e) => e.remove());
-    Touch.build(ed, true); ed.style.display = 'block'; editSel = null;
+    Touch.build(ed, editMode); ed.style.display = 'block'; editSel = null;
+    setT(ed.querySelector('#editbar b'), editMode === 'car' ? 'Botões do carro: arraste' : 'Arraste os botões');
     let drag = null;
     ed.onpointerdown = (e) => { const el = e.target.closest('.tbtn'); if (!el) return; drag = el; editSel = el; ed.querySelectorAll('.tbtn').forEach((x) => x.classList.toggle('dn', x === el)); $('esize').value = (CFG.btns[el.dataset.id] || {}).k || 1; e.preventDefault(); };
     ed.onpointermove = (e) => { if (!drag) return; drag.style.left = (lx(e) / VW() * 100) + '%'; drag.style.top = (ly(e) / VH() * 100) + '%'; };
     ed.onpointerup = () => { drag = null; };
   }
   $('esize').oninput = () => { if (!editSel) return; const b = TBTNS.find((x) => x.id === editSel.dataset.id); const s = b.s * $('esize').value; editSel.style.width = editSel.style.height = s + 'px'; editSel._k = +$('esize').value; };
-  $('ereset').onclick = () => { CFG.btns = {}; saveSet(); openEditor(); placeJoy(); };
+  $('ereset').onclick = () => { if (editMode === 'car') { for (const b of TBTNS) if (b.car) delete CFG.btns[b.id]; } else { for (const b of TBTNS) if (!b.car) delete CFG.btns[b.id]; } saveSet(); openEditor(editMode); placeJoy(); };
   $('esave').onclick = () => {
     $('edit').querySelectorAll('.tbtn').forEach((el) => {
       const id = el.dataset.id, prev = CFG.btns[id] || {};
@@ -7476,7 +7646,10 @@ const Voice = (() => {
   bindSet('ovib', 'vib'); bindSet('ovibk', 'vibk'); bindSet('oreal', 'real'); bindSet('otps', 'tps'); bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oastr', 'astr', 1);
   bindSet('oshadow', 'shadows'); bindSet('oeffects', 'effects'); bindSet('ofps', 'fps'); bindSet('otouch', 'touch');
   bindSet('oscale', 'scale', 1); bindSet('ofov', 'fov', 1); bindSet('osens', 'sens', 1); bindSet('otsens', 'tsens', 1); bindSet('ovol', 'vol', 1); bindSet('omus', 'music', 1);
-  $('oedit').onclick = openEditor;
+  $('oedit').onclick = () => openEditor();
+  $('ocaredit').onclick = () => openEditor('car');
+  document.querySelectorAll('[data-carctl]').forEach((b) => (b.onclick = () => { CFG.carCtl = b.dataset.carctl; saveSet(); document.querySelectorAll('[data-carctl]').forEach((x) => x.classList.toggle('on', x.dataset.carctl === CFG.carCtl)); }));
+  document.querySelectorAll('[data-carctl]').forEach((x) => x.classList.toggle('on', x.dataset.carctl === (CFG.carCtl || 'duas')));
   document.querySelectorAll('[data-or]').forEach((b) => (b.onclick = () => { setOrientation(b.dataset.or); renderSettings(); }));
   document.querySelectorAll('[data-vk]').forEach((b) => (b.onclick = () => { CFG.vkb = b.dataset.vk; saveSet(); VK.sync(); renderSettings(); }));
   document.querySelectorAll('[data-rot]').forEach((b) => (b.onclick = () => cycleOrientation()));
