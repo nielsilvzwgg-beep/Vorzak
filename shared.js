@@ -15,13 +15,13 @@
     CAR_DMG: 50, DOWN_TIME: 1.7, // atropelamento: perde 50 de vida, cai e levanta
     SHOP_START: 800, SHOP_KILL: 150, SHOP_ROUND: 400, SHOP_MAX: 4000, SHOP_DIST: 3.4, // fichas da lojinha das arenas
     R: 0.38, H: 1.8, HC: 1.2, EYE: 1.62, EYEC: 1.05, STEP: 0.55,
-    DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
+    DMG_BODY: 10, DMG_HEAD: 20, EYEP: 0.42, HP: 0.55, // (dano agora vem de cada arma: shotDamage) · EYEP: altura do olho deitado
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
     MEDKITS_START: 2, MEDKITS_MAX: 3, SWITCH: 0.45, INTERP: 0.1,
     SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, AMMO_BOX: 30, AMMO_RESPAWN: 25, BR_BUSCA: 15, BR_LOBBY: 20,
     PLANE_Y: 150, PLANE_V: 34, FALL_V: 32, FALL_H: 13, PARA_V: 5.5, PARA_H: 7.5, AUTO_OPEN: 24, // avião, queda livre e paraquedas
   };
-  const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8 };
+  const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8, PRONE: 16 };
   // pulo de janela (animação "Big Jump" do Mixamo): quadros usados, onde o corpo cruza a parede e o avanço do quadril por quadro
   const VAULT = { K0: 9, K1: 66, PL: 3.1, SPD: 1.2, BAND: 2.115, FWD: [0.0, 0.114, 0.245, 0.378, 0.503, 0.639, 0.782, 0.929, 1.064, 1.196, 1.345, 1.499, 1.66, 1.791, 1.914, 2.033, 2.152, 2.262, 2.36, 2.448, 2.539, 2.641, 2.747, 2.847, 2.946, 3.046, 3.144, 3.247, 3.357, 3.467, 3.578, 3.686, 3.789, 3.89, 4.0, 4.109, 4.224, 4.345, 4.466, 4.593, 4.717, 4.827, 4.977, 5.082, 5.171, 5.222, 5.244, 5.277, 5.304, 5.329, 5.367, 5.405, 5.44, 5.482, 5.527, 5.571, 5.613, 5.656, 5.699, 5.744, 5.79, 5.838, 5.887, 5.934, 5.977, 6.021, 6.075, 6.137, 6.193, 6.255, 6.316, 6.377] };
 
@@ -38,8 +38,86 @@
     maverick: { id: 'maverick', name: 'Maverick 88 (cal. 12)', slot: 0, dmg: 16, pellets: 8, rpm: 75, mag: 6, reserve: 30, reload: 2.6, spread: 0.06, adsSpread: 0.045, moveMul: 1.2, bloom: 0, bloomMax: 0, recoil: 0.065, recoilYaw: 0.02, range: 16, auto: false, head: 1.5, price: 2400, level: 3, zoom: 1.12, speed: 0.92, snd: { f: 430, d: 0.4, v: 1.15, b: 48 }, sightY: 0.08, pump: true },
     smg: { id: 'smg', name: 'Submetralhadora MP5', slot: 0, dmg: 21, pellets: 1, rpm: 850, mag: 30, reserve: 150, reload: 2.0, spread: 0.022, adsSpread: 0.011, moveMul: 1.3, bloom: 0.004, bloomMax: 0.035, recoil: 0.011, recoilYaw: 0.006, range: 25, auto: true, head: 1.8, price: 0, level: 1, zoom: 1.2, speed: 1.0, snd: { f: 1700, d: 0.12, v: 0.7, b: 100 }, sightY: 0.08 },
     sniper: { id: 'sniper', name: 'Sniper AWM .338', slot: 0, dmg: 115, pellets: 1, rpm: 42, mag: 5, reserve: 25, reload: 3.4, spread: 0.09, adsSpread: 0.0008, moveMul: 2.0, bloom: 0, bloomMax: 0, recoil: 0.1, recoilYaw: 0.01, range: 200, auto: false, head: 2.5, price: 4500, level: 5, zoom: 4.5, scope: true, speed: 0.82, snd: { f: 380, d: 0.6, v: 1.25, b: 45 }, sightY: 0.1 },
+    // metralhadora: pente de 100, muito recuo, lenta para mirar
+    m249: { id: 'm249', lmg: true, name: 'Metralhadora M249', slot: 0, dmg: 25, pellets: 1, rpm: 720, mag: 100, reserve: 200, reload: 5.0, spread: 0.032, adsSpread: 0.009, moveMul: 2.0, bloom: 0.006, bloomMax: 0.06, recoil: 0.017, recoilYaw: 0.012, range: 50, auto: true, head: 1.8, price: 3800, level: 6, zoom: 1.3, speed: 0.8, snd: { f: 820, d: 0.24, v: 1.05, b: 66 }, sightY: 0.11 },
+    // arma especial: besta com projétil de verdade (voa, cai com a gravidade, leva tempo para chegar) e quase sem barulho
+    besta: { id: 'besta', proj: { v: 80, g: 9.8 }, name: 'Besta Tática', slot: 0, dmg: 90, pellets: 1, rpm: 55, mag: 1, reserve: 24, reload: 1.5, spread: 0.03, adsSpread: 0.002, moveMul: 1.5, bloom: 0, bloomMax: 0, recoil: 0.025, recoilYaw: 0.004, range: 70, minDmg: 0.8, auto: false, head: 2.2, price: 3300, level: 5, zoom: 1.6, speed: 0.95, snd: { f: 300, d: 0.2, v: 0.4, b: 40 }, sightY: 0.1 },
   };
-  const WEAPON_LIST = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'pistol', 'deagle', 'maverick'];
+  const WEAPON_LIST = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'pistol', 'deagle', 'maverick', 'm249', 'besta'];
+  // ---------------------------------------------------------------- acessórios (mudam os atributos de verdade; o servidor confere)
+  // rv: recuo vertical · rh: recuo lateral · sp: dispersão · rg: alcance (queda de dano) · ads: velocidade para mirar · mag: pente
+  const ATTACH = {
+    silenc: { slot: 'mu', name: 'Silenciador', desc: 'tiro baixo, sem clarão; −10% alcance', level: 3, rv: 0.92, rh: 0.92, rg: 0.9, silent: true },
+    comp: { slot: 'mu', name: 'Compensador', desc: '−28% recuo vertical', level: 2, rv: 0.72 },
+    bocal: { slot: 'mu', name: 'Bocal', desc: '−40% recuo lateral, +10% alcance', level: 4, rh: 0.6, sp: 0.85, rg: 1.1 },
+    ext: { slot: 'mg', name: 'Carregador estendido', desc: '+50% balas no pente', level: 1, mag: 1.5 },
+    vert: { slot: 'gr', name: 'Empunhadura vertical', desc: '−20% recuo, mais estável', level: 2, rv: 0.8, rh: 0.85, sp: 0.85 },
+    ang: { slot: 'gr', name: 'Empunhadura angular', desc: 'mira mais rápida, −30% recuo lateral', level: 3, rh: 0.7, ads: 1.35 },
+    red: { slot: 'si', name: 'Red Dot', desc: 'ponto vermelho, zoom leve', level: 1, zoom: 1.25, kind: 'red' },
+    holo: { slot: 'si', name: 'Holográfica', desc: 'retícula holográfica, zoom leve', level: 1, zoom: 1.3, kind: 'holo' },
+    x2: { slot: 'si', name: 'Luneta 2x', desc: 'aproxima 2 vezes', level: 3, zoom: 2, kind: 'x2' },
+    x4: { slot: 'si', name: 'Luneta 4x', desc: 'aproxima 4 vezes', level: 4, zoom: 4, kind: 'x4' },
+    x8: { slot: 'si', name: 'Luneta 8x', desc: 'aproxima 8 vezes', level: 6, zoom: 8, kind: 'x8' },
+  };
+  const ATT_SLOTS = { mu: 'Cano', mg: 'Carregador', gr: 'Empunhadura', si: 'Mira' };
+  // o que cabe em cada arma
+  function attFits(wid, aid) {
+    const w = WEAPONS[wid], a = ATTACH[aid]; if (!w || !a) return false;
+    const pistol = w.slot === 1, shot = w.pellets > 1;
+    if (w.proj) return aid === 'red' || aid === 'holo' || aid === 'x2';
+    if (a.slot === 'mg') return true;
+    if (a.slot === 'gr') return !pistol && !shot && !w.scope;
+    if (a.slot === 'mu') return shot ? aid === 'bocal' : true;
+    if (a.slot === 'si') {
+      if (w.scope) return aid === 'x4' || aid === 'x8';
+      if (pistol || shot) return aid === 'red' || aid === 'holo';
+      if (w.lmg) return aid !== 'x8';
+      return aid !== 'x8' && (aid !== 'x4' || wid !== 'smg');
+    }
+    return false;
+  }
+  function sanitizeAtt(att, level) {
+    const out = {};
+    if (!att || typeof att !== 'object') return out;
+    for (const wid of Object.keys(att)) {
+      if (!WEAPONS[wid] || !att[wid] || typeof att[wid] !== 'object') continue;
+      const o = {};
+      for (const sl of Object.keys(ATT_SLOTS)) { const id = att[wid][sl]; if (typeof id === 'string' && ATTACH[id] && ATTACH[id].slot === sl && attFits(wid, id) && (level == null || level >= ATTACH[id].level)) o[sl] = id; }
+      if (Object.keys(o).length) out[wid] = o;
+    }
+    return out;
+  }
+  // atributos finais da arma com os acessórios do jogador
+  function modsOf(att, wid) {
+    const m = { rv: 1, rh: 1, sp: 1, rg: 1, ads: 1, mag: 1, zoom: 0, sight: '', silent: false };
+    const o = att && att[wid]; if (!o) return m;
+    for (const sl in o) {
+      const a = ATTACH[o[sl]]; if (!a) continue;
+      if (a.rv) m.rv *= a.rv; if (a.rh) m.rh *= a.rh; if (a.sp) m.sp *= a.sp; if (a.rg) m.rg *= a.rg; if (a.ads) m.ads *= a.ads; if (a.mag) m.mag *= a.mag;
+      if (a.zoom) { m.zoom = a.zoom; m.sight = a.kind; } if (a.silent) m.silent = true;
+    }
+    return m;
+  }
+  function magSize(att, wid) { const w = WEAPONS[wid]; return w ? Math.round(w.mag * modsOf(att, wid).mag) : 0; }
+  // dispersão do tiro do jogador conforme a postura (sorteio com semente: celular e servidor chegam no mesmo ponto)
+  function postureSpread(w, st, mods) {
+    if (w.pellets > 1) return w.spread * 0.45 * ((mods && mods.sp) || 1);
+    let k = st.air ? 1.4 : st.run ? 0.75 : st.move ? 0.32 : 0; // parado: no centro
+    if (st.crouch || st.prone) k *= 0.5;
+    const base = st.ads && w.scope ? w.adsSpread * 4 : w.spread; // luneta da sniper: precisa
+    if (st.ads && !w.scope) k *= 0.35;
+    return base * k * ((mods && mods.sp) || 1);
+  }
+  // projétil (besta): anda em passos pequenos; para na parede/chão. Devolve o ponto final se bateu
+  function projStep(pr, dt, g) {
+    const nx = pr.x + pr.vx * dt, ny = pr.y + pr.vy * dt - 0.5 * g * dt * dt, nz = pr.z + pr.vz * dt;
+    const dx = nx - pr.x, dy = ny - pr.y, dz = nz - pr.z, L = Math.hypot(dx, dy, dz) || 1e-6;
+    const tw = raycastWorld(pr.x, pr.y, pr.z, dx / L, dy / L, dz / L, L);
+    pr.vy -= g * dt; pr.dist = (pr.dist || 0) + Math.min(tw, L);
+    if (tw < L || ny < -2) { pr.x += dx / L * Math.min(tw, L); pr.y += dy / L * Math.min(tw, L); pr.z += dz / L * Math.min(tw, L); return true; }
+    pr.x = nx; pr.y = ny; pr.z = nz; return false;
+  }
+  function seeded(seed) { let x = (seed | 0) * 2654435761 >>> 0; return () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
 
   const UNIFORMS = {
     woodland: { id: 'woodland', name: 'Floresta', price: 0, level: 1, c: ['#4b5a32', '#2f3a22', '#6b6a45', '#1f221a'] },
@@ -907,7 +985,7 @@
   const ARENA_ILHA = makeArena(MAP_ISLAND, 'arena_ilha', 'Arena Ilha', -42, 64, 40, 32, 'stone');
   const ARENAS = ['arena_cidade', 'arena_ilha'];
   // lojinha das arenas: armas grátis; kit, capacete e colete custam fichas da partida
-  const SHOP = { kit: { name: 'Kit médico', price: 150 }, helmet: { name: 'Capacete', price: 250 }, vest: { name: 'Colete', price: 350 } };
+  const SHOP = { kit: { name: 'Kit médico', price: 150 }, helmet: { name: 'Capacete Nv.2', price: 250, lv: 2 }, vest: { name: 'Colete Nv.2', price: 350, lv: 2 }, helmet3: { name: 'Capacete Nv.3', price: 450, lv: 3 }, vest3: { name: 'Colete Nv.3', price: 600, lv: 3 } };
   const MAPS = { base: MAP_BASE, aberto: MAP_OPEN, ilha: MAP_ISLAND, arena_cidade: ARENA_CIDADE, arena_ilha: ARENA_ILHA };
   const OPEN_MAPS = ['aberto', 'ilha']; // mapas do modo Mapa aberto (o jogador escolhe)
   const isRoundsM = (m) => /^x[1-4]$/.test(m);
@@ -1121,7 +1199,7 @@
   function vaultStep(p, dt) {
     const v = p.vault; v.t += dt;
     const f = vaultFrame(v), q = vaultPos(v, f);
-    p.yaw = v.yaw; p.ads = false; p.sprint = false; p.crouch = false;
+    p.yaw = v.yaw; p.ads = false; p.sprint = false; p.crouch = false; p.prone = false;
     if (dt > 0) { p.vx = (q[0] - p.x) / dt; p.vz = (q[2] - p.z) / dt; }
     p.x = q[0]; p.y = q[1]; p.z = q[2]; p.vy = 0;
     p.onGround = f < 13 || f > 44;
@@ -1136,7 +1214,7 @@
     const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
     const wx = (-sy * f + cy * s) * H, wz = (-cy * f - sy * s) * H, k = Math.min(1, dt * 2.2);
     p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k; p.vy += (V - p.vy) * Math.min(1, dt * (p.sky === 2 ? 3 : 1.2));
-    p.crouch = false; p.sprint = false; p.ads = false; p.onGround = false;
+    p.crouch = false; p.prone = false; p.sprint = false; p.ads = false; p.onGround = false;
     const m = MAP, h = C.H;
     let nx = clamp(p.x + p.vx * dt, -m.sx + 2, m.sx - 2); if (!collides(nx, p.y, p.z, C.R, h)) p.x = nx; else p.vx = 0;
     let nz = clamp(p.z + p.vz * dt, -m.sz + 2, m.sz - 2); if (!collides(p.x, p.y, nz, C.R, h)) p.z = nz; else p.vz = 0;
@@ -1153,21 +1231,24 @@
     if (!p.alive) return;
     if (p.car) { // dentro do carro: motorista dirige (frente/trás = acelerar/freio, lados = volante); passageiro só acompanha
       if (p.seat === 0) carStep(p.car, inp.f, inp.s, dt);
-      const sp = seatPos(p.car, p.seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = true; p.sprint = false;
+      const sp = seatPos(p.car, p.seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = true; p.prone = false; p.sprint = false;
       return;
     }
     if (p.vault) { vaultStep(p, dt); return; } // pulando a janela: a animação conduz o corpo
     if (p.sky) { skyStep(p, inp, b, dt); return; } // caindo do avião / de paraquedas
+    // deitar (de bruços): só no chão; para levantar precisa de espaço em cima
+    if ((b & BTN.PRONE) && p.onGround && !p.down && !p.car && !p.medUntil) p.prone = true;
+    else if (p.prone && (!(b & BTN.PRONE) || !p.onGround) && !collides(p.x, p.y, p.z, C.R, C.HC)) { p.prone = false; p.crouch = true; }
     if (b & BTN.CROUCH) p.crouch = true;
-    else if (p.crouch && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
-    const h = p.crouch ? C.HC : C.H;
+    else if (p.crouch && !p.prone && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
+    const h = p.prone ? C.HP : p.crouch ? C.HC : C.H;
     let f = clamp(num(inp.f), -1, 1), s = clamp(num(inp.s), -1, 1);
     if (p.down) { f = 0; s = 0; } // caído (atropelado): não anda até levantar
     const len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; }
     const w = weaponOf(p);
-    p.sprint = !p.crouch && !!(b & BTN.SPRINT) && f > 0.3 && !p.ads && !p.medUntil; // correndo (botão CORRER / Shift)
-    let speed = p.crouch ? C.CROUCH : (p.sprint ? C.SPRINT : C.WALK);
+    p.sprint = !p.crouch && !p.prone && !!(b & BTN.SPRINT) && f > 0.3 && !p.ads && !p.medUntil; // correndo (botão CORRER / Shift)
+    let speed = p.prone ? C.CROUCH * 0.42 : p.crouch ? C.CROUCH : (p.sprint ? C.SPRINT : C.WALK); // deitado: rasteja devagar
     speed *= w.speed;
     if (p.ads) speed *= 0.65;
     if (p.medUntil) speed *= 0.6;
@@ -1176,7 +1257,7 @@
     const wx = (-sy * f + cy * s) * speed, wz = (-cy * f - sy * s) * speed;
     const k = p.down ? Math.min(1, dt * 3) : p.onGround ? Math.min(1, dt * 14) : Math.min(1, dt * 2.5);
     p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k;
-    if ((b & BTN.JUMP) && p.onGround && !p.crouch && !p.down) {
+    if ((b & BTN.JUMP) && p.onGround && !p.crouch && !p.prone && !p.down) {
       const wv = findWindow(p); // de frente para uma janela: pula por ela
       if (wv) { wv.t = 0; p.vault = wv; vaultStep(p, dt); return; }
       p.vy = C.JUMP; p.onGround = false;
@@ -1260,13 +1341,32 @@
     return [-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp];
   }
   // hitboxes: retorna {t, head} ou null
-  function rayPlayer(ox, oy, oz, dx, dy, dz, x, y, z, crouch) {
-    const h = crouch ? C.HC : C.H;
-    const th = rayBox(ox, oy, oz, dx, dy, dz, x - 0.19, y + h - 0.34, z - 0.19, x + 0.19, y + h + 0.03, z + 0.19);
-    const tb = rayBox(ox, oy, oz, dx, dy, dz, x - 0.33, y, z - 0.33, x + 0.33, y + h - 0.34, z + 0.33);
+  // corpo dividido em cabeça / tronco / pernas. pad: folga extra (de longe o alvo fica minúsculo na tela do celular)
+  function rayPlayer(ox, oy, oz, dx, dy, dz, x, y, z, crouch, pad = 0, prone = false) {
+    if (prone) { // deitado: caixa baixa e comprida
+      const tp = rayBox(ox, oy, oz, dx, dy, dz, x - 0.5 - pad, y, z - 0.5 - pad, x + 0.5 + pad, y + 0.42 + pad, z + 0.5 + pad);
+      return tp === Infinity ? null : { t: tp, head: false, reg: 1 };
+    }
+    const h = crouch ? C.HC : C.H, hp = pad * 0.6, legTop = y + (crouch ? 0.55 : 0.9);
+    const th = rayBox(ox, oy, oz, dx, dy, dz, x - 0.19 - hp, y + h - 0.34, z - 0.19 - hp, x + 0.19 + hp, y + h + 0.03 + hp, z + 0.19 + hp);
+    const tc = rayBox(ox, oy, oz, dx, dy, dz, x - 0.33 - pad, legTop, z - 0.33 - pad, x + 0.33 + pad, y + h - 0.34, z + 0.33 + pad);
+    const tl = rayBox(ox, oy, oz, dx, dy, dz, x - 0.27 - pad, y, z - 0.27 - pad, x + 0.27 + pad, legTop, z + 0.27 + pad);
+    const tb = Math.min(tc, tl);
     if (th === Infinity && tb === Infinity) return null;
-    return th <= tb ? { t: th, head: true } : { t: tb, head: false };
+    return th <= tb ? { t: th, head: true, reg: 0 } : { t: tb, head: false, reg: tc <= tl ? 1 : 2 }; // reg: 0 cabeça, 1 tronco, 2 pernas
   }
+  // folga da caixa conforme a distância (ajuda de mira do servidor: igual para todos os jogadores)
+  function hitPad(d) { return Math.min(0.2, Math.max(0, d - 12) * 0.0055); }
+  // dano conforme arma, distância e região
+  const REG_MUL = [0, 1, 0.75];
+  function shotDamage(w, d, reg, mods) {
+    const fr = w.range * ((mods && mods.range) || 1);
+    const fall = d <= fr ? 1 : Math.max(w.minDmg || 0.55, 1 - (d - fr) / (fr * 1.5) * (1 - (w.minDmg || 0.55)));
+    const rm = reg === 0 ? w.head : REG_MUL[reg];
+    return w.dmg * rm * fall;
+  }
+  // proteção por nível: capacete (cabeça) e colete (tronco); pernas sem proteção
+  const ARMOR_RED = [0, 0.2, 0.35, 0.5];
 
   // ---------------------------------------------------------------- navegação dos bots (grade A*)
   let NAV = null;
@@ -1386,7 +1486,7 @@
     return { id: m.id, prog: 0 };
   }
   function newProfile(name) {
-    const p = { v: 1, name: sanitizeName(name), xp: 0, level: 1, coins: 1500, owned: ['pistol', 'smg'], uniformsOwned: ['woodland', 'desert'], upgrades: [], loadout: { primary: 'smg', secondary: 'pistol' }, uniform: 'woodland', mmr: 1000, wins: 0, losses: 0, kills: 0, deaths: 0, hs: 0, matches: 0, missions: [], cos: { owned: ['ch_soldado'], char: 'ch_soldado', shirt: '', pants: '', wskins: {} }, pid: '', friends: [], fin: [], fout: [], mail: [], news: [] };
+    const p = { v: 1, name: sanitizeName(name), xp: 0, level: 1, coins: 1500, owned: ['pistol', 'smg'], uniformsOwned: ['woodland', 'desert'], upgrades: [], loadout: { primary: 'smg', secondary: 'pistol' }, att: {}, uniform: 'woodland', mmr: 1000, wins: 0, losses: 0, kills: 0, deaths: 0, hs: 0, matches: 0, missions: [], cos: { owned: ['ch_soldado'], char: 'ch_soldado', shirt: '', pants: '', wskins: {} }, pid: '', friends: [], fin: [], fout: [], mail: [], news: [] };
     while (p.missions.length < 3) p.missions.push(pickMission(p));
     return p;
   }
@@ -1395,6 +1495,7 @@
     if (!p || typeof p !== 'object') return d;
     for (const k in d) if (p[k] === undefined || typeof p[k] !== typeof d[k]) p[k] = d[k];
     p.owned = p.owned.filter((w) => WEAPONS[w]);
+    p.att = sanitizeAtt(p.att, p.level);
     if (!WEAPONS[p.loadout.primary] || !p.owned.includes(p.loadout.primary)) p.loadout.primary = 'smg';
     if (!WEAPONS[p.loadout.secondary] || !p.owned.includes(p.loadout.secondary)) p.loadout.secondary = 'pistol';
     if (!UNIFORMS[p.uniform]) p.uniform = 'woodland';
@@ -1462,6 +1563,7 @@
     return null;
   }
   function equip(prof, e) {
+    if (e.att && typeof e.att === 'object') prof.att = sanitizeAtt(Object.assign({}, prof.att, e.att), prof.level);
     if (e.primary && WEAPONS[e.primary] && WEAPONS[e.primary].slot === 0 && prof.owned.includes(e.primary)) prof.loadout.primary = e.primary;
     if (e.secondary && WEAPONS[e.secondary] && WEAPONS[e.secondary].slot === 1 && prof.owned.includes(e.secondary)) prof.loadout.secondary = e.secondary;
     if (e.uniform && UNIFORMS[e.uniform] && prof.uniformsOwned.includes(e.uniform)) prof.uniform = e.uniform;
@@ -1509,7 +1611,7 @@
       this.round = 1; this.roundEndAt = 0; this.roundWinners = [];
       this.botSkill = clamp(o.botSkill == null ? 1 : o.botSkill, 0, 2);
       this.players = new Map();
-      this.nextId = 1;
+      this.nextId = 1; this.projs = []; this.projSeq = 0;
       this.time = 0; this.matchTime = 0; this.state = 'playing'; this.endAt = 0;
       this.score = [0, 0];
       this.events = [];
@@ -1549,7 +1651,7 @@
     // embarca no avião (todos na cabine; a câmera fica atrás do avião)
     board(p) {
       const [x, z] = this.planePos();
-      p.plane = true; p.sky = 0; p.x = x; p.z = z; p.y = C.PLANE_Y - 1.5; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      p.plane = true; p.sky = 0; p.x = x; p.z = z; p.y = C.PLANE_Y - 1.5; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false; p.prone = false;
       p.spawnProt = Infinity; p.yaw = this.plane.yaw; p.car = null;
     }
     // pula do avião: começa em queda livre um pouco atrás da cauda
@@ -1588,7 +1690,7 @@
       const team = isFFA(this.mode) ? (this.mode === 'aberto' && info.sq ? 100000 + (info.sq | 0) : id) : (info.team === 0 || info.team === 1 ? info.team : (this.teamCount(0) <= this.teamCount(1) ? 0 : 1));
       const p = {
         id, name: sanitizeName(info.name), bot: !!info.bot, team, uniform: UNIFORMS[info.uniform] ? info.uniform : 'woodland',
-        skin: info.skin != null ? info.skin : id % 4, level: info.level || 1, upgrades: info.upgrades || [], look: sanitizeLook(info.look),
+        skin: info.skin != null ? info.skin : id % 4, level: info.level || 1, upgrades: info.upgrades || [], look: sanitizeLook(info.look), att: sanitizeAtt(info.att, info.bot ? null : info.level || 1),
         weapons: [WEAPONS[lo.primary] && WEAPONS[lo.primary].slot === 0 ? lo.primary : 'smg', null, WEAPONS[lo.secondary] && WEAPONS[lo.secondary].slot === 1 ? lo.secondary : 'pistol'], // arma 1, arma 2 (vazia até pegar) e pistola
         x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: 0, onGround: true, crouch: false, ads: false,
         hp: 100, alive: false, respawnAt: 0, kills: 0, deaths: 0, streak: 0, xp: 0,
@@ -1618,7 +1720,7 @@
     leaveCar(p, force) {
       const c = p.car; if (!c) return;
       if (c.seats[p.seat] === p.id) c.seats[p.seat] = 0;
-      p.car = null; p.crouch = false;
+      p.car = null; p.crouch = false; p.prone = false;
       if (!force) { // sai pela lateral (ou pela frente/trás) em um lugar livre
         const f = carFwd(c.yaw), r = [Math.cos(c.yaw), -Math.sin(c.yaw)], side = p.seat === 1 ? -1 : 1;
         for (const [a, b] of [[side * 1.9, 0], [-side * 1.9, 0], [0, 3.3], [0, -3.3], [side * 2.4, 1.5], [-side * 2.4, -1.5]]) {
@@ -1672,7 +1774,7 @@
       if (this.rounds && !this.roundEndAt) this.checkRound(null);
     }
     roster() {
-      return [...this.players.values()].map((p) => [p.id, p.name, p.team, p.bot ? 1 : 0, p.uniform, p.skin, p.level, p.look]);
+      return [...this.players.values()].map((p) => [p.id, p.name, p.team, p.bot ? 1 : 0, p.uniform, p.skin, p.level, p.look, p.att || {}]);
     }
     spawn(p) {
       const SP = this.map.spawns, list = isFFA(this.mode) ? SP.ffa : this.rounds ? SP.x1[p.team] : SP[p.team];
@@ -1703,7 +1805,7 @@
           if (ok) break;
         }
       }
-      p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false; p.prone = false;
       const keep = this.rounds && this.shop && p.alive && p.round === this.round - 1; // X1–X4: quem sobreviveu ao round mantém o que comprou
       p.round = this.round;
       if (p.money == null) p.money = this.shop ? C.SHOP_START : 0;
@@ -1713,12 +1815,12 @@
       p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0; p.down = false;
       if (this.shop && p.bot && !keep) { // bots também passam na lojinha
         const w = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'maverick', 'sniper'][Math.floor(Math.random() * 8)]; p.weapons[0] = w;
-        if (p.money >= 350 && Math.random() < 0.7) { p.money -= 350; p.vest = 100; }
-        if (p.money >= 250 && Math.random() < 0.5) { p.money -= 250; p.helmet = 100; }
+        if (p.money >= 350 && Math.random() < 0.7) { p.money -= 350; p.vest = 100; p.vestLv = 2; }
+        if (p.money >= 250 && Math.random() < 0.5) { p.money -= 250; p.helmet = 100; p.helmetLv = 2; }
       }
       p.medkits = C.MEDKITS_START + (p.upgrades.includes('medbag') ? 1 : 0);
       p.spawnProt = this.time + C.SPAWN_PROT;
-      for (const w of p.weapons) if (w) p.ammo[w] = { mag: WEAPONS[w].mag, res: WEAPONS[w].reserve };
+      for (const w of p.weapons) if (w) p.ammo[w] = { mag: magSize(p.att, w), res: WEAPONS[w].reserve };
       if (p.ai) p.ai.path = null;
       this.events.push({ e: 'spawn', id: p.id });
     }
@@ -1769,9 +1871,9 @@
       for (const o of this.drops) near(o);
       if (!best || !WEAPONS[best.w]) return;
       const w = WEAPONS[best.w], slot = this.slotFor(p, w.id), old = p.weapons[slot];
-      if (old === best.w) { p.ammo[w.id] = { mag: w.mag, res: w.reserve }; }
+      if (old === best.w) { p.ammo[w.id] = { mag: magSize(p.att, w.id), res: w.reserve }; }
       else {
-        p.weapons = p.weapons.slice(); p.weapons[slot] = w.id; p.ammo[w.id] = { mag: w.mag, res: w.reserve };
+        p.weapons = p.weapons.slice(); p.weapons[slot] = w.id; p.ammo[w.id] = { mag: magSize(p.att, w.id), res: w.reserve };
         if (old && WEAPONS[old]) { if (this.drops.length >= 24) this.drops.shift(); const sp = this.dropSpot(p.x, p.y, p.z); this.drops.push({ id: ++this.dropSeq, x: sp[0], y: p.y, z: sp[1], w: old, until: this.time + 40 }); }
       }
       p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
@@ -1788,7 +1890,7 @@
     }
     reload(p) {
       const w = weaponOf(p), am = p.ammo[w.id];
-      if (!p.alive || p.reloadUntil || p.medUntil || !am || am.mag >= w.mag || am.res <= 0) return;
+      if (!p.alive || p.reloadUntil || p.medUntil || !am || am.mag >= magSize(p.att, w.id) || am.res <= 0) return;
       p.reloadUntil = this.time + w.reload;
       this.events.push({ e: 'reload', id: p.id });
     }
@@ -1813,48 +1915,65 @@
       if (this.time - p.lastShot < 60 / w.rpm - 0.025) return; // cadência
       p.lastShot = this.time; am.mag--;
       const yaw = num(a.yaw, p.yaw), pitch = clamp(num(a.pitch, p.pitch), -1.5, 1.5);
-      const moving = Math.hypot(p.vx, p.vz) > 1.5 || !p.onGround;
-      // jogador: o tiro vai exatamente para o centro da mira (escopeta: bolinhas num círculo fechado em volta dela); bots erram um pouco
-      let spread = p.bot ? (p.ads ? w.adsSpread : w.spread) * (moving ? w.moveMul : 1) * (p.crouch ? 0.8 : 1) + p.bloom : w.pellets > 1 ? w.spread * 0.45 : 0;
-      if (p.bot) p.bloom = Math.min(w.bloomMax, p.bloom + w.bloom);
-      let ex = p.x, ey = p.y + (p.crouch ? C.EYEC : C.EYE), ez = p.z;
+      const sp2 = Math.hypot(p.vx, p.vz), mods = modsOf(p.att, w.id);
+      // jogador: parado vai no centro; andando, correndo ou pulando a bala abre um pouco (agachado/deitado/mirando fecha)
+      let spread;
+      if (p.bot) { spread = (p.ads ? w.adsSpread : w.spread) * (sp2 > 1.5 || !p.onGround ? w.moveMul : 1) * (p.crouch ? 0.8 : 1) + p.bloom; p.bloom = Math.min(w.bloomMax, p.bloom + w.bloom); }
+      else spread = postureSpread(w, { air: !p.onGround, run: p.sprint, move: sp2 > 1.2, crouch: p.crouch, prone: p.prone, ads: p.ads }, mods);
+      let ex = p.x, ey = p.y + (p.prone ? C.EYEP : p.crouch ? C.EYEC : C.EYE), ez = p.z;
       // o tiro sai do olho que o celular usou para mirar (se estiver perto do que o servidor conhece: sem trapaça)
       if (Array.isArray(a.o) && a.o.length === 3) { const ox = num(a.o[0], ex), oy = num(a.o[1], ey), oz = num(a.o[2], ez); if (Math.hypot(ox - ex, oy - ey, oz - ez) < 1.6) { ex = ox; ey = oy; ez = oz; } }
       const fwd = aimDir(yaw, pitch), sy = Math.sin(yaw), cy = Math.cos(yaw), sp = Math.sin(pitch), cp = Math.cos(pitch);
       const right = [cy, 0, -sy], up = [sy * sp, cp, cy * sp];
-      // compensação de latência
-      const rewind = clamp(p.bot ? C.INTERP : p.ping / 2 + C.INTERP, 0, 0.35);
-      const past = this.pastPositions(this.time - rewind);
+      // compensação de latência: volta exatamente ao instante que a tela do atirador mostrava (no máximo 350 ms)
+      const rt = num(a.rt, NaN);
+      const tBack = p.bot ? this.time - C.INTERP : Number.isFinite(rt) ? clamp(rt, this.time - 0.35, this.time) : this.time - clamp(p.ping / 2 + C.INTERP, 0, 0.35);
+      const past = this.pastPositions(tBack);
+      const rnd = seeded((p.id * 7919) ^ ((a.seq | 0) * 104729));
+      if (w.proj) { // besta: lança a flecha (o servidor simula o voo e confere o acerto a cada passo)
+        const r0 = Math.sqrt(rnd()) * spread, th0 = rnd() * Math.PI * 2, ox = Math.cos(th0) * r0, oy = Math.sin(th0) * r0;
+        let dx = fwd[0] + right[0] * ox + up[0] * oy, dy = fwd[1] + right[1] * ox + up[1] * oy, dz = fwd[2] + right[2] * ox + up[2] * oy; const l = Math.hypot(dx, dy, dz);
+        const v = w.proj.v, pr = { k: ++this.projSeq, o: p.id, w: w.id, x: ex, y: ey, z: ez, vx: dx / l * v, vy: dy / l * v, vz: dz / l * v, t: 0, dist: 0, rng: mods.rg };
+        (this.projs || (this.projs = [])).push(pr);
+        this.events.push({ e: 'pj', id: p.id, k: pr.k, w: w.id, o: [r2(ex), r2(ey), r2(ez)], v: [r2(pr.vx), r2(pr.vy), r2(pr.vz)] });
+        return;
+      }
       const dmgMap = new Map();
       let firstEnd = null;
       for (let k = 0; k < w.pellets; k++) {
-        const r = k === 0 && !p.bot ? 0 : Math.sqrt(Math.random()) * spread, th = Math.random() * Math.PI * 2; // 1ª bolinha sempre no centro
+        const r = k === 0 && !p.bot && w.pellets > 1 ? 0 : Math.sqrt(rnd()) * spread, th = rnd() * Math.PI * 2; // doze: 1ª bolinha no centro
         const ox = Math.cos(th) * r, oy = Math.sin(th) * r;
         let dx = fwd[0] + right[0] * ox + up[0] * oy, dy = fwd[1] + right[1] * ox + up[1] * oy, dz = fwd[2] + right[2] * ox + up[2] * oy;
         const l = Math.hypot(dx, dy, dz); dx /= l; dy /= l; dz /= l;
         let tw = raycastWorld(ex, ey, ez, dx, dy, dz, 250);
-        let victim = null, head = false;
+        let victim = null, hit = null;
         for (const o of this.players.values()) {
           if (o === p || !o.alive) continue;
-          const hp = past.get(o.id) || [o.x, o.y, o.z, o.crouch];
-          const h = rayPlayer(ex, ey, ez, dx, dy, dz, hp[0], hp[1], hp[2], hp[3]);
-          if (h && h.t < tw) { tw = h.t; victim = o; head = h.head; }
+          const hp = past.get(o.id) || [o.x, o.y, o.z, o.crouch, !!o.prone];
+          const pad = p.bot ? 0 : hitPad(Math.hypot(hp[0] - ex, hp[2] - ez));
+          const h = rayPlayer(ex, ey, ez, dx, dy, dz, hp[0], hp[1], hp[2], hp[3], pad, hp[4]);
+          if (h && h.t < tw) { tw = h.t; victim = o; hit = h; }
         }
         if (!firstEnd) firstEnd = [ex + dx * tw, ey + dy * tw, ez + dz * tw];
         if (victim && victim.team !== p.team) { // no FFA cada um tem o próprio time; no mapa aberto a equipe (duo/squad) não se fere
-          const e = dmgMap.get(victim) || { head: false };
-          e.head = e.head || head; dmgMap.set(victim, e);
+          const e = dmgMap.get(victim) || { head: 0, d: [0, 0, 0] };
+          e.d[hit.reg] += shotDamage(w, tw, hit.reg, { range: mods.rg }); if (hit.reg === 0) e.head = 1;
+          dmgMap.set(victim, e);
         }
       }
-      this.events.push({ e: 'shot', id: p.id, w: w.id, o: [r2(ex), r2(ey), r2(ez)], t: firstEnd.map(r2) });
-      // dano fixo por tiro que acerta (todas as armas): peito/corpo 10, cabeça 20 (a doze conta 1 vez por disparo)
-      for (const [v, e] of dmgMap) this.damage(v, p, e.head ? C.DMG_HEAD : C.DMG_BODY, e.head, w.id);
+      this.events.push({ e: 'shot', id: p.id, w: w.id, o: [r2(ex), r2(ey), r2(ez)], t: firstEnd.map(r2), s: mods.silent ? 1 : 0 });
+      for (const [v, e] of dmgMap) this.damage(v, p, e.d, e.head, w.id);
     }
     damage(v, att, d, head, wid) {
       if (!v.alive || this.time < v.spawnProt || this.roundEndAt) return;
-      if (wid !== 'car') { // capacete protege a cabeça, colete o corpo (gastam com os tiros)
-        if (head && v.helmet > 0) { v.helmet = Math.max(0, v.helmet - d * 0.5); d *= 0.55; }
-        else if (!head && v.vest > 0) { v.vest = Math.max(0, v.vest - d * 0.5); d *= 0.6; }
+      if (Array.isArray(d)) { // tiro: capacete protege a cabeça e colete o tronco, conforme o nível (e gastam com os tiros)
+        let hd = d[0], bd = d[1];
+        if (hd > 0 && v.helmet > 0) { const red = ARMOR_RED[v.helmetLv || 2]; v.helmet = Math.max(0, v.helmet - hd * 0.5); hd *= 1 - red; }
+        if (bd > 0 && v.vest > 0) { const red = ARMOR_RED[v.vestLv || 2]; v.vest = Math.max(0, v.vest - bd * 0.5); bd *= 1 - red; }
+        d = Math.max(1, Math.round(hd + bd + d[2]));
+      } else if (wid !== 'car') {
+        if (head && v.helmet > 0) { v.helmet = Math.max(0, v.helmet - d * 0.5); d *= 1 - ARMOR_RED[v.helmetLv || 2]; }
+        else if (!head && v.vest > 0) { v.vest = Math.max(0, v.vest - d * 0.5); d *= 1 - ARMOR_RED[v.vestLv || 2]; }
         d = Math.max(1, Math.round(d));
       }
       v.hp = Math.max(0, v.hp - d);
@@ -1971,12 +2090,48 @@
         p.z = nz; p.vz = side * 2;
       }
     }
+    // voo das flechas: a cada passo confere parede/chão e jogadores (caixa um pouco maior de longe, igual ao tiro)
+    projTick(dt) {
+      const keep = [];
+      for (const pr of this.projs) {
+        const sh = this.players.get(pr.o), w = WEAPONS[pr.w], g = w.proj.g, N = 3, h = dt / N;
+        let done = false;
+        for (let s = 0; s < N && !done; s++) {
+          const x0 = pr.x, y0 = pr.y, z0 = pr.z, wall = projStep(pr, h, g);
+          const dx = pr.x - x0, dy = pr.y - y0, dz = pr.z - z0, L = Math.hypot(dx, dy, dz) || 1e-6;
+          let best = null, bt = L;
+          for (const o of this.players.values()) {
+            if (o.id === pr.o || !o.alive) continue;
+            const hh = rayPlayer(x0, y0, z0, dx / L, dy / L, dz / L, o.x, o.y, o.z, o.crouch, sh && !sh.bot ? hitPad(pr.dist) * 0.6 : 0, !!o.prone);
+            if (hh && hh.t <= bt) { bt = hh.t; best = { o, hh }; }
+          }
+          if (best) {
+            const { o, hh } = best;
+            if (sh && o.team !== sh.team) { const d = [0, 0, 0]; d[hh.reg] = shotDamage(w, pr.dist, hh.reg, { range: pr.rng }); this.damage(o, sh, d, hh.reg === 0, w.id); }
+            pr.x = x0 + dx / L * bt; pr.y = y0 + dy / L * bt; pr.z = z0 + dz / L * bt; done = 'hit';
+          } else if (wall) done = 'wall';
+        }
+        pr.t += dt;
+        if (!done && pr.t > 4) done = 'wall';
+        if (done) this.events.push({ e: 'pjx', k: pr.k, id: pr.o, p: [r2(pr.x), r2(pr.y), r2(pr.z)], h: done === 'hit' ? 1 : 0 });
+        else keep.push(pr);
+      }
+      this.projs = keep;
+    }
+    // onde cada jogador estava no instante t (interpolado entre dois quadros: o mesmo que a tela do atirador mostrava)
     pastPositions(t) {
       const h = this.history;
       if (!h.length) return new Map();
-      let best = h[h.length - 1];
-      for (let i = h.length - 1; i >= 0; i--) { best = h[i]; if (h[i].t <= t) break; }
-      return best.m;
+      let i = h.length - 1; while (i > 0 && h[i].t > t) i--;
+      const A = h[i], B = h[Math.min(h.length - 1, i + 1)];
+      if (A === B || B.t <= A.t || t <= A.t) return A.m;
+      const k = Math.min(1, (t - A.t) / (B.t - A.t)), out = new Map();
+      for (const [id, a] of A.m) {
+        const b = B.m.get(id);
+        if (!b || Math.hypot(b[0] - a[0], b[2] - a[2]) > 4) { out.set(id, a); continue; } // renasceu/teleportou
+        out.set(id, [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k, k < 0.5 ? a[3] : b[3], k < 0.5 ? a[4] : b[4]]);
+      }
+      return out;
     }
     tick(dt) {
       useMap(this.map, this.dyn, this.cars);
@@ -1986,6 +2141,7 @@
       if (!this.br || this.ph === 'livre') this.matchTime += dt;
       if (this.map.train) this.trainTick();
       if (this.cars.length) this.carTick(dt);
+      if (this.projs && this.projs.length) this.projTick(dt);
       if (this.timeLimit && this.matchTime >= this.timeLimit) { this.endMatch(); return; }
       if (this.roundEndAt && this.time >= this.roundEndAt) this.nextRound();
       for (const p of this.players.values()) {
@@ -1999,7 +2155,7 @@
         if (p.reloadUntil && this.time >= p.reloadUntil) {
           p.reloadUntil = 0;
           const w = weaponOf(p), am = p.ammo[w.id];
-          const n = Math.min(w.mag - am.mag, am.res); am.mag += n; am.res -= n;
+          const n = Math.min(magSize(p.att, w.id) - am.mag, am.res); am.mag += n; am.res -= n;
         }
         if (p.medUntil && this.time >= p.medUntil) {
           p.medUntil = 0; p.medkits--; p.stats.medUsed++;
@@ -2030,9 +2186,9 @@
       for (const a of this.ammos) if (!a.active && this.time >= a.t) a.active = true;
       if (this.drops.length) this.drops = this.drops.filter((d) => this.time < d.until);
       const snap = new Map();
-      for (const p of this.players.values()) if (p.alive) snap.set(p.id, [p.x, p.y, p.z, p.crouch]);
+      for (const p of this.players.values()) if (p.alive) snap.set(p.id, [p.x, p.y, p.z, p.crouch, !!p.prone]);
       this.history.push({ t: this.time, m: snap });
-      if (this.history.length > 15) this.history.shift();
+      if (this.history.length > 24) this.history.shift();
     }
     // ---------------- IA dos bots
     // lojinha: comprar arma (grátis), kit, capacete ou colete perto do balcão
@@ -2041,10 +2197,10 @@
       const ok = (price) => { if ((p.money | 0) < price) { this.events.push({ e: 'buyno', id: p.id }); return false; } p.money -= price; return true; };
       if (WEAPONS[it]) {
         const w = WEAPONS[it], slot = this.slotFor(p, it);
-        p.weapons = p.weapons.slice(); p.weapons[slot] = it; p.ammo[it] = { mag: w.mag, res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
+        p.weapons = p.weapons.slice(); p.weapons[slot] = it; p.ammo[it] = { mag: magSize(p.att, it), res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
       } else if (it === 'kit') { if (p.medkits >= C.MEDKITS_MAX || !ok(SHOP.kit.price)) return; p.medkits++; }
-      else if (it === 'helmet') { if (p.helmet >= 100 || !ok(SHOP.helmet.price)) return; p.helmet = 100; }
-      else if (it === 'vest') { if (p.vest >= 100 || !ok(SHOP.vest.price)) return; p.vest = 100; }
+      else if (it === 'helmet' || it === 'helmet3') { const lv = SHOP[it].lv; if ((p.helmet >= 100 && (p.helmetLv || 2) >= lv) || !ok(SHOP[it].price)) return; p.helmet = 100; p.helmetLv = lv; }
+      else if (it === 'vest' || it === 'vest3') { const lv = SHOP[it].lv; if ((p.vest >= 100 && (p.vestLv || 2) >= lv) || !ok(SHOP[it].price)) return; p.vest = 100; p.vestLv = lv; }
       else return;
       this.events.push({ e: 'buy', id: p.id, it });
     }
@@ -2053,7 +2209,7 @@
       useMap(this.map, this.dyn, this.cars);
       const used = new Set([...this.players.values()].map((p) => p.name));
       const name = BOT_NAMES.find((n) => !used.has(n)) || 'Bot' + this.nextId;
-      const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper', 'maverick'][Math.floor(Math.random() * 8)];
+      const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper', 'maverick', 'm249', 'smg'][Math.floor(Math.random() * 10)];
       const uni = Object.keys(UNIFORMS)[Math.floor(Math.random() * 6)];
       buildNav();
       // alguns bots usam itens da lojinha, para as skins aparecerem nas partidas
@@ -2161,7 +2317,7 @@
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0) | (p.plane ? 4096 : 0) | (p.sky === 1 ? 8192 : p.sky === 2 ? 16384 : 0);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0) | (p.plane ? 4096 : 0) | (p.sky === 1 ? 8192 : p.sky === 2 ? 16384 : 0) | (p.prone ? 32768 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths, p.vault ? [r2(vaultFrame(p.vault)), r2(p.vault.sh)] : 0, p.weapons]);
       }
       const mk = maskOf(this.medkits);
@@ -2180,14 +2336,14 @@
     snapMe(p) {
       const w = weaponOf(p), am = p.ammo[w.id] || { mag: 0, res: 0 };
       return {
-        id: p.id, x: p.x, y: p.y, z: p.z, vx: p.vx, vy: p.vy, vz: p.vz, og: p.onGround ? 1 : 0, cr: p.crouch ? 1 : 0, ack: p.ack, sa: p.shotAck,
+        id: p.id, x: p.x, y: p.y, z: p.z, vx: p.vx, vy: p.vy, vz: p.vz, og: p.onGround ? 1 : 0, cr: p.crouch ? 1 : 0, pr: p.prone ? 1 : 0, ack: p.ack, sa: p.shotAck,
         hp: p.hp, al: p.alive ? 1 : 0, cur: p.cur, w: p.weapons, mag: am.mag, res: am.res,
         rl: p.reloadUntil ? r2(p.reloadUntil - this.time) : 0, mu: p.medUntil ? r2(p.medUntil - this.time) : 0, mk: p.medkits,
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
         pl: p.plane ? 1 : 0, sk: p.sky || 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
         vt: p.vault ? Object.assign({}, p.vault) : 0,
-        dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
+        dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0), hl: p.helmet > 0 ? p.helmetLv || 2 : 0, vl: p.vest > 0 ? p.vestLv || 2 : 0,
       };
     }
   }
@@ -2197,7 +2353,7 @@
 
   return {
     isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
-    clamp, collides, applyInput, findWindow, VAULT, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, CAR_T, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf,
+    clamp, collides, applyInput, findWindow, VAULT, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, CAR_T, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf, projStep, ATTACH, ATT_SLOTS, attFits, sanitizeAtt, modsOf, magSize, postureSpread, seeded, shotDamage, hitPad, ARMOR_RED,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,
   };

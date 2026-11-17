@@ -138,7 +138,8 @@ body.brhide #touch,body.brhide .tbtn{visibility:hidden!important}
 #center{position:fixed;left:50%;top:32%;transform:translateX(-50%);text-align:center;font-size:24px;font-weight:700;text-shadow:0 2px 6px #000}
 #medbar{position:fixed;left:50%;top:62%;width:220px;margin-left:-110px;display:none;text-align:center}
 #medbar .bar{height:8px}#medbar .bar i{background:var(--grn)}
-#scope{position:fixed;inset:0;display:none;background:radial-gradient(circle at center,transparent 0,transparent 31vmin,rgba(0,0,0,.2) 31.4vmin,#000 32vmin)}
+.attbox{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}.attw{display:flex;flex-wrap:wrap;gap:6px}.attrow h5{margin:6px 0 4px;font-size:13px;letter-spacing:1px;color:var(--acc);text-transform:uppercase}.attrow>div{display:flex;flex-wrap:wrap;gap:6px}.attb{min-width:118px;max-width:170px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#fff;text-align:left;font:inherit}.attb b{display:block;font-size:13px}.attb small{display:block;font-size:10.5px;opacity:.7;line-height:1.2;margin-top:2px}.attb.on{border-color:var(--acc);background:rgba(255,170,40,.16)}.attb.lk{opacity:.45}
+#sight{position:fixed;left:50%;top:50%;width:0;height:0;display:none;pointer-events:none}#sight i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:#ff2a2a;box-shadow:0 0 6px #ff2a2a}#sight.holo i{left:-15px;top:-15px;width:26px;height:26px;background:none;border:2px solid #ff3b3b;box-shadow:0 0 5px #ff3b3b}#sight.holo:after{content:"";position:absolute;left:-2px;top:-2px;width:4px;height:4px;border-radius:50%;background:#ff3b3b}#scope.x2,#scope.x4,#scope.x8{background:radial-gradient(circle at center,transparent 0,transparent 34vmin,rgba(0,0,0,.25) 34.4vmin,#000 35vmin)}#scope:after{content:"";position:absolute;left:50%;top:50%;width:62vmin;height:62vmin;margin:-31vmin;background:linear-gradient(#111,#111) center/1.5px 100% no-repeat,linear-gradient(#111,#111) center/100% 1.5px no-repeat;opacity:.85}#scope.x2:after{width:20vmin;height:20vmin;margin:-10vmin;background:none;border:2px solid #e22;border-radius:50%}#scope b{position:absolute;right:calc(50% - 30vmin);bottom:calc(50% - 30vmin);color:#fff;font:700 14px Rajdhani,sans-serif;text-shadow:0 0 3px #000}#scope{position:fixed;inset:0;display:none;background:radial-gradient(circle at center,transparent 0,transparent 31vmin,rgba(0,0,0,.2) 31.4vmin,#000 32vmin)}
 #scope:before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:#000}
 #scope:after{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:#000}
 #roundban{position:fixed;left:50%;top:24%;transform:translateX(-50%);text-align:center;font-weight:700;text-shadow:0 2px 8px #000;z-index:5;display:none;background:rgba(0,0,0,.45);padding:12px 26px;width:max-content;max-width:calc(var(--gw)*0.94)}
@@ -720,7 +721,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         <h4>Tiros</h4>
         <div class="ffrow"><span>Mira assistida<small>puxa a mira para o inimigo</small></span><span class="ffseg" data-chk="oassist"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="oassist" hidden></div>
         <div class="ffrow"><span>Força da mira assistida <b id="oastrv"></b></span><input type="range" id="oastr" min="0.1" max="1" step="0.05"></div>
-        <div class="ffrow"><span>Puxar pra cima = capa<small>a mira gruda na cabeça</small></span><span class="ffseg" data-chk="ohead"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="ohead" hidden></div>
+        <div class="ffrow"><span>Efeito de sangue<small>respingo quando a bala acerta</small></span><span class="ffseg" data-chk="oblood"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="oblood" hidden></div><div class="ffrow"><span>Força da puxada (capa) <b id="opullv"></b><small>quanto a mira sobe para a cabeça ao puxar o dedo</small></span><input type="range" id="opull" min="0.2" max="1.5" step="0.05"></div><div class="ffrow"><span>Puxar pra cima = capa<small>a mira gruda na cabeça</small></span><span class="ffseg" data-chk="ohead"><button data-v="0">Desligado</button><button data-v="1">Ligado</button></span><input type="checkbox" id="ohead" hidden></div>
         <h4>Tela</h4>
         <div class="ffrow"><span>Orientação da tela</span><span class="ffseg"><button data-or="auto">Automática</button><button data-or="landscape">Deitado</button><button data-or="portrait">Em pé</button></span></div>
         <div class="ffrow"><span>Girar tela</span><button class="ffbtn" data-rot="1">⟳ Girar</button></div>
@@ -746,7 +747,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       <div class="ffpane" data-p="partida-sens">
         <h4>Sensibilidade</h4>
         <div class="ffrow"><span>Toque (celular) <b id="otsensv"></b></span><input type="range" id="otsens" min="0.2" max="3" step="0.05"></div>
-        <div class="ffrow"><span>Mouse (PC) <b id="osensv"></b></span><input type="range" id="osens" min="0.2" max="3" step="0.05"></div>
+        <div class="ffrow"><span>Mirando (sem luneta / Red Dot / Holo) <b id="osrv"></b></span><input type="range" id="osr" min="0.2" max="2" step="0.05"></div><div class="ffrow"><span>Luneta 2x <b id="os2v"></b></span><input type="range" id="os2" min="0.2" max="2" step="0.05"></div><div class="ffrow"><span>Luneta 4x <b id="os4v"></b></span><input type="range" id="os4" min="0.2" max="2" step="0.05"></div><div class="ffrow"><span>Luneta 8x <b id="os8v"></b></span><input type="range" id="os8" min="0.2" max="2" step="0.05"></div><div class="ffrow"><span>Atirando (precisão do disparo) <b id="osfv"></b></span><input type="range" id="osf" min="0.2" max="2" step="0.05"></div><div class="ffrow"><span>Mouse (PC) <b id="osensv"></b></span><input type="range" id="osens" min="0.2" max="3" step="0.05"></div>
         <div class="ffrow"><span>Campo de visão (FOV) <b id="ofovv"></b></span><input type="range" id="ofov" min="60" max="100" step="1"></div>
       </div>
       <div class="ffpane" data-p="partida-vib">
@@ -779,7 +780,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
 
 <!-- HUD -->
 <div id="hud">
-  <div id="scope"></div>
+  <div id="scope"></div><div id="sight"><i></i></div>
   <div id="cross"><svg viewBox="-20 -20 40 40" width="40" height="40"><g class="o"><path d="M11.93 1.25 A12 12 0 0 1 10.96 4.88"/><path d="M9.71 7.05 A12 12 0 0 1 7.05 9.71"/><path d="M4.88 10.96 A12 12 0 0 1 1.25 11.93"/><path d="M-1.25 11.93 A12 12 0 0 1 -4.88 10.96"/><path d="M-7.05 9.71 A12 12 0 0 1 -9.71 7.05"/><path d="M-10.96 4.88 A12 12 0 0 1 -11.93 1.25"/><path d="M-11.93 -1.25 A12 12 0 0 1 -10.96 -4.88"/><path d="M-9.71 -7.05 A12 12 0 0 1 -7.05 -9.71"/><path d="M-4.88 -10.96 A12 12 0 0 1 -1.25 -11.93"/><path d="M1.25 -11.93 A12 12 0 0 1 4.88 -10.96"/><path d="M7.05 -9.71 A12 12 0 0 1 9.71 -7.05"/><path d="M10.96 -4.88 A12 12 0 0 1 11.93 -1.25"/></g><g class="f"><path d="M11.93 1.25 A12 12 0 0 1 10.96 4.88"/><path d="M9.71 7.05 A12 12 0 0 1 7.05 9.71"/><path d="M4.88 10.96 A12 12 0 0 1 1.25 11.93"/><path d="M-1.25 11.93 A12 12 0 0 1 -4.88 10.96"/><path d="M-7.05 9.71 A12 12 0 0 1 -9.71 7.05"/><path d="M-10.96 4.88 A12 12 0 0 1 -11.93 1.25"/><path d="M-11.93 -1.25 A12 12 0 0 1 -10.96 -4.88"/><path d="M-9.71 -7.05 A12 12 0 0 1 -7.05 -9.71"/><path d="M-4.88 -10.96 A12 12 0 0 1 -1.25 -11.93"/><path d="M1.25 -11.93 A12 12 0 0 1 4.88 -10.96"/><path d="M7.05 -9.71 A12 12 0 0 1 9.71 -7.05"/><path d="M10.96 -4.88 A12 12 0 0 1 11.93 -1.25"/></g><circle class="cb" cx="0" cy="0" r="3.6"/><circle class="cd" cx="0" cy="0" r="1.3"/></svg></div>
   <div id="hitm"><i></i><i></i><i></i><i></i></div>
   <div id="vig"></div><div id="lowhp"></div><div id="healfx"></div>
@@ -839,13 +840,13 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     CAR_DMG: 50, DOWN_TIME: 1.7, // atropelamento: perde 50 de vida, cai e levanta
     SHOP_START: 800, SHOP_KILL: 150, SHOP_ROUND: 400, SHOP_MAX: 4000, SHOP_DIST: 3.4, // fichas da lojinha das arenas
     R: 0.38, H: 1.8, HC: 1.2, EYE: 1.62, EYEC: 1.05, STEP: 0.55,
-    DMG_BODY: 10, DMG_HEAD: 20, // dano por tiro acertado: peito/corpo 10, cabeça 20
+    DMG_BODY: 10, DMG_HEAD: 20, EYEP: 0.42, HP: 0.55, // (dano agora vem de cada arma: shotDamage) · EYEP: altura do olho deitado
     TICK: 1 / 30, MAXHP: 100, MEDHEAL: 50, MEDTIME: 1.6, RESPAWN: 3.5,
     MEDKITS_START: 2, MEDKITS_MAX: 3, SWITCH: 0.45, INTERP: 0.1,
     SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, AMMO_BOX: 30, AMMO_RESPAWN: 25, BR_BUSCA: 15, BR_LOBBY: 20,
     PLANE_Y: 150, PLANE_V: 34, FALL_V: 32, FALL_H: 13, PARA_V: 5.5, PARA_H: 7.5, AUTO_OPEN: 24, // avião, queda livre e paraquedas
   };
-  const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8 };
+  const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8, PRONE: 16 };
   // pulo de janela (animação "Big Jump" do Mixamo): quadros usados, onde o corpo cruza a parede e o avanço do quadril por quadro
   const VAULT = { K0: 9, K1: 66, PL: 3.1, SPD: 1.2, BAND: 2.115, FWD: [0.0, 0.114, 0.245, 0.378, 0.503, 0.639, 0.782, 0.929, 1.064, 1.196, 1.345, 1.499, 1.66, 1.791, 1.914, 2.033, 2.152, 2.262, 2.36, 2.448, 2.539, 2.641, 2.747, 2.847, 2.946, 3.046, 3.144, 3.247, 3.357, 3.467, 3.578, 3.686, 3.789, 3.89, 4.0, 4.109, 4.224, 4.345, 4.466, 4.593, 4.717, 4.827, 4.977, 5.082, 5.171, 5.222, 5.244, 5.277, 5.304, 5.329, 5.367, 5.405, 5.44, 5.482, 5.527, 5.571, 5.613, 5.656, 5.699, 5.744, 5.79, 5.838, 5.887, 5.934, 5.977, 6.021, 6.075, 6.137, 6.193, 6.255, 6.316, 6.377] };
 
@@ -862,8 +863,86 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     maverick: { id: 'maverick', name: 'Maverick 88 (cal. 12)', slot: 0, dmg: 16, pellets: 8, rpm: 75, mag: 6, reserve: 30, reload: 2.6, spread: 0.06, adsSpread: 0.045, moveMul: 1.2, bloom: 0, bloomMax: 0, recoil: 0.065, recoilYaw: 0.02, range: 16, auto: false, head: 1.5, price: 2400, level: 3, zoom: 1.12, speed: 0.92, snd: { f: 430, d: 0.4, v: 1.15, b: 48 }, sightY: 0.08, pump: true },
     smg: { id: 'smg', name: 'Submetralhadora MP5', slot: 0, dmg: 21, pellets: 1, rpm: 850, mag: 30, reserve: 150, reload: 2.0, spread: 0.022, adsSpread: 0.011, moveMul: 1.3, bloom: 0.004, bloomMax: 0.035, recoil: 0.011, recoilYaw: 0.006, range: 25, auto: true, head: 1.8, price: 0, level: 1, zoom: 1.2, speed: 1.0, snd: { f: 1700, d: 0.12, v: 0.7, b: 100 }, sightY: 0.08 },
     sniper: { id: 'sniper', name: 'Sniper AWM .338', slot: 0, dmg: 115, pellets: 1, rpm: 42, mag: 5, reserve: 25, reload: 3.4, spread: 0.09, adsSpread: 0.0008, moveMul: 2.0, bloom: 0, bloomMax: 0, recoil: 0.1, recoilYaw: 0.01, range: 200, auto: false, head: 2.5, price: 4500, level: 5, zoom: 4.5, scope: true, speed: 0.82, snd: { f: 380, d: 0.6, v: 1.25, b: 45 }, sightY: 0.1 },
+    // metralhadora: pente de 100, muito recuo, lenta para mirar
+    m249: { id: 'm249', lmg: true, name: 'Metralhadora M249', slot: 0, dmg: 25, pellets: 1, rpm: 720, mag: 100, reserve: 200, reload: 5.0, spread: 0.032, adsSpread: 0.009, moveMul: 2.0, bloom: 0.006, bloomMax: 0.06, recoil: 0.017, recoilYaw: 0.012, range: 50, auto: true, head: 1.8, price: 3800, level: 6, zoom: 1.3, speed: 0.8, snd: { f: 820, d: 0.24, v: 1.05, b: 66 }, sightY: 0.11 },
+    // arma especial: besta com projétil de verdade (voa, cai com a gravidade, leva tempo para chegar) e quase sem barulho
+    besta: { id: 'besta', proj: { v: 80, g: 9.8 }, name: 'Besta Tática', slot: 0, dmg: 90, pellets: 1, rpm: 55, mag: 1, reserve: 24, reload: 1.5, spread: 0.03, adsSpread: 0.002, moveMul: 1.5, bloom: 0, bloomMax: 0, recoil: 0.025, recoilYaw: 0.004, range: 70, minDmg: 0.8, auto: false, head: 2.2, price: 3300, level: 5, zoom: 1.6, speed: 0.95, snd: { f: 300, d: 0.2, v: 0.4, b: 40 }, sightY: 0.1 },
   };
-  const WEAPON_LIST = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'pistol', 'deagle', 'maverick'];
+  const WEAPON_LIST = ['ak47', 'm4a1', 'doze', 'smg', 'sniper', 'pistol', 'deagle', 'maverick', 'm249', 'besta'];
+  // ---------------------------------------------------------------- acessórios (mudam os atributos de verdade; o servidor confere)
+  // rv: recuo vertical · rh: recuo lateral · sp: dispersão · rg: alcance (queda de dano) · ads: velocidade para mirar · mag: pente
+  const ATTACH = {
+    silenc: { slot: 'mu', name: 'Silenciador', desc: 'tiro baixo, sem clarão; −10% alcance', level: 3, rv: 0.92, rh: 0.92, rg: 0.9, silent: true },
+    comp: { slot: 'mu', name: 'Compensador', desc: '−28% recuo vertical', level: 2, rv: 0.72 },
+    bocal: { slot: 'mu', name: 'Bocal', desc: '−40% recuo lateral, +10% alcance', level: 4, rh: 0.6, sp: 0.85, rg: 1.1 },
+    ext: { slot: 'mg', name: 'Carregador estendido', desc: '+50% balas no pente', level: 1, mag: 1.5 },
+    vert: { slot: 'gr', name: 'Empunhadura vertical', desc: '−20% recuo, mais estável', level: 2, rv: 0.8, rh: 0.85, sp: 0.85 },
+    ang: { slot: 'gr', name: 'Empunhadura angular', desc: 'mira mais rápida, −30% recuo lateral', level: 3, rh: 0.7, ads: 1.35 },
+    red: { slot: 'si', name: 'Red Dot', desc: 'ponto vermelho, zoom leve', level: 1, zoom: 1.25, kind: 'red' },
+    holo: { slot: 'si', name: 'Holográfica', desc: 'retícula holográfica, zoom leve', level: 1, zoom: 1.3, kind: 'holo' },
+    x2: { slot: 'si', name: 'Luneta 2x', desc: 'aproxima 2 vezes', level: 3, zoom: 2, kind: 'x2' },
+    x4: { slot: 'si', name: 'Luneta 4x', desc: 'aproxima 4 vezes', level: 4, zoom: 4, kind: 'x4' },
+    x8: { slot: 'si', name: 'Luneta 8x', desc: 'aproxima 8 vezes', level: 6, zoom: 8, kind: 'x8' },
+  };
+  const ATT_SLOTS = { mu: 'Cano', mg: 'Carregador', gr: 'Empunhadura', si: 'Mira' };
+  // o que cabe em cada arma
+  function attFits(wid, aid) {
+    const w = WEAPONS[wid], a = ATTACH[aid]; if (!w || !a) return false;
+    const pistol = w.slot === 1, shot = w.pellets > 1;
+    if (w.proj) return aid === 'red' || aid === 'holo' || aid === 'x2';
+    if (a.slot === 'mg') return true;
+    if (a.slot === 'gr') return !pistol && !shot && !w.scope;
+    if (a.slot === 'mu') return shot ? aid === 'bocal' : true;
+    if (a.slot === 'si') {
+      if (w.scope) return aid === 'x4' || aid === 'x8';
+      if (pistol || shot) return aid === 'red' || aid === 'holo';
+      if (w.lmg) return aid !== 'x8';
+      return aid !== 'x8' && (aid !== 'x4' || wid !== 'smg');
+    }
+    return false;
+  }
+  function sanitizeAtt(att, level) {
+    const out = {};
+    if (!att || typeof att !== 'object') return out;
+    for (const wid of Object.keys(att)) {
+      if (!WEAPONS[wid] || !att[wid] || typeof att[wid] !== 'object') continue;
+      const o = {};
+      for (const sl of Object.keys(ATT_SLOTS)) { const id = att[wid][sl]; if (typeof id === 'string' && ATTACH[id] && ATTACH[id].slot === sl && attFits(wid, id) && (level == null || level >= ATTACH[id].level)) o[sl] = id; }
+      if (Object.keys(o).length) out[wid] = o;
+    }
+    return out;
+  }
+  // atributos finais da arma com os acessórios do jogador
+  function modsOf(att, wid) {
+    const m = { rv: 1, rh: 1, sp: 1, rg: 1, ads: 1, mag: 1, zoom: 0, sight: '', silent: false };
+    const o = att && att[wid]; if (!o) return m;
+    for (const sl in o) {
+      const a = ATTACH[o[sl]]; if (!a) continue;
+      if (a.rv) m.rv *= a.rv; if (a.rh) m.rh *= a.rh; if (a.sp) m.sp *= a.sp; if (a.rg) m.rg *= a.rg; if (a.ads) m.ads *= a.ads; if (a.mag) m.mag *= a.mag;
+      if (a.zoom) { m.zoom = a.zoom; m.sight = a.kind; } if (a.silent) m.silent = true;
+    }
+    return m;
+  }
+  function magSize(att, wid) { const w = WEAPONS[wid]; return w ? Math.round(w.mag * modsOf(att, wid).mag) : 0; }
+  // dispersão do tiro do jogador conforme a postura (sorteio com semente: celular e servidor chegam no mesmo ponto)
+  function postureSpread(w, st, mods) {
+    if (w.pellets > 1) return w.spread * 0.45 * ((mods && mods.sp) || 1);
+    let k = st.air ? 1.4 : st.run ? 0.75 : st.move ? 0.32 : 0; // parado: no centro
+    if (st.crouch || st.prone) k *= 0.5;
+    const base = st.ads && w.scope ? w.adsSpread * 4 : w.spread; // luneta da sniper: precisa
+    if (st.ads && !w.scope) k *= 0.35;
+    return base * k * ((mods && mods.sp) || 1);
+  }
+  // projétil (besta): anda em passos pequenos; para na parede/chão. Devolve o ponto final se bateu
+  function projStep(pr, dt, g) {
+    const nx = pr.x + pr.vx * dt, ny = pr.y + pr.vy * dt - 0.5 * g * dt * dt, nz = pr.z + pr.vz * dt;
+    const dx = nx - pr.x, dy = ny - pr.y, dz = nz - pr.z, L = Math.hypot(dx, dy, dz) || 1e-6;
+    const tw = raycastWorld(pr.x, pr.y, pr.z, dx / L, dy / L, dz / L, L);
+    pr.vy -= g * dt; pr.dist = (pr.dist || 0) + Math.min(tw, L);
+    if (tw < L || ny < -2) { pr.x += dx / L * Math.min(tw, L); pr.y += dy / L * Math.min(tw, L); pr.z += dz / L * Math.min(tw, L); return true; }
+    pr.x = nx; pr.y = ny; pr.z = nz; return false;
+  }
+  function seeded(seed) { let x = (seed | 0) * 2654435761 >>> 0; return () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
 
   const UNIFORMS = {
     woodland: { id: 'woodland', name: 'Floresta', price: 0, level: 1, c: ['#4b5a32', '#2f3a22', '#6b6a45', '#1f221a'] },
@@ -1731,7 +1810,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
   const ARENA_ILHA = makeArena(MAP_ISLAND, 'arena_ilha', 'Arena Ilha', -42, 64, 40, 32, 'stone');
   const ARENAS = ['arena_cidade', 'arena_ilha'];
   // lojinha das arenas: armas grátis; kit, capacete e colete custam fichas da partida
-  const SHOP = { kit: { name: 'Kit médico', price: 150 }, helmet: { name: 'Capacete', price: 250 }, vest: { name: 'Colete', price: 350 } };
+  const SHOP = { kit: { name: 'Kit médico', price: 150 }, helmet: { name: 'Capacete Nv.2', price: 250, lv: 2 }, vest: { name: 'Colete Nv.2', price: 350, lv: 2 }, helmet3: { name: 'Capacete Nv.3', price: 450, lv: 3 }, vest3: { name: 'Colete Nv.3', price: 600, lv: 3 } };
   const MAPS = { base: MAP_BASE, aberto: MAP_OPEN, ilha: MAP_ISLAND, arena_cidade: ARENA_CIDADE, arena_ilha: ARENA_ILHA };
   const OPEN_MAPS = ['aberto', 'ilha']; // mapas do modo Mapa aberto (o jogador escolhe)
   const isRoundsM = (m) => /^x[1-4]$/.test(m);
@@ -1945,7 +2024,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
   function vaultStep(p, dt) {
     const v = p.vault; v.t += dt;
     const f = vaultFrame(v), q = vaultPos(v, f);
-    p.yaw = v.yaw; p.ads = false; p.sprint = false; p.crouch = false;
+    p.yaw = v.yaw; p.ads = false; p.sprint = false; p.crouch = false; p.prone = false;
     if (dt > 0) { p.vx = (q[0] - p.x) / dt; p.vz = (q[2] - p.z) / dt; }
     p.x = q[0]; p.y = q[1]; p.z = q[2]; p.vy = 0;
     p.onGround = f < 13 || f > 44;
@@ -1960,7 +2039,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
     const wx = (-sy * f + cy * s) * H, wz = (-cy * f - sy * s) * H, k = Math.min(1, dt * 2.2);
     p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k; p.vy += (V - p.vy) * Math.min(1, dt * (p.sky === 2 ? 3 : 1.2));
-    p.crouch = false; p.sprint = false; p.ads = false; p.onGround = false;
+    p.crouch = false; p.prone = false; p.sprint = false; p.ads = false; p.onGround = false;
     const m = MAP, h = C.H;
     let nx = clamp(p.x + p.vx * dt, -m.sx + 2, m.sx - 2); if (!collides(nx, p.y, p.z, C.R, h)) p.x = nx; else p.vx = 0;
     let nz = clamp(p.z + p.vz * dt, -m.sz + 2, m.sz - 2); if (!collides(p.x, p.y, nz, C.R, h)) p.z = nz; else p.vz = 0;
@@ -1977,21 +2056,24 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     if (!p.alive) return;
     if (p.car) { // dentro do carro: motorista dirige (frente/trás = acelerar/freio, lados = volante); passageiro só acompanha
       if (p.seat === 0) carStep(p.car, inp.f, inp.s, dt);
-      const sp = seatPos(p.car, p.seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = true; p.sprint = false;
+      const sp = seatPos(p.car, p.seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = true; p.prone = false; p.sprint = false;
       return;
     }
     if (p.vault) { vaultStep(p, dt); return; } // pulando a janela: a animação conduz o corpo
     if (p.sky) { skyStep(p, inp, b, dt); return; } // caindo do avião / de paraquedas
+    // deitar (de bruços): só no chão; para levantar precisa de espaço em cima
+    if ((b & BTN.PRONE) && p.onGround && !p.down && !p.car && !p.medUntil) p.prone = true;
+    else if (p.prone && (!(b & BTN.PRONE) || !p.onGround) && !collides(p.x, p.y, p.z, C.R, C.HC)) { p.prone = false; p.crouch = true; }
     if (b & BTN.CROUCH) p.crouch = true;
-    else if (p.crouch && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
-    const h = p.crouch ? C.HC : C.H;
+    else if (p.crouch && !p.prone && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
+    const h = p.prone ? C.HP : p.crouch ? C.HC : C.H;
     let f = clamp(num(inp.f), -1, 1), s = clamp(num(inp.s), -1, 1);
     if (p.down) { f = 0; s = 0; } // caído (atropelado): não anda até levantar
     const len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; }
     const w = weaponOf(p);
-    p.sprint = !p.crouch && !!(b & BTN.SPRINT) && f > 0.3 && !p.ads && !p.medUntil; // correndo (botão CORRER / Shift)
-    let speed = p.crouch ? C.CROUCH : (p.sprint ? C.SPRINT : C.WALK);
+    p.sprint = !p.crouch && !p.prone && !!(b & BTN.SPRINT) && f > 0.3 && !p.ads && !p.medUntil; // correndo (botão CORRER / Shift)
+    let speed = p.prone ? C.CROUCH * 0.42 : p.crouch ? C.CROUCH : (p.sprint ? C.SPRINT : C.WALK); // deitado: rasteja devagar
     speed *= w.speed;
     if (p.ads) speed *= 0.65;
     if (p.medUntil) speed *= 0.6;
@@ -2000,7 +2082,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     const wx = (-sy * f + cy * s) * speed, wz = (-cy * f - sy * s) * speed;
     const k = p.down ? Math.min(1, dt * 3) : p.onGround ? Math.min(1, dt * 14) : Math.min(1, dt * 2.5);
     p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k;
-    if ((b & BTN.JUMP) && p.onGround && !p.crouch && !p.down) {
+    if ((b & BTN.JUMP) && p.onGround && !p.crouch && !p.prone && !p.down) {
       const wv = findWindow(p); // de frente para uma janela: pula por ela
       if (wv) { wv.t = 0; p.vault = wv; vaultStep(p, dt); return; }
       p.vy = C.JUMP; p.onGround = false;
@@ -2084,13 +2166,32 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     return [-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp];
   }
   // hitboxes: retorna {t, head} ou null
-  function rayPlayer(ox, oy, oz, dx, dy, dz, x, y, z, crouch) {
-    const h = crouch ? C.HC : C.H;
-    const th = rayBox(ox, oy, oz, dx, dy, dz, x - 0.19, y + h - 0.34, z - 0.19, x + 0.19, y + h + 0.03, z + 0.19);
-    const tb = rayBox(ox, oy, oz, dx, dy, dz, x - 0.33, y, z - 0.33, x + 0.33, y + h - 0.34, z + 0.33);
+  // corpo dividido em cabeça / tronco / pernas. pad: folga extra (de longe o alvo fica minúsculo na tela do celular)
+  function rayPlayer(ox, oy, oz, dx, dy, dz, x, y, z, crouch, pad = 0, prone = false) {
+    if (prone) { // deitado: caixa baixa e comprida
+      const tp = rayBox(ox, oy, oz, dx, dy, dz, x - 0.5 - pad, y, z - 0.5 - pad, x + 0.5 + pad, y + 0.42 + pad, z + 0.5 + pad);
+      return tp === Infinity ? null : { t: tp, head: false, reg: 1 };
+    }
+    const h = crouch ? C.HC : C.H, hp = pad * 0.6, legTop = y + (crouch ? 0.55 : 0.9);
+    const th = rayBox(ox, oy, oz, dx, dy, dz, x - 0.19 - hp, y + h - 0.34, z - 0.19 - hp, x + 0.19 + hp, y + h + 0.03 + hp, z + 0.19 + hp);
+    const tc = rayBox(ox, oy, oz, dx, dy, dz, x - 0.33 - pad, legTop, z - 0.33 - pad, x + 0.33 + pad, y + h - 0.34, z + 0.33 + pad);
+    const tl = rayBox(ox, oy, oz, dx, dy, dz, x - 0.27 - pad, y, z - 0.27 - pad, x + 0.27 + pad, legTop, z + 0.27 + pad);
+    const tb = Math.min(tc, tl);
     if (th === Infinity && tb === Infinity) return null;
-    return th <= tb ? { t: th, head: true } : { t: tb, head: false };
+    return th <= tb ? { t: th, head: true, reg: 0 } : { t: tb, head: false, reg: tc <= tl ? 1 : 2 }; // reg: 0 cabeça, 1 tronco, 2 pernas
   }
+  // folga da caixa conforme a distância (ajuda de mira do servidor: igual para todos os jogadores)
+  function hitPad(d) { return Math.min(0.2, Math.max(0, d - 12) * 0.0055); }
+  // dano conforme arma, distância e região
+  const REG_MUL = [0, 1, 0.75];
+  function shotDamage(w, d, reg, mods) {
+    const fr = w.range * ((mods && mods.range) || 1);
+    const fall = d <= fr ? 1 : Math.max(w.minDmg || 0.55, 1 - (d - fr) / (fr * 1.5) * (1 - (w.minDmg || 0.55)));
+    const rm = reg === 0 ? w.head : REG_MUL[reg];
+    return w.dmg * rm * fall;
+  }
+  // proteção por nível: capacete (cabeça) e colete (tronco); pernas sem proteção
+  const ARMOR_RED = [0, 0.2, 0.35, 0.5];
 
   // ---------------------------------------------------------------- navegação dos bots (grade A*)
   let NAV = null;
@@ -2210,7 +2311,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     return { id: m.id, prog: 0 };
   }
   function newProfile(name) {
-    const p = { v: 1, name: sanitizeName(name), xp: 0, level: 1, coins: 1500, owned: ['pistol', 'smg'], uniformsOwned: ['woodland', 'desert'], upgrades: [], loadout: { primary: 'smg', secondary: 'pistol' }, uniform: 'woodland', mmr: 1000, wins: 0, losses: 0, kills: 0, deaths: 0, hs: 0, matches: 0, missions: [], cos: { owned: ['ch_soldado'], char: 'ch_soldado', shirt: '', pants: '', wskins: {} }, pid: '', friends: [], fin: [], fout: [], mail: [], news: [] };
+    const p = { v: 1, name: sanitizeName(name), xp: 0, level: 1, coins: 1500, owned: ['pistol', 'smg'], uniformsOwned: ['woodland', 'desert'], upgrades: [], loadout: { primary: 'smg', secondary: 'pistol' }, att: {}, uniform: 'woodland', mmr: 1000, wins: 0, losses: 0, kills: 0, deaths: 0, hs: 0, matches: 0, missions: [], cos: { owned: ['ch_soldado'], char: 'ch_soldado', shirt: '', pants: '', wskins: {} }, pid: '', friends: [], fin: [], fout: [], mail: [], news: [] };
     while (p.missions.length < 3) p.missions.push(pickMission(p));
     return p;
   }
@@ -2219,6 +2320,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     if (!p || typeof p !== 'object') return d;
     for (const k in d) if (p[k] === undefined || typeof p[k] !== typeof d[k]) p[k] = d[k];
     p.owned = p.owned.filter((w) => WEAPONS[w]);
+    p.att = sanitizeAtt(p.att, p.level);
     if (!WEAPONS[p.loadout.primary] || !p.owned.includes(p.loadout.primary)) p.loadout.primary = 'smg';
     if (!WEAPONS[p.loadout.secondary] || !p.owned.includes(p.loadout.secondary)) p.loadout.secondary = 'pistol';
     if (!UNIFORMS[p.uniform]) p.uniform = 'woodland';
@@ -2286,6 +2388,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     return null;
   }
   function equip(prof, e) {
+    if (e.att && typeof e.att === 'object') prof.att = sanitizeAtt(Object.assign({}, prof.att, e.att), prof.level);
     if (e.primary && WEAPONS[e.primary] && WEAPONS[e.primary].slot === 0 && prof.owned.includes(e.primary)) prof.loadout.primary = e.primary;
     if (e.secondary && WEAPONS[e.secondary] && WEAPONS[e.secondary].slot === 1 && prof.owned.includes(e.secondary)) prof.loadout.secondary = e.secondary;
     if (e.uniform && UNIFORMS[e.uniform] && prof.uniformsOwned.includes(e.uniform)) prof.uniform = e.uniform;
@@ -2333,7 +2436,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       this.round = 1; this.roundEndAt = 0; this.roundWinners = [];
       this.botSkill = clamp(o.botSkill == null ? 1 : o.botSkill, 0, 2);
       this.players = new Map();
-      this.nextId = 1;
+      this.nextId = 1; this.projs = []; this.projSeq = 0;
       this.time = 0; this.matchTime = 0; this.state = 'playing'; this.endAt = 0;
       this.score = [0, 0];
       this.events = [];
@@ -2373,7 +2476,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     // embarca no avião (todos na cabine; a câmera fica atrás do avião)
     board(p) {
       const [x, z] = this.planePos();
-      p.plane = true; p.sky = 0; p.x = x; p.z = z; p.y = C.PLANE_Y - 1.5; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      p.plane = true; p.sky = 0; p.x = x; p.z = z; p.y = C.PLANE_Y - 1.5; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false; p.prone = false;
       p.spawnProt = Infinity; p.yaw = this.plane.yaw; p.car = null;
     }
     // pula do avião: começa em queda livre um pouco atrás da cauda
@@ -2412,7 +2515,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       const team = isFFA(this.mode) ? (this.mode === 'aberto' && info.sq ? 100000 + (info.sq | 0) : id) : (info.team === 0 || info.team === 1 ? info.team : (this.teamCount(0) <= this.teamCount(1) ? 0 : 1));
       const p = {
         id, name: sanitizeName(info.name), bot: !!info.bot, team, uniform: UNIFORMS[info.uniform] ? info.uniform : 'woodland',
-        skin: info.skin != null ? info.skin : id % 4, level: info.level || 1, upgrades: info.upgrades || [], look: sanitizeLook(info.look),
+        skin: info.skin != null ? info.skin : id % 4, level: info.level || 1, upgrades: info.upgrades || [], look: sanitizeLook(info.look), att: sanitizeAtt(info.att, info.bot ? null : info.level || 1),
         weapons: [WEAPONS[lo.primary] && WEAPONS[lo.primary].slot === 0 ? lo.primary : 'smg', null, WEAPONS[lo.secondary] && WEAPONS[lo.secondary].slot === 1 ? lo.secondary : 'pistol'], // arma 1, arma 2 (vazia até pegar) e pistola
         x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: 0, onGround: true, crouch: false, ads: false,
         hp: 100, alive: false, respawnAt: 0, kills: 0, deaths: 0, streak: 0, xp: 0,
@@ -2442,7 +2545,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     leaveCar(p, force) {
       const c = p.car; if (!c) return;
       if (c.seats[p.seat] === p.id) c.seats[p.seat] = 0;
-      p.car = null; p.crouch = false;
+      p.car = null; p.crouch = false; p.prone = false;
       if (!force) { // sai pela lateral (ou pela frente/trás) em um lugar livre
         const f = carFwd(c.yaw), r = [Math.cos(c.yaw), -Math.sin(c.yaw)], side = p.seat === 1 ? -1 : 1;
         for (const [a, b] of [[side * 1.9, 0], [-side * 1.9, 0], [0, 3.3], [0, -3.3], [side * 2.4, 1.5], [-side * 2.4, -1.5]]) {
@@ -2496,7 +2599,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       if (this.rounds && !this.roundEndAt) this.checkRound(null);
     }
     roster() {
-      return [...this.players.values()].map((p) => [p.id, p.name, p.team, p.bot ? 1 : 0, p.uniform, p.skin, p.level, p.look]);
+      return [...this.players.values()].map((p) => [p.id, p.name, p.team, p.bot ? 1 : 0, p.uniform, p.skin, p.level, p.look, p.att || {}]);
     }
     spawn(p) {
       const SP = this.map.spawns, list = isFFA(this.mode) ? SP.ffa : this.rounds ? SP.x1[p.team] : SP[p.team];
@@ -2527,7 +2630,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
           if (ok) break;
         }
       }
-      p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false;
+      p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = false; p.prone = false;
       const keep = this.rounds && this.shop && p.alive && p.round === this.round - 1; // X1–X4: quem sobreviveu ao round mantém o que comprou
       p.round = this.round;
       if (p.money == null) p.money = this.shop ? C.SHOP_START : 0;
@@ -2537,12 +2640,12 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       p.reloadUntil = 0; p.medUntil = 0; p.switchUntil = 0; p.down = false;
       if (this.shop && p.bot && !keep) { // bots também passam na lojinha
         const w = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'maverick', 'sniper'][Math.floor(Math.random() * 8)]; p.weapons[0] = w;
-        if (p.money >= 350 && Math.random() < 0.7) { p.money -= 350; p.vest = 100; }
-        if (p.money >= 250 && Math.random() < 0.5) { p.money -= 250; p.helmet = 100; }
+        if (p.money >= 350 && Math.random() < 0.7) { p.money -= 350; p.vest = 100; p.vestLv = 2; }
+        if (p.money >= 250 && Math.random() < 0.5) { p.money -= 250; p.helmet = 100; p.helmetLv = 2; }
       }
       p.medkits = C.MEDKITS_START + (p.upgrades.includes('medbag') ? 1 : 0);
       p.spawnProt = this.time + C.SPAWN_PROT;
-      for (const w of p.weapons) if (w) p.ammo[w] = { mag: WEAPONS[w].mag, res: WEAPONS[w].reserve };
+      for (const w of p.weapons) if (w) p.ammo[w] = { mag: magSize(p.att, w), res: WEAPONS[w].reserve };
       if (p.ai) p.ai.path = null;
       this.events.push({ e: 'spawn', id: p.id });
     }
@@ -2593,9 +2696,9 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       for (const o of this.drops) near(o);
       if (!best || !WEAPONS[best.w]) return;
       const w = WEAPONS[best.w], slot = this.slotFor(p, w.id), old = p.weapons[slot];
-      if (old === best.w) { p.ammo[w.id] = { mag: w.mag, res: w.reserve }; }
+      if (old === best.w) { p.ammo[w.id] = { mag: magSize(p.att, w.id), res: w.reserve }; }
       else {
-        p.weapons = p.weapons.slice(); p.weapons[slot] = w.id; p.ammo[w.id] = { mag: w.mag, res: w.reserve };
+        p.weapons = p.weapons.slice(); p.weapons[slot] = w.id; p.ammo[w.id] = { mag: magSize(p.att, w.id), res: w.reserve };
         if (old && WEAPONS[old]) { if (this.drops.length >= 24) this.drops.shift(); const sp = this.dropSpot(p.x, p.y, p.z); this.drops.push({ id: ++this.dropSeq, x: sp[0], y: p.y, z: sp[1], w: old, until: this.time + 40 }); }
       }
       p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
@@ -2612,7 +2715,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     }
     reload(p) {
       const w = weaponOf(p), am = p.ammo[w.id];
-      if (!p.alive || p.reloadUntil || p.medUntil || !am || am.mag >= w.mag || am.res <= 0) return;
+      if (!p.alive || p.reloadUntil || p.medUntil || !am || am.mag >= magSize(p.att, w.id) || am.res <= 0) return;
       p.reloadUntil = this.time + w.reload;
       this.events.push({ e: 'reload', id: p.id });
     }
@@ -2637,48 +2740,65 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       if (this.time - p.lastShot < 60 / w.rpm - 0.025) return; // cadência
       p.lastShot = this.time; am.mag--;
       const yaw = num(a.yaw, p.yaw), pitch = clamp(num(a.pitch, p.pitch), -1.5, 1.5);
-      const moving = Math.hypot(p.vx, p.vz) > 1.5 || !p.onGround;
-      // jogador: o tiro vai exatamente para o centro da mira (escopeta: bolinhas num círculo fechado em volta dela); bots erram um pouco
-      let spread = p.bot ? (p.ads ? w.adsSpread : w.spread) * (moving ? w.moveMul : 1) * (p.crouch ? 0.8 : 1) + p.bloom : w.pellets > 1 ? w.spread * 0.45 : 0;
-      if (p.bot) p.bloom = Math.min(w.bloomMax, p.bloom + w.bloom);
-      let ex = p.x, ey = p.y + (p.crouch ? C.EYEC : C.EYE), ez = p.z;
+      const sp2 = Math.hypot(p.vx, p.vz), mods = modsOf(p.att, w.id);
+      // jogador: parado vai no centro; andando, correndo ou pulando a bala abre um pouco (agachado/deitado/mirando fecha)
+      let spread;
+      if (p.bot) { spread = (p.ads ? w.adsSpread : w.spread) * (sp2 > 1.5 || !p.onGround ? w.moveMul : 1) * (p.crouch ? 0.8 : 1) + p.bloom; p.bloom = Math.min(w.bloomMax, p.bloom + w.bloom); }
+      else spread = postureSpread(w, { air: !p.onGround, run: p.sprint, move: sp2 > 1.2, crouch: p.crouch, prone: p.prone, ads: p.ads }, mods);
+      let ex = p.x, ey = p.y + (p.prone ? C.EYEP : p.crouch ? C.EYEC : C.EYE), ez = p.z;
       // o tiro sai do olho que o celular usou para mirar (se estiver perto do que o servidor conhece: sem trapaça)
       if (Array.isArray(a.o) && a.o.length === 3) { const ox = num(a.o[0], ex), oy = num(a.o[1], ey), oz = num(a.o[2], ez); if (Math.hypot(ox - ex, oy - ey, oz - ez) < 1.6) { ex = ox; ey = oy; ez = oz; } }
       const fwd = aimDir(yaw, pitch), sy = Math.sin(yaw), cy = Math.cos(yaw), sp = Math.sin(pitch), cp = Math.cos(pitch);
       const right = [cy, 0, -sy], up = [sy * sp, cp, cy * sp];
-      // compensação de latência
-      const rewind = clamp(p.bot ? C.INTERP : p.ping / 2 + C.INTERP, 0, 0.35);
-      const past = this.pastPositions(this.time - rewind);
+      // compensação de latência: volta exatamente ao instante que a tela do atirador mostrava (no máximo 350 ms)
+      const rt = num(a.rt, NaN);
+      const tBack = p.bot ? this.time - C.INTERP : Number.isFinite(rt) ? clamp(rt, this.time - 0.35, this.time) : this.time - clamp(p.ping / 2 + C.INTERP, 0, 0.35);
+      const past = this.pastPositions(tBack);
+      const rnd = seeded((p.id * 7919) ^ ((a.seq | 0) * 104729));
+      if (w.proj) { // besta: lança a flecha (o servidor simula o voo e confere o acerto a cada passo)
+        const r0 = Math.sqrt(rnd()) * spread, th0 = rnd() * Math.PI * 2, ox = Math.cos(th0) * r0, oy = Math.sin(th0) * r0;
+        let dx = fwd[0] + right[0] * ox + up[0] * oy, dy = fwd[1] + right[1] * ox + up[1] * oy, dz = fwd[2] + right[2] * ox + up[2] * oy; const l = Math.hypot(dx, dy, dz);
+        const v = w.proj.v, pr = { k: ++this.projSeq, o: p.id, w: w.id, x: ex, y: ey, z: ez, vx: dx / l * v, vy: dy / l * v, vz: dz / l * v, t: 0, dist: 0, rng: mods.rg };
+        (this.projs || (this.projs = [])).push(pr);
+        this.events.push({ e: 'pj', id: p.id, k: pr.k, w: w.id, o: [r2(ex), r2(ey), r2(ez)], v: [r2(pr.vx), r2(pr.vy), r2(pr.vz)] });
+        return;
+      }
       const dmgMap = new Map();
       let firstEnd = null;
       for (let k = 0; k < w.pellets; k++) {
-        const r = k === 0 && !p.bot ? 0 : Math.sqrt(Math.random()) * spread, th = Math.random() * Math.PI * 2; // 1ª bolinha sempre no centro
+        const r = k === 0 && !p.bot && w.pellets > 1 ? 0 : Math.sqrt(rnd()) * spread, th = rnd() * Math.PI * 2; // doze: 1ª bolinha no centro
         const ox = Math.cos(th) * r, oy = Math.sin(th) * r;
         let dx = fwd[0] + right[0] * ox + up[0] * oy, dy = fwd[1] + right[1] * ox + up[1] * oy, dz = fwd[2] + right[2] * ox + up[2] * oy;
         const l = Math.hypot(dx, dy, dz); dx /= l; dy /= l; dz /= l;
         let tw = raycastWorld(ex, ey, ez, dx, dy, dz, 250);
-        let victim = null, head = false;
+        let victim = null, hit = null;
         for (const o of this.players.values()) {
           if (o === p || !o.alive) continue;
-          const hp = past.get(o.id) || [o.x, o.y, o.z, o.crouch];
-          const h = rayPlayer(ex, ey, ez, dx, dy, dz, hp[0], hp[1], hp[2], hp[3]);
-          if (h && h.t < tw) { tw = h.t; victim = o; head = h.head; }
+          const hp = past.get(o.id) || [o.x, o.y, o.z, o.crouch, !!o.prone];
+          const pad = p.bot ? 0 : hitPad(Math.hypot(hp[0] - ex, hp[2] - ez));
+          const h = rayPlayer(ex, ey, ez, dx, dy, dz, hp[0], hp[1], hp[2], hp[3], pad, hp[4]);
+          if (h && h.t < tw) { tw = h.t; victim = o; hit = h; }
         }
         if (!firstEnd) firstEnd = [ex + dx * tw, ey + dy * tw, ez + dz * tw];
         if (victim && victim.team !== p.team) { // no FFA cada um tem o próprio time; no mapa aberto a equipe (duo/squad) não se fere
-          const e = dmgMap.get(victim) || { head: false };
-          e.head = e.head || head; dmgMap.set(victim, e);
+          const e = dmgMap.get(victim) || { head: 0, d: [0, 0, 0] };
+          e.d[hit.reg] += shotDamage(w, tw, hit.reg, { range: mods.rg }); if (hit.reg === 0) e.head = 1;
+          dmgMap.set(victim, e);
         }
       }
-      this.events.push({ e: 'shot', id: p.id, w: w.id, o: [r2(ex), r2(ey), r2(ez)], t: firstEnd.map(r2) });
-      // dano fixo por tiro que acerta (todas as armas): peito/corpo 10, cabeça 20 (a doze conta 1 vez por disparo)
-      for (const [v, e] of dmgMap) this.damage(v, p, e.head ? C.DMG_HEAD : C.DMG_BODY, e.head, w.id);
+      this.events.push({ e: 'shot', id: p.id, w: w.id, o: [r2(ex), r2(ey), r2(ez)], t: firstEnd.map(r2), s: mods.silent ? 1 : 0 });
+      for (const [v, e] of dmgMap) this.damage(v, p, e.d, e.head, w.id);
     }
     damage(v, att, d, head, wid) {
       if (!v.alive || this.time < v.spawnProt || this.roundEndAt) return;
-      if (wid !== 'car') { // capacete protege a cabeça, colete o corpo (gastam com os tiros)
-        if (head && v.helmet > 0) { v.helmet = Math.max(0, v.helmet - d * 0.5); d *= 0.55; }
-        else if (!head && v.vest > 0) { v.vest = Math.max(0, v.vest - d * 0.5); d *= 0.6; }
+      if (Array.isArray(d)) { // tiro: capacete protege a cabeça e colete o tronco, conforme o nível (e gastam com os tiros)
+        let hd = d[0], bd = d[1];
+        if (hd > 0 && v.helmet > 0) { const red = ARMOR_RED[v.helmetLv || 2]; v.helmet = Math.max(0, v.helmet - hd * 0.5); hd *= 1 - red; }
+        if (bd > 0 && v.vest > 0) { const red = ARMOR_RED[v.vestLv || 2]; v.vest = Math.max(0, v.vest - bd * 0.5); bd *= 1 - red; }
+        d = Math.max(1, Math.round(hd + bd + d[2]));
+      } else if (wid !== 'car') {
+        if (head && v.helmet > 0) { v.helmet = Math.max(0, v.helmet - d * 0.5); d *= 1 - ARMOR_RED[v.helmetLv || 2]; }
+        else if (!head && v.vest > 0) { v.vest = Math.max(0, v.vest - d * 0.5); d *= 1 - ARMOR_RED[v.vestLv || 2]; }
         d = Math.max(1, Math.round(d));
       }
       v.hp = Math.max(0, v.hp - d);
@@ -2795,12 +2915,48 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         p.z = nz; p.vz = side * 2;
       }
     }
+    // voo das flechas: a cada passo confere parede/chão e jogadores (caixa um pouco maior de longe, igual ao tiro)
+    projTick(dt) {
+      const keep = [];
+      for (const pr of this.projs) {
+        const sh = this.players.get(pr.o), w = WEAPONS[pr.w], g = w.proj.g, N = 3, h = dt / N;
+        let done = false;
+        for (let s = 0; s < N && !done; s++) {
+          const x0 = pr.x, y0 = pr.y, z0 = pr.z, wall = projStep(pr, h, g);
+          const dx = pr.x - x0, dy = pr.y - y0, dz = pr.z - z0, L = Math.hypot(dx, dy, dz) || 1e-6;
+          let best = null, bt = L;
+          for (const o of this.players.values()) {
+            if (o.id === pr.o || !o.alive) continue;
+            const hh = rayPlayer(x0, y0, z0, dx / L, dy / L, dz / L, o.x, o.y, o.z, o.crouch, sh && !sh.bot ? hitPad(pr.dist) * 0.6 : 0, !!o.prone);
+            if (hh && hh.t <= bt) { bt = hh.t; best = { o, hh }; }
+          }
+          if (best) {
+            const { o, hh } = best;
+            if (sh && o.team !== sh.team) { const d = [0, 0, 0]; d[hh.reg] = shotDamage(w, pr.dist, hh.reg, { range: pr.rng }); this.damage(o, sh, d, hh.reg === 0, w.id); }
+            pr.x = x0 + dx / L * bt; pr.y = y0 + dy / L * bt; pr.z = z0 + dz / L * bt; done = 'hit';
+          } else if (wall) done = 'wall';
+        }
+        pr.t += dt;
+        if (!done && pr.t > 4) done = 'wall';
+        if (done) this.events.push({ e: 'pjx', k: pr.k, id: pr.o, p: [r2(pr.x), r2(pr.y), r2(pr.z)], h: done === 'hit' ? 1 : 0 });
+        else keep.push(pr);
+      }
+      this.projs = keep;
+    }
+    // onde cada jogador estava no instante t (interpolado entre dois quadros: o mesmo que a tela do atirador mostrava)
     pastPositions(t) {
       const h = this.history;
       if (!h.length) return new Map();
-      let best = h[h.length - 1];
-      for (let i = h.length - 1; i >= 0; i--) { best = h[i]; if (h[i].t <= t) break; }
-      return best.m;
+      let i = h.length - 1; while (i > 0 && h[i].t > t) i--;
+      const A = h[i], B = h[Math.min(h.length - 1, i + 1)];
+      if (A === B || B.t <= A.t || t <= A.t) return A.m;
+      const k = Math.min(1, (t - A.t) / (B.t - A.t)), out = new Map();
+      for (const [id, a] of A.m) {
+        const b = B.m.get(id);
+        if (!b || Math.hypot(b[0] - a[0], b[2] - a[2]) > 4) { out.set(id, a); continue; } // renasceu/teleportou
+        out.set(id, [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k, k < 0.5 ? a[3] : b[3], k < 0.5 ? a[4] : b[4]]);
+      }
+      return out;
     }
     tick(dt) {
       useMap(this.map, this.dyn, this.cars);
@@ -2810,6 +2966,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       if (!this.br || this.ph === 'livre') this.matchTime += dt;
       if (this.map.train) this.trainTick();
       if (this.cars.length) this.carTick(dt);
+      if (this.projs && this.projs.length) this.projTick(dt);
       if (this.timeLimit && this.matchTime >= this.timeLimit) { this.endMatch(); return; }
       if (this.roundEndAt && this.time >= this.roundEndAt) this.nextRound();
       for (const p of this.players.values()) {
@@ -2823,7 +2980,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
         if (p.reloadUntil && this.time >= p.reloadUntil) {
           p.reloadUntil = 0;
           const w = weaponOf(p), am = p.ammo[w.id];
-          const n = Math.min(w.mag - am.mag, am.res); am.mag += n; am.res -= n;
+          const n = Math.min(magSize(p.att, w.id) - am.mag, am.res); am.mag += n; am.res -= n;
         }
         if (p.medUntil && this.time >= p.medUntil) {
           p.medUntil = 0; p.medkits--; p.stats.medUsed++;
@@ -2854,9 +3011,9 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       for (const a of this.ammos) if (!a.active && this.time >= a.t) a.active = true;
       if (this.drops.length) this.drops = this.drops.filter((d) => this.time < d.until);
       const snap = new Map();
-      for (const p of this.players.values()) if (p.alive) snap.set(p.id, [p.x, p.y, p.z, p.crouch]);
+      for (const p of this.players.values()) if (p.alive) snap.set(p.id, [p.x, p.y, p.z, p.crouch, !!p.prone]);
       this.history.push({ t: this.time, m: snap });
-      if (this.history.length > 15) this.history.shift();
+      if (this.history.length > 24) this.history.shift();
     }
     // ---------------- IA dos bots
     // lojinha: comprar arma (grátis), kit, capacete ou colete perto do balcão
@@ -2865,10 +3022,10 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       const ok = (price) => { if ((p.money | 0) < price) { this.events.push({ e: 'buyno', id: p.id }); return false; } p.money -= price; return true; };
       if (WEAPONS[it]) {
         const w = WEAPONS[it], slot = this.slotFor(p, it);
-        p.weapons = p.weapons.slice(); p.weapons[slot] = it; p.ammo[it] = { mag: w.mag, res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
+        p.weapons = p.weapons.slice(); p.weapons[slot] = it; p.ammo[it] = { mag: magSize(p.att, it), res: w.reserve }; p.cur = slot; p.reloadUntil = 0; p.switchUntil = this.time + C.SWITCH;
       } else if (it === 'kit') { if (p.medkits >= C.MEDKITS_MAX || !ok(SHOP.kit.price)) return; p.medkits++; }
-      else if (it === 'helmet') { if (p.helmet >= 100 || !ok(SHOP.helmet.price)) return; p.helmet = 100; }
-      else if (it === 'vest') { if (p.vest >= 100 || !ok(SHOP.vest.price)) return; p.vest = 100; }
+      else if (it === 'helmet' || it === 'helmet3') { const lv = SHOP[it].lv; if ((p.helmet >= 100 && (p.helmetLv || 2) >= lv) || !ok(SHOP[it].price)) return; p.helmet = 100; p.helmetLv = lv; }
+      else if (it === 'vest' || it === 'vest3') { const lv = SHOP[it].lv; if ((p.vest >= 100 && (p.vestLv || 2) >= lv) || !ok(SHOP[it].price)) return; p.vest = 100; p.vestLv = lv; }
       else return;
       this.events.push({ e: 'buy', id: p.id, it });
     }
@@ -2877,7 +3034,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
       useMap(this.map, this.dyn, this.cars);
       const used = new Set([...this.players.values()].map((p) => p.name));
       const name = BOT_NAMES.find((n) => !used.has(n)) || 'Bot' + this.nextId;
-      const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper', 'maverick'][Math.floor(Math.random() * 8)];
+      const prim = ['ak47', 'm4a1', 'smg', 'doze', 'ak47', 'm4a1', 'sniper', 'maverick', 'm249', 'smg'][Math.floor(Math.random() * 10)];
       const uni = Object.keys(UNIFORMS)[Math.floor(Math.random() * 6)];
       buildNav();
       // alguns bots usam itens da lojinha, para as skins aparecerem nas partidas
@@ -2985,7 +3142,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     snapCommon() {
       const pl = [];
       for (const p of this.players.values()) {
-        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0) | (p.plane ? 4096 : 0) | (p.sky === 1 ? 8192 : p.sky === 2 ? 16384 : 0);
+        const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0) | (p.plane ? 4096 : 0) | (p.sky === 1 ? 8192 : p.sky === 2 ? 16384 : 0) | (p.prone ? 32768 : 0);
         pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths, p.vault ? [r2(vaultFrame(p.vault)), r2(p.vault.sh)] : 0, p.weapons]);
       }
       const mk = maskOf(this.medkits);
@@ -3004,14 +3161,14 @@ body.driving #wpanel,body.riding #wpanel{display:none}
     snapMe(p) {
       const w = weaponOf(p), am = p.ammo[w.id] || { mag: 0, res: 0 };
       return {
-        id: p.id, x: p.x, y: p.y, z: p.z, vx: p.vx, vy: p.vy, vz: p.vz, og: p.onGround ? 1 : 0, cr: p.crouch ? 1 : 0, ack: p.ack, sa: p.shotAck,
+        id: p.id, x: p.x, y: p.y, z: p.z, vx: p.vx, vy: p.vy, vz: p.vz, og: p.onGround ? 1 : 0, cr: p.crouch ? 1 : 0, pr: p.prone ? 1 : 0, ack: p.ack, sa: p.shotAck,
         hp: p.hp, al: p.alive ? 1 : 0, cur: p.cur, w: p.weapons, mag: am.mag, res: am.res,
         rl: p.reloadUntil ? r2(p.reloadUntil - this.time) : 0, mu: p.medUntil ? r2(p.medUntil - this.time) : 0, mk: p.medkits,
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
         pl: p.plane ? 1 : 0, sk: p.sky || 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
         vt: p.vault ? Object.assign({}, p.vault) : 0,
-        dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
+        dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0), hl: p.helmet > 0 ? p.helmetLv || 2 : 0, vl: p.vest > 0 ? p.vestLv || 2 : 0,
       };
     }
   }
@@ -3021,7 +3178,7 @@ body.driving #wpanel,body.riding #wpanel{display:none}
 
   return {
     isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
-    clamp, collides, applyInput, findWindow, VAULT, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, CAR_T, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf,
+    clamp, collides, applyInput, findWindow, VAULT, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, CAR_T, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf, projStep, ATTACH, ATT_SLOTS, attFits, sanitizeAtt, modsOf, magSize, postureSpread, seeded, shotDamage, hitPad, ARMOR_RED,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,
   };
@@ -4198,6 +4355,27 @@ const Assets = (() => {
         g.box(-0.018, -0.12, -0.022, 0.018, 0.0, 0.022, { col: DRK, uv: UA, m: rot(0, 0.0, 0.06, -0.3) });
         mag.box(-0.016, -0.2, -0.03, 0.016, 0.0, 0.035, { col: MET, uv: UA, m: rot(0, 0, 0, 0.12) });
         magPos = [0, 0.0, -0.12]; muzzle = [0, 0.045, -0.81]; sight = 0.122; support = -0.36; break;
+      case 'm249': // metralhadora: corpo grosso, caixa de munição embaixo, cano com bipé dobrado
+        B(-0.03, -0.005, -0.26, 0.03, 0.085, 0.14, DRK);
+        B(-0.032, 0.085, -0.22, 0.032, 0.105, 0.1, MET);
+        B(-0.008, 0.105, -0.12, 0.008, 0.15, -0.02, DRK); B(-0.03, 0.14, -0.13, 0.03, 0.152, -0.01, DRK); // alça
+        CY(0.045, -0.62, -0.26, 0.026, MET); CY(0.045, -0.86, -0.62, 0.012, DRK); CY(0.045, -0.89, -0.84, 0.017, DRK);
+        B(-0.02, 0.0, -0.46, 0.02, 0.02, -0.28, DRK); // guarda-mão
+        g.box(-0.004, -0.2, -0.008, 0.004, 0.02, 0.008, { col: DRK, uv: UA, m: rot(-0.012, 0.03, -0.6, 1.25) }); g.box(-0.004, -0.2, -0.008, 0.004, 0.02, 0.008, { col: DRK, uv: UA, m: rot(0.012, 0.03, -0.6, 1.25) }); // bipé dobrado
+        CY(0.04, 0.14, 0.24, 0.02, DRK); B(-0.028, -0.03, 0.22, 0.028, 0.08, 0.42, DRK); // coronha
+        g.box(-0.018, -0.13, -0.022, 0.018, 0.0, 0.022, { col: DRK, uv: UA, m: rot(0, 0.0, 0.07, -0.3) });
+        mag.box(-0.045, -0.12, -0.06, 0.045, 0.0, 0.06, { col: [0.22, 0.24, 0.17], uv: UA }); // caixa de 100 balas
+        magPos = [0, -0.005, -0.14]; muzzle = [0, 0.045, -0.9]; sight = 0.152; support = -0.38; break;
+      case 'besta': // besta: coronha, trilho, arco transversal com corda e a flecha em cima
+        B(-0.022, -0.01, -0.5, 0.022, 0.045, 0.1, DRK);
+        B(-0.008, 0.045, -0.52, 0.008, 0.055, 0.05, MET); // trilho
+        g.box(-0.3, -0.008, -0.012, 0.3, 0.012, 0.012, { col: DRK, uv: UA, m: rot(0, 0.04, -0.52, 0) }); // arco
+        g.box(-0.012, -0.012, -0.03, 0.012, 0.012, 0.03, { col: MET, uv: UA, m: rot(-0.3, 0.04, -0.5, 0) }); g.box(-0.012, -0.012, -0.03, 0.012, 0.012, 0.03, { col: MET, uv: UA, m: rot(0.3, 0.04, -0.5, 0) });
+        g.box(-0.002, -0.002, 0, 0.002, 0.002, 0.43, { col: [0.75, 0.75, 0.7], uv: UA, m: M4.compose(M4.create(), -0.3, 0.05, -0.5, 0.62, 0, 0) }); g.box(-0.002, -0.002, 0, 0.002, 0.002, 0.43, { col: [0.75, 0.75, 0.7], uv: UA, m: M4.compose(M4.create(), 0.3, 0.05, -0.5, -0.62, 0, 0) }); // corda
+        B(-0.025, -0.03, 0.1, 0.025, 0.06, 0.38, DRK); // coronha
+        g.box(-0.018, -0.12, -0.022, 0.018, 0.0, 0.022, { col: DRK, uv: UA, m: rot(0, 0.0, 0.06, -0.3) });
+        mag.box(-0.004, 0.0, -0.36, 0.004, 0.008, 0.0, { col: [0.55, 0.42, 0.25], uv: UA }); mag.box(-0.009, -0.001, -0.39, 0.009, 0.009, -0.36, { col: MET, uv: UA }); // flecha
+        magPos = [0, 0.056, -0.15]; muzzle = [0, 0.06, -0.55]; sight = 0.07; support = -0.36; break;
       case 'maverick': // enquanto o modelo 3D carrega: a doze
       case 'doze':
         B(-0.024, 0.0, -0.16, 0.024, 0.075, 0.12, DRK);
@@ -4273,6 +4451,47 @@ const Assets = (() => {
     const d = weaponGeo(id, !!pat), t = pat ? skinTex(pat) : tex.plain, sp = pat === 'ouro' ? 1 : pat ? 0.7 : 0.6;
     return (cache[key] = { body: { mesh: R.mesh(d.g), tex: t, spec: sp }, mag: { mesh: R.mesh(d.mag), tex: t, spec: sp * 0.85 }, pump: d.pump.vcount ? { mesh: R.mesh(d.pump), tex: t, spec: 0.4 } : null, magPos: d.magPos, muzzle: d.muzzle, sight: d.sight, support: d.support, kind: d.kind });
   }
+  function bolt() {
+    if (cache.bolt) return cache.bolt;
+    const g = new Geo();
+    g.box(-0.006, -0.006, -0.5, 0.006, 0.006, 0.0, { col: [0.55, 0.42, 0.25], uv: UA }); g.box(-0.012, -0.012, -0.56, 0.012, 0.012, -0.5, { col: [0.2, 0.2, 0.22], uv: UA });
+    g.box(-0.025, -0.001, -0.06, 0.025, 0.001, 0.0, { col: [0.9, 0.2, 0.15], uv: UA }); g.box(-0.001, -0.025, -0.06, 0.001, 0.025, 0.0, { col: [0.9, 0.2, 0.15], uv: UA });
+    return (cache.bolt = { mesh: R.mesh(g), tex: tex.plain });
+  }
+  // ---------------------------------------------------------------- acessórios (peças simples, poucos triângulos)
+  function attachment(aid) {
+    const key = 'att_' + aid; if (cache[key]) return cache[key];
+    const g = new Geo(), K = [0.07, 0.07, 0.075], K2 = [0.13, 0.13, 0.14], RED = [0.85, 0.12, 0.1], GL = [0.25, 0.45, 0.6];
+    const B = (x0, y0, z0, x1, y1, z1, col) => g.box(x0, y0, z0, x1, y1, z1, { col, uv: UA });
+    const CY = (y, z0, z1, r, col, seg = 10) => g.cylZ(0, y, z0, z1, r, { col, uv: UA, seg });
+    switch (aid) {
+      case 'silenc': CY(0, -0.19, 0, 0.021, K); CY(0, -0.192, -0.185, 0.017, K2); break;
+      case 'comp': CY(0, -0.07, 0, 0.016, K2); B(-0.019, -0.006, -0.06, 0.019, 0.006, -0.045, K); B(-0.019, -0.006, -0.035, 0.019, 0.006, -0.02, K); break;
+      case 'bocal': CY(0, -0.045, 0, 0.014, K2); CY(0, -0.06, -0.045, 0.02, K); break;
+      case 'ext': B(-0.016, -0.075, -0.035, 0.016, 0, 0.035, K); B(-0.017, -0.085, -0.037, 0.017, -0.075, 0.037, K2); break;
+      case 'vert': B(-0.012, -0.012, -0.02, 0.012, 0, 0.02, K2); B(-0.013, -0.105, -0.015, 0.013, -0.012, 0.015, K); break;
+      case 'ang': g.box(-0.012, -0.045, -0.06, 0.012, 0, 0.02, { col: K, uv: UA, m: M4.compose(M4.create(), 0, 0, 0, 0, 0.45, 0) }); break;
+      case 'red': B(-0.014, 0, -0.03, 0.014, 0.008, 0.02, K2); B(-0.016, 0.008, -0.02, -0.011, 0.045, 0.012, K); B(0.011, 0.008, -0.02, 0.016, 0.045, 0.012, K); B(-0.016, 0.04, -0.02, 0.016, 0.046, 0.012, K); B(-0.0015, 0.008, -0.004, 0.0015, 0.012, -0.002, RED); break; // sem vidro: dá para ver através
+      case 'holo': B(-0.018, 0, -0.045, 0.018, 0.012, 0.025, K2); B(-0.021, 0.012, -0.04, -0.016, 0.062, -0.02, K); B(0.016, 0.012, -0.04, 0.021, 0.062, -0.02, K); B(-0.021, 0.058, -0.04, 0.021, 0.064, -0.02, K); break;
+      default: { // lunetas 2x/4x/8x
+        const L = aid === 'x2' ? 0.15 : aid === 'x4' ? 0.21 : 0.29, r = aid === 'x2' ? 0.019 : aid === 'x4' ? 0.022 : 0.026;
+        B(-0.012, 0, -0.06, 0.012, 0.016, -0.04, K2); B(-0.012, 0, 0.03, 0.012, 0.016, 0.05, K2);
+        CY(0.038, -L * 0.62, L * 0.38, r, K); CY(0.038, -L * 0.62 - 0.02, -L * 0.62, r * 1.35, K); CY(0.038, L * 0.38, L * 0.38 + 0.03, r * 1.2, K);
+        CY(0.038, -L * 0.62 - 0.021, -L * 0.62 - 0.019, r * 1.2, GL); B(-0.007, 0.038 + r - 0.002, -0.02, 0.007, 0.038 + r + 0.012, 0.01, K2);
+      }
+    }
+    return (cache[key] = { mesh: R.mesh(g), tex: tex.plain, spec: 0.55 });
+  }
+  // onde cada acessório encaixa na arma (muzzle: ponta do cano; sight: topo; support: mão de apoio; magPos: carregador)
+  function attachSpot(wm, aid) {
+    const a = AT[aid]; if (!a) return null;
+    if (a === 'mu') return wm.muzzle;
+    if (a === 'si') return [0, wm.sight - 0.004, wm.kind === 'pistol' ? -0.12 : -0.08];
+    if (a === 'gr') return [0, wm.muzzle[1] - 0.045, (wm.support || -0.33) - 0.04];
+    if (a === 'mg') return [wm.magPos[0], wm.magPos[1] - (wm.kind === 'pistol' ? 0.03 : 0.11), wm.magPos[2]];
+    return null;
+  }
+  const AT = { silenc: 'mu', comp: 'mu', bocal: 'mu', ext: 'mg', vert: 'gr', ang: 'gr', red: 'si', holo: 'si', x2: 'si', x4: 'si', x8: 'si' };
   // braços em primeira pessoa (no espaço da arma)
   function limb(g, from, to, w, h, col, uv) {
     const dx = to[0] - from[0], dy = to[1] - from[1], dz = to[2] - from[2], L = Math.hypot(dx, dy, dz);
@@ -4671,7 +4890,7 @@ const Assets = (() => {
     return P.hip[f0] * (1 - k) + P.hip[f1] * k;
   }
 
-  return { tree, init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, arms, fore3, medkit, ammoBox, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP, subsetMesh, cloth, prop, simpleTrain, parachute, propBoxes, ANIMS, animApply };
+  return { tree, init, buildMap, soldier, head, outfit, fabricKey, weapon, weaponGeo, attachment, attachSpot, bolt, arms, fore3, medkit, ammoBox, flash, tex, SKIN, Models, loadModel, rigState, rigSolve, rot, GRIP, subsetMesh, cloth, prop, simpleTrain, parachute, propBoxes, ANIMS, animApply };
 })();
 
 </script>
@@ -4714,6 +4933,9 @@ const Sfx = (() => {
     smg: { ck: 0.85, ckF: 3600, bd: 0.8, bdF: 1800, bdQ: 1.0, bdT: 0.06, bm: 0.6, b0: 175, b1: 70, bmT: 0.07, tl: 0.28, tlT: 0.28, rv: 0.28, mech: 0.13, vol: 0.8 },
     doze: { ck: 1.0, ckF: 2000, bd: 1.15, bdF: 700, bdQ: 0.7, bdT: 0.16, bm: 1.15, b0: 95, b1: 36, bmT: 0.2, tl: 0.6, tlT: 0.8, rv: 0.45, mech: 0, vol: 1 },
     maverick: { ck: 1.0, ckF: 1900, bd: 1.2, bdF: 650, bdQ: 0.7, bdT: 0.17, bm: 1.2, b0: 90, b1: 34, bmT: 0.22, tl: 0.62, tlT: 0.85, rv: 0.45, mech: 0, vol: 1 },
+    m249: { ck: 1.05, ckF: 2300, bd: 1.05, bdF: 980, bdQ: 0.8, bdT: 0.11, bm: 1.0, b0: 118, b1: 42, bmT: 0.13, tl: 0.45, tlT: 0.55, rv: 0.4, mech: 0.18, vol: 0.95 },
+    silenc: { ck: 0.55, ckF: 4200, bd: 0.32, bdF: 2600, bdQ: 1.2, bdT: 0.04, bm: 0.22, b0: 210, b1: 90, bmT: 0.05, tl: 0.06, tlT: 0.12, rv: 0.08, mech: 0.22, vol: 0.55 },
+    besta: { ck: 0.5, ckF: 1600, bd: 0.25, bdF: 420, bdQ: 2.5, bdT: 0.18, bm: 0.4, b0: 160, b1: 110, bmT: 0.16, tl: 0.05, tlT: 0.1, rv: 0.06, mech: 0.35, vol: 0.6 },
     sniper: { ck: 1.3, ckF: 2800, bd: 1.15, bdF: 800, bdQ: 0.7, bdT: 0.17, bm: 1.3, b0: 85, b1: 30, bmT: 0.28, tl: 0.75, tlT: 1.3, rv: 0.55, mech: 0, vol: 1 },
   };
   // grava cada arma em duas versões: perto (seca e brilhante) e longe (abafada pela distância, mais eco)
@@ -4853,10 +5075,11 @@ const Sfx = (() => {
     o.connect(g); g.connect(dest || master); o.start(t); o.stop(t + dur + 0.05);
   }
   // dist em metros, pan -1..1
-  function shot(w, dist = 0, pan = 0) {
+  function shot(w, dist = 0, pan = 0, silent = false) {
     if (!ctx || !gun) return;
     dist = isFinite(dist) ? Math.max(0, dist) : 0; pan = isFinite(pan) ? pan : 0;
-    if (dist > 170) return; // muito longe: não se ouve
+    if (silent && w !== 'besta') { w = 'silenc'; dist *= 2.2; } // silenciador: baixo e some rápido com a distância
+    if (dist > (w === 'silenc' || w === 'besta' ? 70 : 170)) return; // muito longe: não se ouve
     const near = dist < 45, b = gun.buf[(GUN[w] ? w : 'm4a1') + (near ? '' : '_far')] || gun.buf[GUN[w] ? w : 'm4a1'];
     if (!b) return; // gravações ainda sendo preparadas (primeiro segundo)
     if (gun.live >= (dist < 20 ? 14 : 9)) return; // muitos tiros soando juntos: corta os de longe primeiro
@@ -5167,7 +5390,7 @@ const Voice = (() => {
   };
   const lowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 4) || (isTouch && Math.min(screen.width, screen.height) < 500);
   const defQ = isTouch ? (lowEnd ? 'low' : 'medium') : 'high';
-  const CFG_DEF = { quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, real: true, tps: true, vib: true, vibk: true, btns: {} };
+  const CFG_DEF = { quality: defQ, shadows: PRESETS[defQ].shadows > 0, effects: true, scale: PRESETS[defQ].scale, fov: 72, sens: 1, tsens: 1, vol: 0.8, fps: false, touch: isTouch, orient: isTouch ? 'landscape' : 'auto', vkb: 'auto', music: 0.5, autofs: true, assist: true, astr: 0.7, head: true, pull: 0.8, blood: true, sRed: 1, s2x: 1, s4x: 1, s8x: 1, sFire: 1, real: true, tps: true, vib: true, vibk: true, btns: {} };
   const CFG = Object.assign({}, CFG_DEF, store.get('fps_settings', {}));
   if ((CFG.hudv | 0) < 2) { CFG.btns = {}; CFG.hudv = 2; } // HUD novo (estilo Free Fire): posições antigas não valem mais
   if ((CFG.hudv | 0) < 3) { for (const k of ['cdrive', 'cpass', 'cexit', 'cleft', 'cright', 'cgas', 'cbrk']) delete (CFG.btns || {})[k]; CFG.hudv = 3; } // botões do carro estilo Free Fire
@@ -5259,10 +5482,14 @@ const Voice = (() => {
       if (type === 'dust') {
         for (let i = 0; i < Math.ceil(7 * m * k); i++) this.add(x, y, z, nx * 2 + (rr() - 0.5) * 2, ny * 2 + rr() * 1.5, nz * 2 + (rr() - 0.5) * 2, 0.5 + rr() * 0.5, 0.12 + rr() * 0.18, 0.55, 0.5, 0.42, 0.7, -3, 0.25);
         for (let i = 0; i < Math.ceil(5 * m * k); i++) this.add(x, y, z, nx * 6 + (rr() - 0.5) * 6, ny * 6 + rr() * 4, nz * 6 + (rr() - 0.5) * 6, 0.15 + rr() * 0.15, 0.035, 1, 0.8, 0.4, 1, 12);
+      } else if (type === 'spark') { // bala na parede/metal: faíscas rápidas + fumacinha
+        for (let i = 0; i < Math.ceil(6 * m * k); i++) this.add(x, y, z, nx * 5 + (rr() - 0.5) * 7, ny * 5 + rr() * 4, nz * 5 + (rr() - 0.5) * 7, 0.12 + rr() * 0.14, 0.03, 1, 0.85, 0.35, 1, 14);
+        for (let i = 0; i < Math.ceil(2 * m * k); i++) this.add(x + nx * 0.05, y, z + nz * 0.05, nx * 0.6, 0.35 + rr() * 0.3, nz * 0.6, 0.7 + rr() * 0.5, 0.1, 0.62, 0.6, 0.58, 0.45, -0.4, 0.55);
       } else if (type === 'blood') {
+        if (!CFG.blood) return;
         for (let i = 0; i < Math.ceil(10 * m * k); i++) this.add(x, y, z, (rr() - 0.5) * 3 + nx * 2, rr() * 2, (rr() - 0.5) * 3 + nz * 2, 0.4 + rr() * 0.4, 0.07 + rr() * 0.1, 0.55, 0.03, 0.02, 0.9, 9);
       } else if (type === 'muzzle') {
-        this.add(x, y, z, 0, 0, 0, 0.05, 0.55, 1, 0.75, 0.35, 0.9);
+        this.add(x, y, z, 0, 0, 0, 0.05, 0.55, 1, 0.75, 0.35, 0.9); this.add(x, y, z, 0, 0, 0, 0.035, 0.28, 1, 0.95, 0.7, 1);
         for (let i = 0; i < Math.ceil(3 * m); i++) this.add(x, y, z, (rr() - 0.5) * 0.6 + nx, 0.4 + rr() * 0.4, (rr() - 0.5) * 0.6 + nz, 0.7 + rr() * 0.5, 0.15, 0.7, 0.7, 0.7, 0.25, -0.5, 0.8);
       } else if (type === 'heal') {
         for (let i = 0; i < Math.ceil(14 * m); i++) this.add(x + (rr() - 0.5) * 0.8, y + rr() * 1.6, z + (rr() - 0.5) * 0.8, 0, 0.8 + rr(), 0, 0.8 + rr() * 0.4, 0.08, 0.3, 1, 0.45, 0.9, -0.5);
@@ -5303,7 +5530,7 @@ const Voice = (() => {
       this.onMsg = onMsg; this.offline = true;
       this.sim = new S.GameSim({ mode: S.isFFA(o.mode) || S.isRounds(o.mode) ? o.mode : 'tdm', map: o.map, training: o.mode === 'training', botSkill: o.diff, timeLimit: o.mode === 'training' || o.mode === 'aberto' ? 600 : 300, scoreLimit: o.mode === 'training' ? 50 : undefined });
       const p = Prof.local;
-      this.me = this.sim.addPlayer({ name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p), team: 0 });
+      this.me = this.sim.addPlayer({ name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p), att: p.att, team: 0 });
       S.buildNav();
       const nb = S.isRounds(o.mode) ? 2 * +o.mode[1] - 1 : o.mode === 'aberto' ? 15 : o.mode === 'tdm' ? 7 : o.bots; // mata-mata: 4 contra 4
       for (let i = 0; i < nb; i++) this.sim.addBot();
@@ -5422,12 +5649,12 @@ const Voice = (() => {
     timeOff: 0, timeOffInit: false,
     start(conn, m) {
       this.conn = conn; this.active = true; this.paused = false;
-      this.roster = new Map(); this.remote = new Map(); this.pending = []; this.outbox = []; this.seq = 0;
+      this.roster = new Map(); this.remote = new Map(); this.pending = []; this.outbox = []; this.seq = 0; this.projs = []; this.stuck = [];
       this.local = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, onGround: true, crouch: false, alive: false, ads: false, yaw: 0, pitch: 0, weapons: ['smg', null, 'pistol'], cur: 0, medUntil: 0 };
       this.me = null; this.matchXp = 0; this.timeOffInit = false; this.lastAlive = false;
       this.fw = { last: -9, shots: [], shotSeq: 0, semi: true, kick: 0, recoilAcc: 0, reloadStart: -9, reloadW: null, switchAt: -9, medStart: -9, flash: 0, pumpT: 9, adsT: 0, bob: 0, swayX: 0, swayY: 0, lastCur: 0, magShown: 0 };
       this.feed = []; this.kills = 0; this.endShown = false; this.dmgT = 0; this.healT = 0; this.stepT = 0; this.prevHp = 100; this.deathInfo = null; this.camRoll = 0;
-      this.adsToggle = false; this.crouchToggle = false; Touch.sprintLock = false; this.aimUp = 0; this.lockId = 0; this.headLock = false;
+      this.adsToggle = false; this.crouchToggle = false; this.proneToggle = false; Touch.sprintLock = false; this.aimUp = 0; this.lockId = 0; this.headLock = false;
       hideScreens(); $('hud').classList.add('on'); $('chatlog').innerHTML = ''; $('feed').innerHTML = '';
       showTouch(CFG.touch);
       $('death').style.display = 'none'; $('s-end').classList.remove('on');
@@ -5453,7 +5680,7 @@ const Voice = (() => {
           else chatSys(`Partida: <b>${esc(m.room.name)}</b>`);
           break;
         case 'roster':
-          this.roster = new Map(m.r.map((r) => [r[0], { id: r[0], name: r[1], team: r[2], bot: r[3], uniform: r[4], skin: r[5], level: r[6], look: S.sanitizeLook(r[7]) }]));
+          this.roster = new Map(m.r.map((r) => [r[0], { id: r[0], name: r[1], team: r[2], bot: r[3], uniform: r[4], skin: r[5], level: r[6], look: S.sanitizeLook(r[7]), att: S.sanitizeAtt(r[8]) }]));
           for (const id of [...this.remote.keys()]) if (!this.roster.has(id)) this.remote.delete(id);
           break;
         case 's': this.onSnap(m); break;
@@ -5492,12 +5719,12 @@ const Voice = (() => {
       const L = this.local, fw = this.fw;
       const wasAlive = L.alive;
       this.me = me;
-      L.weapons = me.w; L.medUntil = me.mu > 0 ? 1 : 0; L.down = !!me.dn; L.money = me.$; L.helmet = me.hm || 0; L.vest = me.vs || 0;
+      L.weapons = me.w; L.medUntil = me.mu > 0 ? 1 : 0; L.down = !!me.dn; L.money = me.$; L.helmet = me.hm || 0; L.vest = me.vs || 0; L.helmetLv = me.hl || 0; L.vestLv = me.vl || 0;
       if (now() - fw.switchAt > 0.6) L.cur = me.cur;
       L.alive = !!me.al;
       const wasRiding = this.riding; this.riding = !!me.pl;
       if (me.al && (this.riding || wasRiding)) { // dentro do avião (ou acabou de pular): segue a posição do servidor
-        L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = false; L.sky = me.sk || 0; this.pending = []; this.visOff = [0, 0, 0];
+        L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = false; L.prone = false; L.sky = me.sk || 0; this.pending = []; this.visOff = [0, 0, 0];
         if (!wasAlive) { $('death').style.display = 'none'; this.prevHp = me.hp; }
         this.me = me; return;
       }
@@ -5508,7 +5735,7 @@ const Voice = (() => {
         if (seat === 0) { const c = this.myCar && this.myCar.id === cid ? this.myCar : (this.myCar = { id: cid, t: (this.map.cars[cid] || [])[3] || 'f1', x: cx, z: cz, yaw: cyaw, v: cv, st: cst }); c.x = cx; c.z = cz; c.yaw = cyaw; c.v = cv; c.st = cst; L.car = c; }
         else { this.myCar = null; L.car = this.carObj(cid); }
         L.seat = seat; L.carId = cid;
-        if (!wasCar) { Touch.sprintLock = false; this.crouchToggle = false; this.adsToggle = false; Touch.syncToggles(); this.look.yaw = cyaw; }
+        if (!wasCar) { Touch.sprintLock = false; this.crouchToggle = false; this.proneToggle = false; this.adsToggle = false; Touch.syncToggles(); this.look.yaw = cyaw; }
       } else { if (wasCar) { this.myCar = null; } L.car = null; L.seat = -1; L.carId = -1; }
       if (!me.al) { L.x = me.x; L.y = me.y; L.z = me.z; L.vault = null; this.pending = []; this.visOff = [0, 0, 0]; return; }
       if (!wasAlive) { // renasceu
@@ -5519,7 +5746,7 @@ const Voice = (() => {
       }
       this.pending = this.pending.filter((i) => i.seq > me.ack);
       const px = L.x, py = L.y, pz = L.z;
-      L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = !!me.cr; L.vault = me.vt ? Object.assign({}, me.vt) : null; L.sky = me.sk || 0;
+      L.x = me.x; L.y = me.y; L.z = me.z; L.vx = me.vx; L.vy = me.vy; L.vz = me.vz; L.onGround = !!me.og; L.crouch = !!me.cr; L.prone = !!me.pr; L.vault = me.vt ? Object.assign({}, me.vt) : null; L.sky = me.sk || 0;
       for (const i of this.pending) S.applyInput(L, i);
       const dx = px - L.x, dy = py - L.y, dz = pz - L.z;
       if (dx * dx + dy * dy + dz * dz < 4) { this.visOff[0] += dx; this.visOff[1] += dy; this.visOff[2] += dz; } else this.visOff = [0, 0, 0];
@@ -5564,12 +5791,23 @@ const Voice = (() => {
       switch (e.e) {
         case 'shot': {
           if (e.id === me) return;
-          { const rr = this.remote.get(e.id); if (rr) rr.firedAt = now(); }
+          { const rr = this.remote.get(e.id); if (rr && !e.s) rr.firedAt = now(); } // silenciador: não aparece no radar
           const rp = this.remotePos(e.id), o = rp ? [rp.x, rp.y + (rp.fl & 2 ? 1.0 : 1.45), rp.z] : e.o;
           Trace.add(o[0], o[1], o[2], e.t[0], e.t[1], e.t[2]);
-          Parts.burst('muzzle', o[0], o[1], o[2]);
-          Parts.burst('dust', e.t[0], e.t[1], e.t[2], 0, 1, 0, 0.6);
-          const [d, pan] = this.spatial(o[0], o[2]); Sfx.shot(e.w, d, pan);
+          if (!e.s) Parts.burst('muzzle', o[0], o[1], o[2]);
+          this.impactFx(e.t, o);
+          const [d, pan] = this.spatial(o[0], o[2]); Sfx.shot(e.w, d, pan, !!e.s);
+          break;
+        }
+        case 'pj': { // flecha de outro jogador: voa com a mesma física do servidor
+          if (e.id === me) return;
+          this.projs.push({ k: e.k, x: e.o[0], y: e.o[1], z: e.o[2], vx: e.v[0], vy: e.v[1], vz: e.v[2], t: 0 });
+          const [d, pan] = this.spatial(e.o[0], e.o[2]); Sfx.shot('besta', d, pan); break;
+        }
+        case 'pjx': { // flecha acertou alguém ou parou na parede
+          const i = e.id === me ? this.projs.findIndex((q) => q.mine) : this.projs.findIndex((q) => q.k === e.k);
+          if (i >= 0) this.projs.splice(i, 1);
+          if (e.h) Parts.burst('blood', e.p[0], e.p[1], e.p[2], 0, 1, 0, 0.7); else { this.stuck.push({ x: e.p[0], y: e.p[1], z: e.p[2], t: now(), yaw: 0 }); Parts.burst('dust', e.p[0], e.p[1], e.p[2], 0, 1, 0, 0.5); if (this.stuck.length > 12) this.stuck.shift(); }
           break;
         }
         case 'hit':
@@ -5726,6 +5964,7 @@ const Voice = (() => {
         s = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + Touch.joy[0];
         if (keys.Space || Touch.held.jump || Touch.held.vault || keys._vault) b |= S.BTN.JUMP; // pular (de frente para janela: pula a janela)
         if (keys.KeyC || keys.ControlLeft || this.crouchToggle) b |= S.BTN.CROUCH;
+        if (keys.KeyZ || this.proneToggle) b |= S.BTN.PRONE; // deitar (Z)
         // botão CORRER travado: corre sem parar (sem analógico, vai para frente) até tocar de novo
         if (Touch.sprintLock && !Touch.joy[0] && !Touch.joy[1] && !f && !s) f = 1;
         if (keys.ShiftLeft || keys.ShiftRight || Touch.sprintLock) b |= S.BTN.SPRINT;
@@ -5772,7 +6011,7 @@ const Voice = (() => {
       const k = Math.exp(-dt * 12);
       this.visOff[0] *= k; this.visOff[1] *= k; this.visOff[2] *= k;
       for (const rp of this.remote.values()) this.interp(rp, dt);
-      Parts.update(dt); Trace.update(dt);
+      Parts.update(dt); Trace.update(dt); this.projUpdate(dt);
       this.dmgT = Math.max(0, this.dmgT - dt * 1.6); this.healT = Math.max(0, this.healT - dt * 1.2);
       this.hud(dt);
     },
@@ -5800,7 +6039,7 @@ const Voice = (() => {
       }
       if (!best) return off();
       if (best.id !== this.lockId) { this.lockId = best.id; this.headLock = false; }
-      if (CFG.head && this.aimUp > 0.012) this.headLock = true;
+      if (CFG.head && this.aimUp > 0.016 / Math.max(0.2, CFG.pull || 0.8)) this.headLock = true;
       // mira vermelha só com o inimigo dentro do círculo
       const ringA = Math.atan((cr._r || 12) * 1.25 / Math.max(1, cv.clientHeight / 2) * Math.tan((this.camFov || 1.2) / 2)) + Math.atan(0.3 / Math.max(1, this._bestD || 10));
       cr.classList.toggle('on', bestA < ringA);
@@ -5830,7 +6069,8 @@ const Voice = (() => {
       const k = 1 - Math.exp(-dt * 5.5 * str);
       this.look.yaw = angLerp(this.look.yaw, wantYaw, k);
       if (this.headLock) {
-        const kh = 1 - Math.exp(-dt * 16 * Math.max(0.4, CFG.astr));
+        this.headP = headP;
+        const kh = 1 - Math.exp(-dt * 16 * Math.max(0.3, CFG.pull || 0.8));
         this.look.pitch = lerp(this.look.pitch, headP, kh);
         if (this.look.pitch > headP + 0.004) this.look.pitch = headP + 0.004; // não passa da cabeça
       } else if (this.look.pitch < chestP - 0.02) {
@@ -5839,15 +6079,25 @@ const Voice = (() => {
     },
     reloading() { const me = this.me; if (!me) return false; return (me.rl > 0) || (now() - this.fw.reloadStart < W[this.fw.reloadW || 'smg'].reload && now() - this.fw.reloadStart < 0.35 + Net.ping / 1000); },
     curW() { return W[this.local.weapons[this.local.cur]] || W.smg; },
-    localMag() { const me = this.me; if (!me) return 0; if (me.cur !== this.local.cur) return W[this.local.weapons[this.local.cur]].mag; return Math.max(0, me.mag - this.fw.shots.length); },
+    // acessórios equipados (perfil) — os mesmos que o servidor usa
+    attOf() { const p = Prof.cur, k = JSON.stringify(p.att || {}) + p.level; if (this._attK !== k) { this._attK = k; this._att = S.sanitizeAtt(p.att, p.level); } return this._att; },
+    modsW(id) { return S.modsOf(this.attOf(), id || this.curW().id); },
+    // sensibilidade conforme a mira em uso e se está atirando
+    sensMul() {
+      const fw = this.fw; let k = 1;
+      if (fw.adsT > 0.5) { const m = this.modsW(), z = m.zoom || this.curW().zoom; k = z >= 7 ? CFG.s8x : z >= 3.5 ? CFG.s4x : z >= 1.8 ? CFG.s2x : CFG.sRed; }
+      if (mouse.l || Touch.held.fire || Touch.held.fire2) k *= CFG.sFire;
+      return k == null || !isFinite(k) ? 1 : k;
+    },
+    localMag() { const me = this.me; if (!me) return 0; if (me.cur !== this.local.cur) return S.magSize(this.attOf(), this.local.weapons[this.local.cur]); return Math.max(0, me.mag - this.fw.shots.length); },
     updateWeapon(dt, inputOn) {
       const fw = this.fw, L = this.local, me = this.me, t = now(), w = this.curW();
       fw.kick *= Math.exp(-dt * 10); fw.flash -= dt; fw.pumpT += dt;
       // recuperação do recuo
       // recuo: dá o 'coice' e volta sozinho para onde você estava mirando (não acumula subida)
-      if (fw.recoilAcc > 0) { const r = fw.recoilAcc * Math.min(1, dt * 14); fw.recoilAcc -= r; this.look.pitch -= r; if (fw.recoilAcc < 1e-4) fw.recoilAcc = 0; }
+      this.recoilStep(dt);
       const adsWant = inputOn && (mouse.r || this.adsToggle) && !L.medUntil && !this.reloading() && t - fw.switchAt > C.SWITCH;
-      fw.adsT = Math.max(0, Math.min(1, fw.adsT + (adsWant ? dt : -dt) * 7));
+      fw.adsT = Math.max(0, Math.min(1, fw.adsT + (adsWant ? dt : -dt) * 7 * (adsWant ? this.modsW().ads : 1)));
       if (!me || !inputOn) { fw.semi = true; return; }
       const trigger = (mouse.l || Touch.held.fire || Touch.held.fire2) && !L.down; // caído não atira
       if (!trigger) fw.semi = true;
@@ -5894,22 +6144,96 @@ const Voice = (() => {
         else this.fire(w);
       }
     },
+    impactFx(p, from) {
+      if (!p) return;
+      const dx = from[0] - p[0], dz = from[2] - p[2], l = Math.hypot(dx, dz) || 1, nx = dx / l * 0.6, nz = dz / l * 0.6;
+      if (p[1] < 0.12) Parts.burst('dust', p[0], p[1], p[2], 0, 1, 0, 0.7); // chão: terra
+      else { Parts.burst('spark', p[0], p[1], p[2], nx, 0.3, nz, 1); Parts.burst('dust', p[0], p[1], p[2], nx, 0.2, nz, 0.35); } // parede: faísca + pó
+    },
+    projUpdate(dt) {
+      const P = this.projs; if (!P || !P.length) return;
+      for (let i = P.length - 1; i >= 0; i--) {
+        const q = P[i]; q.t += dt;
+        if (q.vis) { const k = Math.max(0, 1 - q.t * 6); q.ox = q.vis[0] * k; q.oy = q.vis[1] * k; q.oz = q.vis[2] * k; } // sai da ponta da besta
+        const hit = S.projStep(q, dt, 9.8);
+        if (hit || q.t > 4) { if (hit && !q.mine) { /* espera o servidor dizer se acertou */ } if (hit) { this.stuck.push({ x: q.x, y: q.y, z: q.z, t: now(), vx: q.vx, vy: q.vy, vz: q.vz }); if (this.stuck.length > 12) this.stuck.shift(); Parts.burst('dust', q.x, q.y, q.z, 0, 1, 0, 0.5); } P.splice(i, 1); }
+      }
+    },
+    projItems(items) {
+      const B = Assets.bolt(), pool = this._pjM || (this._pjM = []); let n = 0;
+      const put = (x, y, z, vx, vy, vz) => { const m = pool[n] || (pool[n] = M4.create()); n++; M4.compose(m, x, y, z, Math.atan2(-vx, -vz), Math.atan2(vy, Math.hypot(vx, vz)), 0); items.push({ mesh: B.mesh, tex: B.tex, model: m, noShadow: true }); };
+      for (const q of this.projs || []) put(q.x + (q.ox || 0), q.y + (q.oy || 0), q.z + (q.oz || 0), q.vx, q.vy, q.vz);
+      const t = now(); this.stuck = (this.stuck || []).filter((s) => t - s.t < 15);
+      for (const s of this.stuck) if (s.vx != null) put(s.x, s.y, s.z, s.vx, s.vy, s.vz); // flechas cravadas na parede
+    },
+    // acessórios na arma (M = matriz da arma). As matrizes ficam guardadas no dono (personagem ou a própria câmera)
+    attPush(owner, list, wm, wid, att, M, o = {}) {
+      const a = att && att[wid]; if (!a) return;
+      const pool = owner._attM || (owner._attM = {}), tmp = this._attT || (this._attT = M4.create());
+      for (const sl in a) {
+        const id = a[sl]; if (sl === 'mg' && o.reload) continue;
+        if (sl === 'si' && o.vm && this.fw.adsT > 0.85 && (S.ATTACH[id].zoom >= 1.8 || W[wid].scope)) continue; // olhando pela luneta: a tela já mostra
+        const sp = Assets.attachSpot(wm, id); if (!sp) continue;
+        const mm = pool[sl] || (pool[sl] = M4.create()); M4.compose(tmp, sp[0], sp[1], sp[2], 0, 0, 0); M4.mul(mm, M, tmp);
+        const P = Assets.attachment(id); list.push({ mesh: P.mesh, tex: P.tex, model: mm, spec: P.spec, noShadow: !!o.noShadow });
+      }
+    },
+    // recuo de cada arma: a mira sobe a cada tiro (com um pouco para os lados) e o jogador segura puxando o dedo para baixo;
+    // ao soltar o gatilho, volta uma parte sozinha. Aplicado aos poucos (alguns quadros): sobe liso, sem tranco
+    inspectK() { // 0..1..0 em 2,2 s; atirar, mirar, recarregar ou trocar cancela
+      const fw = this.fw; if (!fw.inspectAt) return 0;
+      const p = (now() - fw.inspectAt) / 2.2;
+      if (p >= 1 || now() - fw.last < 0.3 || fw.adsT > 0.1 || this.reloading() || now() - fw.switchAt < C.SWITCH) { fw.inspectAt = 0; return 0; }
+      const e = p < 0.25 ? p / 0.25 : p > 0.8 ? (1 - p) / 0.2 : 1; return e * e * (3 - 2 * e);
+    },
+    postureNow() { const L = this.local; return { air: !L.onGround, run: !!L.sprint, move: Math.hypot(L.vx, L.vz) > 1.2, crouch: !!L.crouch, prone: !!L.prone, ads: this.fw.adsT > 0.5 }; },
+    addRecoil(w) {
+      const fw = this.fw, L = this.local, m = this.modsW(w.id), n = fw.burstN = (fw.burstN || 0) + 1;
+      const post = (fw.adsT > 0.5 ? 0.75 : 1) * (L.crouch || L.prone ? 0.75 : 1) * (isTouch ? 0.6 : 0.8);
+      const ramp = w.auto ? Math.min(1, 0.45 + n * 0.11) : 1; // primeiros tiros sobem menos
+      const v = w.recoil * m.rv * post * ramp;
+      const ph = (w.id.charCodeAt(0) + w.id.length) * 0.37; // cada arma tem o seu "desenho" de recuo para os lados
+      const hz = w.recoilYaw * m.rh * post * (Math.sin(n * 0.85 + ph) * 0.9 + (Math.random() - 0.5) * 0.7);
+      fw.rcV = (fw.rcV || 0) + v; fw.rcH = (fw.rcH || 0) + hz; fw.rcAcc = (fw.rcAcc || 0) + v;
+    },
+    recoilStep(dt) {
+      const fw = this.fw, k = Math.min(1, dt * 22);
+      if (fw.rcV) { let a = fw.rcV * k; fw.rcV -= a; if (this.headLock && this.headP != null && this.look.pitch + a > this.headP + 0.004) a = Math.max(0, this.headP + 0.004 - this.look.pitch); this.look.pitch = S.clamp(this.look.pitch + a, -1.5, 1.5); if (Math.abs(fw.rcV) < 1e-5) fw.rcV = 0; }
+      if (fw.rcH) { const a = fw.rcH * k; fw.rcH -= a; this.look.yaw -= a; if (Math.abs(fw.rcH) < 1e-5) fw.rcH = 0; }
+      const firing = mouse.l || Touch.held.fire || Touch.held.fire2, w = this.curW();
+      if (!firing || !w.auto) { // soltou: volta metade do que subiu
+        if (!firing) fw.burstN = 0;
+        if (fw.rcAcc > 0 && now() - fw.last > (w.auto ? 0.08 : 0.12)) { const back = fw.rcAcc * Math.min(1, dt * 9) * 0.55; fw.rcAcc -= back / 0.55; this.look.pitch -= back; if (fw.rcAcc < 1e-4) fw.rcAcc = 0; }
+      }
+    },
     fire(w) {
       const fw = this.fw, L = this.local, t = now();
       fw.last = t; fw.semi = false; fw.shots.push(++fw.shotSeq);
       const [sYaw, sPitch] = this.shotAngles();
       const eo = this.eye(); // o tiro sai do mesmo ponto usado para mirar
-      this.conn.send({ t: 'act', a: 'shoot', w: w.id, yaw: sYaw, pitch: sPitch, seq: fw.shotSeq, o: [Math.round(eo[0] * 100) / 100, Math.round(eo[1] * 100) / 100, Math.round(eo[2] * 100) / 100] });
-      Sfx.shot(w.id);
+      this.conn.send({ t: 'act', a: 'shoot', w: w.id, yaw: sYaw, pitch: sPitch, seq: fw.shotSeq, rt: Math.round((this.serverNow() - C.INTERP) * 1000) / 1000, o: [Math.round(eo[0] * 100) / 100, Math.round(eo[1] * 100) / 100, Math.round(eo[2] * 100) / 100] });
+      const silentMe = this.modsW(w.id).silent; Sfx.shot(w.id, 0, 0, silentMe);
       this.crossPulse = Math.min(0.28, (this.crossPulse || 0) + (w.pellets > 1 || w.id === 'sniper' ? 0.25 : 0.1));
-      fw.flash = 0.05; fw.kick = Math.min(1.4, fw.kick + (w.id === 'sniper' || w.pump || w.id === 'deagle' ? 1.2 : 0.5));
+      fw.flash = silentMe ? 0 : 0.05; fw.kick = Math.min(1.4, fw.kick + (w.id === 'sniper' || w.pump || w.id === 'deagle' ? 1.2 : 0.5));
       if (w.pump || w.id === 'sniper') { fw.pumpT = 0; setTimeout(() => Sfx.pump(), 250); }
       // sem recuo na câmera: a tela e o chão não tremem ao atirar (a precisão de cada arma continua pela dispersão)
       // traçante e impacto locais (visual)
-      const eye = this.eye(), d = S.aimDir(sYaw, sPitch);
-      const spread = w.pellets > 1 ? w.spread * 0.45 : 0; // igual ao servidor: tiro no centro da mira
+      const eye = this.eye(), d = S.aimDir(sYaw, sPitch), mods = this.modsW(w.id);
+      const spread = S.postureSpread(w, this.postureNow(), mods); // igual ao servidor (mesma semente)
+      const rnd = S.seeded((this.myId * 7919) ^ (fw.shotSeq * 104729));
+      const syw = Math.sin(sYaw), cyw = Math.cos(sYaw), spt = Math.sin(sPitch), cpt = Math.cos(sPitch), RT = [cyw, 0, -syw], UP = [syw * spt, cpt, cyw * spt];
+      this.addRecoil(w);
+      if (w.proj) {
+        const r0 = Math.sqrt(rnd()) * spread, th0 = rnd() * Math.PI * 2, ox = Math.cos(th0) * r0, oy = Math.sin(th0) * r0;
+        const dx = d[0] + RT[0] * ox + UP[0] * oy, dy = d[1] + RT[1] * ox + UP[1] * oy, dz = d[2] + RT[2] * ox + UP[2] * oy, l = Math.hypot(dx, dy, dz), v = w.proj.v;
+        const mz = this.muzzleWorld || eye;
+        this.projs.push({ mine: true, x: eye[0], y: eye[1], z: eye[2], vx: dx / l * v, vy: dy / l * v, vz: dz / l * v, t: 0, vis: [mz[0] - eye[0], mz[1] - eye[1], mz[2] - eye[2]] });
+        if (this.localMag() <= 0) setTimeout(() => { if (this.active) this.tryReload(); }, 250);
+        return;
+      }
       for (let k = 0; k < Math.min(w.pellets, 4); k++) {
-        const sk = k === 0 ? 0 : spread * 1.5, dx = d[0] + (Math.random() - 0.5) * sk, dy = d[1] + (Math.random() - 0.5) * sk, dz = d[2] + (Math.random() - 0.5) * sk;
+        const r = k === 0 && w.pellets > 1 ? 0 : Math.sqrt(rnd()) * spread, th = rnd() * Math.PI * 2, ox = Math.cos(th) * r, oy = Math.sin(th) * r;
+        const dx = d[0] + RT[0] * ox + UP[0] * oy, dy = d[1] + RT[1] * ox + UP[1] * oy, dz = d[2] + RT[2] * ox + UP[2] * oy;
         const l = Math.hypot(dx, dy, dz);
         let tw = S.raycastWorld(eye[0], eye[1], eye[2], dx / l, dy / l, dz / l, 250), hitP = null;
         for (const rp of this.remote.values()) {
@@ -5920,14 +6244,14 @@ const Voice = (() => {
         const ex = eye[0] + dx / l * tw, ey = eye[1] + dy / l * tw, ez = eye[2] + dz / l * tw;
         const mz = this.muzzleWorld || eye;
         Trace.add(mz[0], mz[1], mz[2], ex, ey, ez, true);
-        if (!hitP && tw < 250) Parts.burst('dust', ex, ey, ez, -dx / l, -dy / l, -dz / l, w.pellets > 1 ? 0.4 : 1);
+        if (!hitP && tw < 250 && (k === 0 || Math.random() < 0.5)) this.impactFx([ex, ey, ez], eye);
       }
       if (this.localMag() <= 0) setTimeout(() => { if (this.active) this.tryReload(); }, 250);
     },
     tryReload() {
       const me = this.me, w = this.curW();
       if (!me || this.reloading() || me.cur !== this.local.cur || me.mu) return;
-      if (this.localMag() >= w.mag || me.res <= 0) { if (me.res <= 0 && this.localMag() <= 0) center('Sem munição — troque de arma', 1.2); return; }
+      if (this.localMag() >= S.magSize(this.attOf(), w.id) || me.res <= 0) { if (me.res <= 0 && this.localMag() <= 0) center('Sem munição — troque de arma', 1.2); return; }
       this.conn.send({ t: 'act', a: 'reload' });
       this.fw.reloadStart = now(); this.fw.reloadW = w.id; Sfx.reload(w.id, w.reload);
     },
@@ -5941,7 +6265,7 @@ const Voice = (() => {
     eye() {
       const L = this.local; if (!L) { const k = R.cam || { x: 0, y: 1.6, z: 0 }; return [k.x, k.y, k.z]; } // fora da partida (menu)
       if (L.vault && vaultTabs()) { const f = S.VAULT.K0 + L.vault.t * 30 * S.VAULT.SPD; this.eyeH = lerp(this.eyeH || C.EYE, Math.max(0.35, vtab(VA.head, f) + vaultShift(f, L.vault.sh) - 0.05), 0.3); }
-      else this.eyeH = lerp(this.eyeH || C.EYE, L.crouch ? C.EYEC : C.EYE, 0.25); return [L.x + this.visOff[0], L.y + this.visOff[1] + this.eyeH, L.z + this.visOff[2]]; },
+      else this.eyeH = lerp(this.eyeH || C.EYE, L.prone ? C.EYEP : L.crouch ? C.EYEC : C.EYE, 0.25); return [L.x + this.visOff[0], L.y + this.visOff[1] + this.eyeH, L.z + this.visOff[2]]; },
     interp(rp, dt) {
       const rt = this.serverNow() - C.INTERP, B = rp.buf;
       if (!B.length) return;
@@ -6020,8 +6344,8 @@ const Voice = (() => {
     openShop() { if (!this.shopNear()) return; Sfx.ui(); $('shopm').classList.add('on'); this._shopH = ''; this.renderShop(); },
     renderShop() {
       const L = this.local, cur = L.weapons || [], m = L.money | 0;
-      const ws = S.WEAPON_LIST.map((id) => { const w = W[id]; return `<button class="shop-it${cur.includes(id) ? ' own' : ''}" data-buy="${id}"><b>${esc(w.name)}</b><small>${w.slot ? 'Pistola' : w.scope ? 'Sniper' : w.pellets > 1 ? 'Escopeta' : w.auto ? 'Automática' : 'Arma'} · dano ${w.dmg * w.pellets}</small><em>${cur.includes(id) ? 'NA MÃO · recarregar' : 'GRÁTIS'}</em></button>`; }).join('');
-      const eq = [['kit', '✚', 'Kit médico', `você tem ${this.me ? this.me.mk : 0}`], ['helmet', '⛑', 'Capacete', 'protege a cabeça'], ['vest', '🦺', 'Colete', 'protege o corpo']].map(([id, ic, nm, sub]) => { const p = S.SHOP[id].price, have = (id === 'helmet' && L.helmet >= 100) || (id === 'vest' && L.vest >= 100); return `<button class="shop-it eq${m < p ? ' poor' : ''}${have ? ' own' : ''}" data-buy="${id}"><b>${ic} ${nm}</b><small>${sub}</small><em>${have ? 'EQUIPADO' : '$ ' + p}</em></button>`; }).join('');
+      const ws = S.WEAPON_LIST.map((id) => { const w = W[id]; return `<button class="shop-it${cur.includes(id) ? ' own' : ''}" data-buy="${id}"><b>${esc(w.name)}</b><small>${w.slot ? 'Pistola' : w.scope ? 'Sniper' : w.pellets > 1 ? 'Escopeta' : w.lmg ? 'Metralhadora' : w.proj ? 'Especial (flecha)' : w.auto ? 'Automática' : 'Arma'} · dano ${w.dmg * w.pellets}</small><em>${cur.includes(id) ? 'NA MÃO · recarregar' : 'GRÁTIS'}</em></button>`; }).join('');
+      const eq = [['kit', '✚', 'Kit médico', `você tem ${this.me ? this.me.mk : 0}`], ['helmet', '⛑', 'Capacete Nv.2', '−35% dano na cabeça'], ['helmet3', '⛑', 'Capacete Nv.3', '−50% dano na cabeça'], ['vest', '🦺', 'Colete Nv.2', '−35% dano no tronco'], ['vest3', '🦺', 'Colete Nv.3', '−50% dano no tronco']].map(([id, ic, nm, sub]) => { const p = S.SHOP[id].price, lv = S.SHOP[id].lv, have = (id.startsWith('helmet') && L.helmet >= 100 && L.helmetLv >= lv) || (id.startsWith('vest') && L.vest >= 100 && L.vestLv >= lv); return `<button class="shop-it eq${m < p ? ' poor' : ''}${have ? ' own' : ''}" data-buy="${id}"><b>${ic} ${nm}</b><small>${sub}</small><em>${have ? 'EQUIPADO' : '$ ' + p}</em></button>`; }).join('');
       const h = `<div class="shop-top"><b>🛒 LOJINHA</b><span>Fichas: <b class="money">$ ${m}</b></span><button class="btn sm" id="shopx">Fechar</button></div><div class="shop-sec">Equipamento</div><div class="shop-grid">${eq}</div><div class="shop-sec">Armas (grátis)</div><div class="shop-grid">${ws}</div><div class="stat" style="margin-top:6px">Ganhe fichas eliminando inimigos (+$${C.SHOP_KILL})${S.isRounds(this.mode) ? ` e a cada round (+$${C.SHOP_ROUND})` : ''}. Morreu, perde capacete e colete${S.isRounds(this.mode) ? '; quem sobrevive ao round fica com tudo' : ''}.</div>`;
       if (this._shopH === h) return; this._shopH = h;
       const box = $('shopbox'); box.innerHTML = h;
@@ -6181,13 +6505,14 @@ const Voice = (() => {
         if (k && dt0 >= 1) { const want = Math.atan2(-(k.x - L.x), -(k.z - L.z)); this.look.yaw = angLerp(this.look.yaw, want, 0.05); }
       }
       if (this.tpsOn && !L.car) this.selfItems(items);
-      const w = this.curW(), zoom = lerp(1, w.zoom, fw.adsT);
+      this.projItems(items);
+      const w = this.curW(), am = this.modsW(w.id), zoom = lerp(1, am.zoom || w.zoom, fw.adsT);
       cam.fov = (CFG.fov * Math.PI / 180) / zoom;
       this.camFov = cam.fov;
       R.setCamera(cam);
       // arma em 1ª pessoa
       const vm = [], vmAdd = [];
-      const scoped = w.scope && fw.adsT > 0.85;
+      const scoped = (w.scope || this.modsW(w.id).zoom >= 1.8) && fw.adsT > 0.85;
       if (L.alive && !scoped && !this.tpsOn) this.viewmodel(cam, vm, vmAdd, dt0Frame);
       return { items, vm, vmAdd, vmFov: 1.2, particles: Parts.buf, pCount: Parts.n, lines: Trace.buf, lineCount: Trace.n, scoped };
     },
@@ -6257,7 +6582,7 @@ const Voice = (() => {
       c.x = L.x + this.visOff[0]; c.y = L.y + this.visOff[1]; c.z = L.z + this.visOff[2]; c.yaw = this.look.yaw; c.pitch = this.look.pitch;
       c.vf = L.vault ? S.VAULT.K0 + L.vault.t * 30 * S.VAULT.SPD : 0; c.vs = L.vault ? L.vault.sh : 0;
       if (this.riding) return; // dentro do avião: não aparece
-      c.fl = 1 | (L.crouch ? 2 : 0) | (this.reloading() ? 8 : 0) | (L.medUntil ? 16 : 0) | (L.onGround ? 32 : 0) | (L.sprint && L.onGround ? 128 : 0) | (L.down ? 2048 : 0) | (L.sky === 1 ? 8192 : L.sky === 2 ? 16384 : 0);
+      c.fl = 1 | (L.prone ? 32768 : 0) | (L.crouch ? 2 : 0) | (this.reloading() ? 8 : 0) | (L.medUntil ? 16 : 0) | (L.onGround ? 32 : 0) | (L.sprint && L.onGround ? 128 : 0) | (L.down ? 2048 : 0) | (L.sky === 1 ? 8192 : L.sky === 2 ? 16384 : 0);
       const sp = Math.hypot(L.vx, L.vz), kv = Math.min(1, dt * 12);
       an.speed = lerp(an.speed, Math.min(sp, 9), kv); an.vx = lerp(an.vx || 0, L.vx, kv); an.vz = lerp(an.vz || 0, L.vz, kv); an.vy = L.vy || 0; an.alive = true; an.deadAt = 0;
       moveAnim(an, c.yaw, dt);
@@ -6368,8 +6693,8 @@ const Voice = (() => {
         const vW = an.vW > 0.01 ? an.vW : 0, nv = 1 - vW;
         const walkW = (WA && onG && !crouch && !fall ? Math.max(0, Math.min(1, (an.speed - 0.4) / 1.4)) * (1 - runW) : 0) * nv;
         if (sky === 2) this.chuteItem(rp, c, it, t);
-        this.holsterItems(rp, c, m, hipY, sky, fall, look, it, prot);
-        this.realBody(BM, rp, c, m, tmp, it, { sky, hipY, crouch, pistol, reload, med, fall, sp, run, legYaw: legYaw * nv, jumpW: jumpW * nv, jumpT, crW: crW * nv, crT, vW, vF: an.vF || 0, vS: an.vS || 0, runW: runW * nv, runT: RA ? (an.rt || 0) * RA.dur : 0, walkW, walkT: WA ? (an.wt || 0) * WA.dur : 0, ph: an.ph, onG, tl, tr, sl, sr, wm, wid, teamCol, prot, team: ro.team, t, pants: BM === RM ? pm3 || null : (look.c && S.COSMETICS[look.c].outfit) || null });
+        if (!(c.fl & 32768)) this.holsterItems(rp, c, m, hipY, sky, fall, look, it, prot);
+        this.realBody(BM, rp, c, m, tmp, it, { sky, hipY, crouch, pistol, reload, med, fall, sp, run, legYaw: legYaw * nv, jumpW: jumpW * nv, jumpT, crW: crW * nv, crT, vW, vF: an.vF || 0, vS: an.vS || 0, runW: runW * nv, runT: RA ? (an.rt || 0) * RA.dur : 0, walkW, walkT: WA ? (an.wt || 0) * WA.dur : 0, ph: an.ph, onG, tl, tr, sl, sr, wm, wid, att: ro.att, prone: !!(c.fl & 32768), teamCol, prot, team: ro.team, t, pants: BM === RM ? pm3 || null : (look.c && S.COSMETICS[look.c].outfit) || null });
         for (const x of it) items.push(x);
         return;
       }
@@ -6379,14 +6704,20 @@ const Voice = (() => {
       P(of.upper, m[3]); P(of.fore, m[4]); P(of.upper, m[5]); P(of.fore, m[6]);
       if (ro.team !== -1 && !S.isFFA(this.mode)) { P(of.band, m[3], { tex: Assets.tex.plain, tint: teamCol, emis: 0.25 }); P(of.band, m[5], { tex: Assets.tex.plain, tint: teamCol, emis: 0.25 }); }
       P(of.thigh, m[7]); P(of.shin, m[8]); P(of.thigh, m[9]); P(of.shin, m[10]);
-      if ((!med || fall) && !sky) { P(wm.body, m[11]); if (!reload) P(wm.mag, m[12]); if (wm.pump) P(wm.pump, m[11]); }
+      if ((!med || fall) && !sky) { P(wm.body, m[11]); if (!reload) P(wm.mag, m[12]); if (wm.pump) P(wm.pump, m[11]); this.attPush(rp, it, wm, wid, ro.att, m[11], { reload }); }
       for (const x of it) items.push(x);
     },
     // corpo realista (modelo 3D com ossos): pernas e tronco por rotação, mãos na arma por IK
     realBody(RM, rp, c, m, tmp, it, o) {
       if (!rp.rig || rp.rigM !== RM) { rp.rig = Assets.rigState(RM); rp.rigM = RM; }
       const st = rp.rig, Q = st.Q, B = RM.bi, rot = Assets.rot;
-      const lean = (o.crouch ? -0.25 : -0.05 * o.sp - 0.16 * o.run) + c.pitch * 0.35 * (1 - o.fall) + Math.sin(o.t * 1.8) * 0.012 * (1 - o.sp);
+      // deitado de bruços: o corpo inteiro gira 90° para a frente (quadril no lugar do jogador); a arma fica apontada para a frente
+      if (o.prone) {
+        const PR = this._prR || (this._prR = M4.create()), t2 = this._prT || (this._prT = M4.create());
+        M4.compose(PR, 0, 0.16, 0.92, 0, -Math.PI / 2, 0); M4.mul(t2, m[0], PR); m[0].set(t2);
+        o.sp = 0; o.run = 0; o.crW = 0; o.jumpW = 0; o.walkW = 0; o.runW = 0; o.legYaw = 0; o.crouch = false;
+      }
+      const lean = o.prone ? 0 : (o.crouch ? -0.25 : -0.05 * o.sp - 0.16 * o.run) + c.pitch * 0.35 * (1 - o.fall) + Math.sin(o.t * 1.8) * 0.012 * (1 - o.sp);
       const ly = -o.legYaw; // tronco gira de volta: o quadril vai para o movimento, o peito continua na mira
       const aim = !o.med && !o.fall && !o.sky;
       // desempenho: personagem longe ou fora da tela recalcula a pose com menos frequência (reaproveita os ossos da última vez)
@@ -6424,8 +6755,16 @@ const Voice = (() => {
         // coronha no ombro direito, cano para frente; pistola com braços esticados
         M4.compose(wT, 0, hipY + 0.05, 0, ly, lean, 0);
         const body = o.crouch ? -0.25 : -0.05 * o.sp - 0.16 * o.run; // a arma fica nivelada mesmo com o tronco inclinado
-        if (o.pistol) M4.compose(tmp, 0.05, 0.36, -0.42, 0, -body, 0); else M4.compose(tmp, 0.07, 0.31, -0.3, 0, -body, 0);
+        if (rp.w !== rp._lw) { if (rp._lw) rp._swAt = o.t; rp._lw = rp.w; }
+        const dr = rp._swAt && o.t - rp._swAt < 0.45 ? 1 - (o.t - rp._swAt) / 0.45 : 0, de = dr * dr; // sacando: a arma sobe do quadril
+        const ie = rp.id === this.myId && this.active ? this.inspectK() : 0;
+        if (o.pistol) M4.compose(tmp, 0.05 - 0.05 * ie, 0.36 - 0.35 * de + 0.05 * ie, -0.42 + 0.25 * de + 0.1 * ie, 0.9 * ie, -body - 1.0 * de, -0.5 * ie);
+        else M4.compose(tmp, 0.07 - 0.06 * ie, 0.31 - 0.3 * de + 0.06 * ie, -0.3 + 0.2 * de + 0.08 * ie, 0.85 * ie, -body - 0.9 * de, -0.55 * ie);
         M4.mul(wC, wT, tmp);
+        if (o.prone) { // arma no chão à frente, no referencial do corpo deitado
+          const PR = this._prR, iv = this._prI || (this._prI = M4.create()), gw = this._prG || (this._prG = M4.create());
+          M4.invRigid(iv, PR); M4.compose(gw, 0.11, 0.2, o.pistol ? -0.72 : -0.58, 0, Math.max(-0.25, Math.min(0.35, c.pitch)), 0); M4.mul(wC, iv, gw);
+        }
         const wp = (x, y, z) => [wC[0] * x + wC[4] * y + wC[8] * z + wC[12], wC[1] * x + wC[5] * y + wC[9] * z + wC[13], wC[2] * x + wC[6] * y + wC[10] * z + wC[14]];
         const gz = Assets.GRIP[o.wid] ? Assets.GRIP[o.wid][2] : 0.05;
         st.ik.Right = st.ik.Left = null;
@@ -6458,6 +6797,7 @@ const Voice = (() => {
         M4.mul(m[11], m[0], wC); M4.compose(tmp, wm.magPos[0], wm.magPos[1], wm.magPos[2], 0, 0, 0); M4.mul(m[12], m[11], tmp);
         it.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: m[11], emis: o.prot, spec: wm.body.spec });
         if (!o.reload) it.push({ mesh: wm.mag.mesh, tex: wm.mag.tex, model: m[12], emis: o.prot, spec: wm.mag.spec, noShadow: true });
+        this.attPush(rp, it, wm, o.wid, o.att, m[11], { reload: o.reload, noShadow: true });
         if (wm.pump) it.push({ mesh: wm.pump.mesh, tex: wm.pump.tex, model: m[11], emis: o.prot, spec: wm.pump.spec });
       }
     },
@@ -6502,7 +6842,7 @@ const Voice = (() => {
       const bobA = Math.min(1, spd / 6) * (1 - ads * 0.85);
       const pistol = wm.kind === 'pistol';
       const hip = pistol ? [0.12, -0.14, -0.36] : [0.13, -0.15, -0.34];
-      const ad = [0, -wm.sight, pistol ? -0.32 : -0.24];
+      const amd = this.modsW(w.id), ad = [0, -(wm.sight + (amd.sight === "holo" ? 0.034 : amd.sight === "red" ? 0.028 : amd.sight ? 0.035 : 0)), pistol ? -0.32 : -0.24];
       let x = lerp(hip[0], ad[0], ads) + Math.sin(fw.bob) * 0.012 * bobA + fw.swayX;
       let y = lerp(hip[1], ad[1], ads) - Math.abs(Math.cos(fw.bob)) * 0.01 * bobA + fw.swayY - (L.crouch ? 0.005 : 0);
       let z = lerp(hip[2], ad[2], ads) + fw.kick * 0.045;
@@ -6512,6 +6852,9 @@ const Voice = (() => {
       // troca de arma
       const sw = t - fw.switchAt;
       if (sw < C.SWITCH) { const k = 1 - Math.abs(sw / C.SWITCH * 2 - 1); y -= 0.25 * (1 - k * 0) * (sw < C.SWITCH / 2 ? sw / (C.SWITCH / 2) : 1 - (sw - C.SWITCH / 2) / (C.SWITCH / 2)); rx -= 0.6 * (sw < C.SWITCH / 2 ? sw / (C.SWITCH / 2) : 1 - (sw - C.SWITCH / 2) / (C.SWITCH / 2)); }
+      // inspeção: vira a arma para olhar o lado e volta (tecla I ou segurar o painel da arma)
+      const ie = this.inspectK();
+      if (ie > 0) { ry += 0.95 * ie; rz -= 0.45 * ie; x -= 0.06 * ie; y += 0.03 * ie; z += 0.06 * ie; }
       // recarga
       let magOff = [0, 0, 0], magHide = false;
       const rl = this.reloading() && this.fw.reloadW === w.id;
@@ -6529,6 +6872,7 @@ const Voice = (() => {
       const GM = this._gm || (this._gm = M4.create()), tmp = M4.create();
       M4.compose(tmp, x, y, z, ry, rx, rz); M4.mul(GM, CW, tmp);
       vm.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: GM, spec: Math.max(0.7, wm.body.spec) });
+      this.attPush(this, vm, wm, w.id, this.attOf(), GM, { reload: magHide, vm: true });
       const AR = Assets.arms(Assets.fabricKey(uni, myLook.s, myLook.c), w.id, tone); vm.push({ mesh: AR.mesh, tex: AR.tex, model: GM, spec: 0.08 });
       if (!magHide && !w.pump || (w.pump && rl)) {
         const MM = this._mm || (this._mm = M4.create());
@@ -6684,16 +7028,22 @@ const Voice = (() => {
       if (!me.al) setT($('deatht'), me.ra < 0 ? 'Aguardando o próximo round…' : `Renascendo em ${Math.ceil(me.ra)}…`);
       // mira dinâmica
       const spd = Math.hypot(L.vx, L.vz);
-      const sp = w.pellets > 1 ? w.spread * 0.45 : 0; // a mira não abre: o tiro vai no centro
+      const sp = S.postureSpread(w, this.postureNow(), this.modsW(w.id)); // parado: fechada (tiro no centro); andando/pulando abre
       const px = sp / Math.tan(this.camFov / 2) * (cv.clientHeight / 2); // raio onde as balas caem
       const cr = $('cross'), ads = fw.adsT > 0.6;
-      cr.style.opacity = ads || this.local.car && this.local.seat === 0 ? 0 : 1;
+      cr.style.opacity = ads || cr._hide || this.local.car && this.local.seat === 0 ? 0 : 1;
       const want = Number.isFinite(px) ? Math.max(12, Math.min(34, px)) : 12;
       cr._r = cr._r == null || !Number.isFinite(cr._r) ? want : cr._r + (want - cr._r) * Math.min(1, dt * 6);
       const sc = Math.round(cr._r / 12 * 20) / 20;
       if (cr._sc !== sc) { cr._sc = sc; cr.style.setProperty('--cs', sc); }
       this.crossPulse = (this.crossPulse || 0) * Math.exp(-dt * 12); const cpv = Math.round((1 + this.crossPulse) * 50) / 50; if (cr._cp !== cpv) { cr._cp = cpv; cr.style.setProperty('--cp', cpv); }
-      $('scope').style.display = w.scope && fw.adsT > 0.85 && L.alive ? 'block' : 'none';
+      { const am = this.modsW(w.id), big = w.scope || am.zoom >= 1.8, on = fw.adsT > 0.85 && L.alive, sc = $('scope'), sg = $('sight');
+        const cls = big ? (am.sight || 'x4') : '';
+        if (sc._c !== cls) { sc._c = cls; sc.className = cls; sc.innerHTML = big ? '<b>' + (am.zoom || w.zoom).toFixed(0) + 'x</b>' : ''; }
+        sc.style.display = big && on ? 'block' : 'none';
+        const sk = !big && on && (am.sight === 'red' || am.sight === 'holo') ? am.sight : '';
+        if (sg._k !== sk) { sg._k = sk; sg.className = sk; sg.style.display = sk ? 'block' : 'none'; }
+        if (cr._hide !== !!sk) { cr._hide = !!sk; } }
       // barra do kit
       const mb = $('medbar');
       if (L.medUntil && me.mu > 0) { mb.style.display = 'block'; mb.querySelector('i').style.width = Math.min(100, (1 - me.mu / C.MEDTIME) * 100) + '%'; } else mb.style.display = 'none';
@@ -6750,6 +7100,7 @@ const Voice = (() => {
     keys[e.code] = true;
     if (!Game.active) return;
     if (e.code === 'KeyR') keys._reload = true;
+    if (e.code === 'KeyI' && Game.active) Game.fw.inspectAt = now(); // inspecionar a arma
     if (e.code === 'Digit1') keys._swap = 0;
     if (e.code === 'Digit2') keys._swap = 1;
     if (e.code === 'Digit3') keys._swap = 2;
@@ -6779,7 +7130,7 @@ const Voice = (() => {
     if (!Game.active || Game.paused || chatOpen || (isTouch && CFG.touch && !document.pointerLockElement)) return;
     if (!document.pointerLockElement && !mouse.l && !mouse.r) return;
     const z = Game.camFov ? Game.camFov / (CFG.fov * Math.PI / 180) : 1;
-    const k = 0.0022 * CFG.sens * z * (1 - 0.3 * (Game.aimFric || 0));
+    const k = 0.0022 * CFG.sens * z * Game.sensMul() * (1 - 0.3 * (Game.aimFric || 0));
     Game.look.yaw -= e.movementX * k; Game.look.pitch = S.clamp(Game.look.pitch - e.movementY * k, -1.5, 1.5);
     if (e.movementY < 0) Game.aimUp = (Game.aimUp || 0) - e.movementY * k;
     Game.fw.swayX = S.clamp(Game.fw.swayX - e.movementX * 0.00006, -0.02, 0.02); Game.fw.swayY = S.clamp(Game.fw.swayY + e.movementY * 0.00006, -0.02, 0.02);
@@ -6827,6 +7178,7 @@ const Voice = (() => {
     "seat": "<svg viewBox=\"0 0 24 24\"><path d=\"M8 3.5c1.6 0 2.2 1 2.5 2.6l1.6 8.4h5.2c1.3 0 2.2.9 2.2 2.2v.6c0 1.1-.9 2-2 2H9.2c-1 0-1.8-.7-2-1.6L5.3 6.3C5 4.8 6.3 3.5 8 3.5z\"/><path d=\"M9.5 19.3v2M16.5 19.3v2M16.8 3.6l-.6 6.4\"/></svg>",
     "exit": "<svg viewBox=\"0 0 24 24\"><path d=\"M14 4H6v16h8M10 12h11M17 8l4 4-4 4\"/></svg>",
     "chevL": "<svg viewBox=\"0 0 24 24\"><path d=\"M11 6l-6 6 6 6M19 6l-6 6 6 6\"/></svg>", "chevR": "<svg viewBox=\"0 0 24 24\"><path d=\"M5 6l6 6-6 6M13 6l6 6-6 6\"/></svg>",
+    "prone": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"4\" cy=\"14.5\" r=\"2.3\"/><path d=\"M7 16h9.5l5 1.5M9 16l3-2.5h5M2 19.5h20\"/></svg>", "reload": "<svg viewBox=\"0 0 24 24\"><path d=\"M19.5 12a7.5 7.5 0 11-2.2-5.3M19.5 3.5v4.8h-4.8\"/></svg>", "swap": "<svg viewBox=\"0 0 24 24\"><path d=\"M3 8h15M14 4l4 4-4 4M21 16H6M10 12l-4 4 4 4\"/></svg>",
     "chevU": "<svg viewBox=\"0 0 24 24\"><path d=\"M6 13l6-6 6 6M6 19l6-6 6 6\"/></svg>", "chevD": "<svg viewBox=\"0 0 24 24\"><path d=\"M6 5l6 6 6-6M6 11l6 6 6-6\"/></svg>",
     "chute": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M2 10.5C2 5.5 6.5 2 12 2s10 3.5 10 8.5c-1.2-1-2.4-1-3.4 0-1.1-1-2.3-1-3.3 0-1.1-1-2.2-1-3.3 0-1.1-1-2.2-1-3.3 0-1-1-2.2-1-3.3 0-1.1-1-2.3-1-3.4 0z\"/><path d=\"M3 11l8 8M21 11l-8 8M8.5 11.5l3 7.5M15.5 11.5l-3 7.5\"/><circle class=\"fl\" cx=\"12\" cy=\"20.5\" r=\"1.6\"/></svg>", "vault": "<svg viewBox=\"0 0 24 24\"><rect x=\"2.5\" y=\"3\" width=\"13\" height=\"16\" rx=\"1\"/><path d=\"M2.5 11h13M9 3v16\"/><circle class=\"fl\" cx=\"19.5\" cy=\"6\" r=\"1.8\"/><path d=\"M12 13.5l4-3 3.5 1.5 2 4M16 10.5l1 5-3 4.5\"/></svg>", "fire": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M9 21.5V10.5Q9 4.5 12 1.8Q15 4.5 15 10.5V21.5Z\"/><path d=\"M8.4 12.5h7.2\" stroke=\"#e7b53a\" stroke-width=\"1.6\"/></svg>", "scope": "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"7.5\"/><path d=\"M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5\"/><circle class=\"fl\" cx=\"12\" cy=\"12\" r=\"1.4\"/></svg>", "jump": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"12\" cy=\"4\" r=\"2.4\"/><path d=\"M12 7.5v6.5M12 9l-4.5-3.5M12 9l4.5-3.5M12 14l-3.5 3.5 1 4M12 14l3.5 3.5-1 4\"/></svg>", "crouch": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"9\" cy=\"5.5\" r=\"2.4\"/><path d=\"M9.5 9l3.5 6M10.5 10.5l5 1M13 15l-5 2 1.5 4.5M13 15l3.5 2.5-.5 4\"/></svg>", "sprint": "<svg viewBox=\"0 0 24 24\"><circle class=\"fl\" cx=\"15.5\" cy=\"3.8\" r=\"2.4\"/><path d=\"M14.5 7.5l-3 7M13.5 9l4.5 3M13.5 9l-4.5 1.5M11.5 14.5l4 3v4.5M11.5 14.5l-3 4H4\"/></svg>", "med": "<svg viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M9 7V4.5h6V7\"/><path d=\"M12 10.5v6M9 13.5h6\" stroke-width=\"2.8\"/></svg>", "fire2": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M9 21.5V10.5Q9 4.5 12 1.8Q15 4.5 15 10.5V21.5Z\"/><path d=\"M8.4 12.5h7.2\" stroke=\"#e7b53a\" stroke-width=\"1.6\"/></svg>", "cam": "<svg viewBox=\"0 0 24 24\"><path d=\"M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3.2\"/></svg>", "mic": "<svg viewBox=\"0 0 24 24\"><rect x=\"8.5\" y=\"2\" width=\"7\" height=\"12\" rx=\"3.5\"/><path d=\"M5 11.5a7 7 0 0014 0M12 18.5V22M8.5 22h7\"/></svg>", "spk": "<svg viewBox=\"0 0 24 24\"><path class=\"fl\" d=\"M3 9h4l5-4.5v15L7 15H3z\"/><path d=\"M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13\"/></svg>", "gear": "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"3.3\"/><path d=\"M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3M4.8 4.8l2.1 2.1M17.1 17.1l2.1 2.1M4.8 19.2l2.1-2.1M17.1 6.9l2.1-2.1\"/><circle cx=\"12\" cy=\"12\" r=\"7\"/></svg>"};
   const TBTNS = [
@@ -6835,6 +7187,9 @@ const Voice = (() => {
     { id: 'ads', ic: 'scope', x: 0.735, y: 0.5, s: 58 },
     { id: 'jump', ic: 'jump', x: 0.955, y: 0.5, s: 62 },
     { id: 'crouch', ic: 'crouch', x: 0.955, y: 0.78, s: 58 },
+    { id: 'prone', ic: 'prone', x: 0.885, y: 0.935, s: 50 }, // deitar / levantar
+    { id: 'reload', ic: 'reload', x: 0.735, y: 0.77, s: 52 }, // recarregar
+    { id: 'swap', ic: 'swap', x: 0.655, y: 0.9, s: 50 }, // trocar de arma
     { id: 'sprint', ic: 'sprint', x: 0.225, y: 0.56, s: 58, cls: 'run' }, // liga/desliga a corrida
     { id: 'med', ic: 'med', x: 0.34, y: 0.87, s: 56, badge: 'medb' },
     { id: 'grab', label: 'PEGAR', x: 0.62, y: 0.62, s: 66, cls: 'grab' },
@@ -6857,7 +7212,7 @@ const Voice = (() => {
   const Touch = {
     joy: [0, 0], sprintLock: false, held: {}, score: false, joyId: null, joyO: [0, 0], look: new Map(), els: {},
     syncToggles() {
-      const E = this.els; if (E.ads) E.ads.classList.toggle('dn', Game.adsToggle); if (E.crouch) E.crouch.classList.toggle('dn', Game.crouchToggle); if (E.sprint) E.sprint.classList.toggle('dn', this.sprintLock);
+      const E = this.els; if (E.ads) E.ads.classList.toggle('dn', Game.adsToggle); if (E.crouch) E.crouch.classList.toggle('dn', Game.crouchToggle); if (E.prone) E.prone.classList.toggle('dn', !!Game.proneToggle); if (E.sprint) E.sprint.classList.toggle('dn', this.sprintLock);
     },
     build(container, edit) {
       for (const b of TBTNS) {
@@ -7094,7 +7449,8 @@ const Voice = (() => {
           case 'vault': Touch.held.vault = true; keys._vault = true; break; // toque rápido também vale
           case 'chute': keys._vault = true; vibrate(20); break; // abre o paraquedas
           case 'ads': Game.adsToggle = !Game.adsToggle; break;
-          case 'crouch': Game.crouchToggle = !Game.crouchToggle; if (Game.crouchToggle) Touch.sprintLock = false; break;
+          case 'crouch': Game.crouchToggle = !Game.crouchToggle; if (Game.crouchToggle) { Touch.sprintLock = false; Game.proneToggle = false; } break;
+          case 'prone': Game.proneToggle = !Game.proneToggle; if (Game.proneToggle) { Touch.sprintLock = false; Game.crouchToggle = false; } vibrate(12); break;
           case 'sprint': Touch.sprintLock = !Touch.sprintLock; if (Touch.sprintLock) Game.crouchToggle = false; vibrate(15); break;
           case 'reload': keys._reload = true; break;
           case 'med': keys._med = true; break;
@@ -7132,7 +7488,7 @@ const Voice = (() => {
       } else if (Touch.look.has(t.identifier)) {
         e.preventDefault();
         const p = Touch.look.get(t.identifier), dx = lx(t) - p[0], dy = ly(t) - p[1]; p[0] = lx(t); p[1] = ly(t);
-        const z = Game.camFov ? Game.camFov / (CFG.fov * Math.PI / 180) : 1, k = 0.0055 * CFG.tsens * z * (1 - 0.5 * (Game.aimFric || 0)); // em cima do inimigo: gira mais devagar
+        const z = Game.camFov ? Game.camFov / (CFG.fov * Math.PI / 180) : 1, k = 0.0055 * CFG.tsens * z * Game.sensMul() * (1 - 0.5 * (Game.aimFric || 0)); // em cima do inimigo: gira mais devagar
         Game.look.yaw -= dx * k; Game.look.pitch = S.clamp(Game.look.pitch - dy * k, -1.5, 1.5);
         if (dy < 0) Game.aimUp = (Game.aimUp || 0) - dy * k;
       }
@@ -7144,7 +7500,7 @@ const Voice = (() => {
       Touch.look.delete(t.identifier);
       for (const id in Touch.els) {
         const el = Touch.els[id];
-        if (el._tid === t.identifier) { el._tid = null; if (!['ads', 'crouch', 'score', 'sprint'].includes(id)) el.classList.remove('dn'); if (id === 'fire' || id === 'fire2' || id === 'jump' || id === 'vault' || id === 'cgas' || id === 'cbrk' || id === 'cleft' || id === 'cright') Touch.held[id] = false; }
+        if (el._tid === t.identifier) { el._tid = null; if (!['ads', 'crouch', 'prone', 'score', 'sprint'].includes(id)) el.classList.remove('dn'); if (id === 'fire' || id === 'fire2' || id === 'jump' || id === 'vault' || id === 'cgas' || id === 'cbrk' || id === 'cleft' || id === 'cright') Touch.held[id] = false; }
       }
     }
     Touch.syncToggles();
@@ -7155,7 +7511,8 @@ const Voice = (() => {
     el.addEventListener('touchend', touchEnd); el.addEventListener('touchcancel', touchEnd);
   }
   // painel da arma (canto superior direito): tocar/clicar recarrega; slots trocam de arma
-  $('wpmain').addEventListener('pointerdown', (e) => { if (!Game.active || Game.paused) return; e.preventDefault(); e.stopPropagation(); keys._reload = true; vibrate(10); });
+  $('wpmain').addEventListener('pointerdown', (e) => { if (!Game.active || Game.paused) return; e.preventDefault(); e.stopPropagation(); const at = now(); Touch._wpT = setTimeout(() => { Touch._wpT = 0; Game.fw.inspectAt = now(); vibrate(15); }, 450); Touch._wpAt = at; });
+  $('wpmain').addEventListener('pointerup', (e) => { if (!Game.active) return; if (Touch._wpT) { clearTimeout(Touch._wpT); Touch._wpT = 0; keys._reload = true; vibrate(10); } });
   document.querySelectorAll('#wpanel .ws').forEach((el) => el.addEventListener('pointerdown', (e) => { if (!Game.active || Game.paused) return; e.preventDefault(); e.stopPropagation(); keys._swap = +el.dataset.s; vibrate(10); }));
   for (const el of [$('wpanel')]) el.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
   // editor de layout
@@ -7580,7 +7937,7 @@ const Voice = (() => {
     });
   }
   // ---- lojinha e inventário: a mesma tela em abas, com provador 3D (toque num item para experimentar)
-  const TABS = [['char', 'Skins'], ['shirt', 'Blusas'], ['pants', 'Calças'], ['wskin', 'Skins de armas'], ['weapon', 'Armas'], ['uniform', 'Uniformes'], ['gear', 'Equipamento']];
+  const TABS = [['char', 'Skins'], ['shirt', 'Blusas'], ['pants', 'Calças'], ['wskin', 'Skins de armas'], ['weapon', 'Armas'], ['att', 'Acessórios'], ['uniform', 'Uniformes'], ['gear', 'Equipamento']];
   const Store = { tab: 'char', try: null, tryTab: null };
   const storeDefs = (tab) => (tab === 'weapon' ? S.WEAPON_LIST.map((id) => W[id]) : tab === 'uniform' ? Object.values(S.UNIFORMS) : tab === 'gear' ? Object.values(S.UPGRADES) : Object.values(S.COSMETICS).filter((d) => d.type === tab));
   const storeDef = (tab, id) => (tab === 'weapon' ? W[id] : tab === 'uniform' ? S.UNIFORMS[id] : tab === 'gear' ? S.UPGRADES[id] : S.COSMETICS[id]);
@@ -7609,13 +7966,14 @@ const Voice = (() => {
   }
   function renderStore() {
     const p = Prof.cur, inv = curScreen !== 'shop';
-    const tabs = curScreen === 'cofre' ? TABS.filter(([k]) => ['char', 'shirt', 'pants', 'uniform'].includes(k)) : curScreen === 'armas' ? TABS.filter(([k]) => ['weapon', 'wskin'].includes(k)) : TABS;
+    const tabs = curScreen === 'cofre' ? TABS.filter(([k]) => ['char', 'shirt', 'pants', 'uniform'].includes(k)) : curScreen === 'armas' ? TABS.filter(([k]) => ['weapon', 'att', 'wskin'].includes(k)) : TABS.filter(([k]) => k !== 'att');
     if (!tabs.some(([k]) => k === Store.tab)) Store.tab = tabs[0][0];
     const tab = Store.tab;
     $('sttitle').textContent = { shop: 'Loja', inv: 'Inventário', cofre: 'Cofre', armas: 'Armas' }[curScreen] || 'Loja';
     $('shopcoins').textContent = '● ' + p.coins + ' moedas';
     $('shopsrc').textContent = Prof.online ? 'Seus itens ficam salvos na sua conta online.' : 'Seus itens ficam salvos neste aparelho (perfil offline).';
     $('sttabs').innerHTML = tabs.map(([k, n]) => `<button class="btn sm ${k === tab ? 'sel' : ''}" data-tab="${k}">${n}</button>`).join('');
+    if (tab === 'att') return renderAtt();
     const defs = storeDefs(tab).filter((d) => !inv || owns(p, tab, d.id));
     $('stgrid').innerHTML = defs.length ? defs.map((d) => {
       const own = owns(p, tab, d.id), eq = own && isEquipped(p, tab, d.id), lock = p.level < d.level;
@@ -7644,6 +8002,32 @@ const Voice = (() => {
         Store.try = null; Sfx.ui(); renderStore();
       };
     });
+  }
+  // ---- acessórios: escolha a arma e toque no acessório de cada encaixe (mudam os atributos de verdade)
+  function renderAtt() {
+    const p = Prof.cur, owned = S.WEAPON_LIST.filter((id) => p.owned.includes(id));
+    if (!owned.includes(Store.attW)) Store.attW = owned.includes(p.loadout.primary) ? p.loadout.primary : owned[0];
+    const wid = Store.attW, cur = (p.att && p.att[wid]) || {}, m = S.modsOf(S.sanitizeAtt(p.att, p.level), wid), w = W[wid];
+    const chips = owned.map((id) => `<button class="btn sm ${id === wid ? 'sel' : ''}" data-aw="${id}">${esc(W[id].name)}</button>`).join(' ');
+    const slots = Object.entries(S.ATT_SLOTS).map(([sl, nm]) => {
+      const opts = Object.entries(S.ATTACH).filter(([id, a]) => a.slot === sl && S.attFits(wid, id));
+      if (!opts.length) return '';
+      const btn = (id, label, sub, lock) => `<button class="attb ${cur[sl] === id || (!id && !cur[sl]) ? 'on' : ''} ${lock ? 'lk' : ''}" data-sl="${sl}" data-a="${id}" ${lock ? 'disabled' : ''}><b>${esc(label)}</b><small>${esc(sub)}</small></button>`;
+      return `<div class="attrow"><h5>${nm}</h5><div>${btn('', 'Nenhum', '—')}${opts.map(([id, a]) => btn(id, a.name, p.level < a.level ? '🔒 Nível ' + a.level : a.desc, p.level < a.level)).join('')}</div></div>`;
+    }).join('');
+    const pct = (k) => Math.round((1 - k) * 100);
+    const sum = `<div class="stat">Pente ${S.magSize(S.sanitizeAtt(p.att, p.level), wid)} balas · recuo vertical ${pct(m.rv) > 0 ? '−' + pct(m.rv) + '%' : 'normal'} · recuo lateral ${pct(m.rh) > 0 ? '−' + pct(m.rh) + '%' : 'normal'} · alcance ${m.rg === 1 ? 'normal' : (m.rg > 1 ? '+' : '−') + Math.abs(Math.round((m.rg - 1) * 100)) + '%'} · zoom ${(m.zoom || w.zoom).toFixed(m.zoom >= 2 ? 0 : 2)}x${m.silent ? ' · silencioso' : ''}</div>`;
+    $('stgrid').innerHTML = `<div class="attbox"><div class="attw">${chips}</div>${sum}${slots}</div>`;
+    Store.try = wid; Store.tryTab = 'weapon'; $('pvlabel').textContent = w.name;
+    $('sttabs').querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { Sfx.ui(); Store.tab = b.dataset.tab; Store.try = null; renderStore(); }));
+    $('stgrid').querySelectorAll('[data-aw]').forEach((b) => (b.onclick = () => { Sfx.ui(); Store.attW = b.dataset.aw; renderStore(); }));
+    $('stgrid').querySelectorAll('[data-sl]').forEach((b) => (b.onclick = () => {
+      const a = Object.assign({}, (p.att && p.att[wid]) || {}); if (b.dataset.a) a[b.dataset.sl] = b.dataset.a; else delete a[b.dataset.sl];
+      const msg = { att: { [wid]: a } }; S.equip(p, msg);
+      if (!b.dataset.a && p.att[wid]) { delete p.att[wid][b.dataset.sl]; if (!Object.keys(p.att[wid]).length) delete p.att[wid]; }
+      if (Prof.online) Net.send(Object.assign({ t: 'equip' }, msg)); else Prof.save();
+      Sfx.ui(); renderStore();
+    }));
   }
   // provador: o personagem (ou a arma) girando com o que está equipado + o item tocado
   const Preview = {
@@ -7682,6 +8066,7 @@ const Voice = (() => {
         M4.compose(M[2], wm.magPos[0], wm.magPos[1], wm.magPos[2], 0, 0, 0); M4.mul(M[1], M[0], M[2]);
         items.push({ mesh: wm.body.mesh, tex: wm.body.tex, model: M[0], spec: wm.body.spec }, { mesh: wm.mag.mesh, tex: wm.mag.tex, model: M[1], spec: wm.mag.spec });
         if (wm.pump) items.push({ mesh: wm.pump.mesh, tex: wm.pump.tex, model: M[0] });
+        Game.attPush(this, items, wm, weapon, S.sanitizeAtt(p.att, p.level), M[0]);
         ty = 1.3; dist = (wm.kind === 'pistol' ? 0.45 : 1) * (land ? 3.9 : 4.6);
       } else {
         const rp = this.rp; rp.w = weapon; rp.cur.yaw = window.__yo != null ? Math.PI + window.__yo : lobby ? Math.PI + 0.25 + Math.sin(t * 0.5) * 0.3 : Math.PI + t * 0.6;
@@ -7741,9 +8126,10 @@ const Voice = (() => {
     $('ofov').value = CFG.fov; $('ofovv').textContent = CFG.fov + '°';
     $('osens').value = CFG.sens; $('osensv').textContent = (+CFG.sens).toFixed(2);
     $('otsens').value = CFG.tsens; $('otsensv').textContent = (+CFG.tsens).toFixed(2);
+    [['osr', 'sRed'], ['os2', 's2x'], ['os4', 's4x'], ['os8', 's8x'], ['osf', 'sFire'], ['opull', 'pull']].forEach(([i, k]) => { const v = CFG[k] == null ? CFG_DEF[k] : CFG[k]; $(i).value = v; $(i + 'v').textContent = (+v).toFixed(2); });
     document.querySelectorAll('[data-or]').forEach((b) => b.classList.toggle('pri', b.dataset.or === (CFG.orient || 'auto')));
     document.querySelectorAll('[data-vk]').forEach((b) => b.classList.toggle('pri', b.dataset.vk === (CFG.vkb || 'auto')));
-    $('oreal').checked = CFG.real !== false; $('otps').checked = CFG.tps !== false; $('oautofs').checked = CFG.autofs; $('oassist').checked = CFG.assist; $('ohead').checked = CFG.head; $('oastr').value = CFG.astr; $('oastrv').textContent = Math.round(CFG.astr * 100) + '%';
+    $('oreal').checked = CFG.real !== false; $('otps').checked = CFG.tps !== false; $('oautofs').checked = CFG.autofs; $('oassist').checked = CFG.assist; $('ohead').checked = CFG.head; $('oblood').checked = CFG.blood !== false; $('oastr').value = CFG.astr; $('oastrv').textContent = Math.round(CFG.astr * 100) + '%';
     $('ovol').value = CFG.vol; $('ovolv').textContent = Math.round(CFG.vol * 100) + '%';
     $('omus').value = CFG.music; $('omusv').textContent = CFG.music > 0 ? Math.round(CFG.music * 100) + '%' : 'desligada';
     document.querySelectorAll('[data-chk]').forEach((sg) => { const v = $(sg.dataset.chk).checked; sg.querySelectorAll('button').forEach((b) => b.classList.toggle('on', (b.dataset.v === '1') === v)); });
@@ -7753,7 +8139,8 @@ const Voice = (() => {
     saveSet(); applyQuality(); renderSettings();
   }));
   const bindSet = (id, key, num) => ($(id).oninput = $(id).onchange = () => { CFG[key] = num ? +$(id).value : $(id).checked; saveSet(); applyQuality(); renderSettings(); if (key === 'touch' && Game.active) showTouch(CFG.touch); });
-  bindSet('ovib', 'vib'); bindSet('ovibk', 'vibk'); bindSet('oreal', 'real'); bindSet('otps', 'tps'); bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oastr', 'astr', 1);
+  bindSet('ovib', 'vib'); bindSet('ovibk', 'vibk'); bindSet('oreal', 'real'); bindSet('otps', 'tps'); bindSet('oautofs', 'autofs'); bindSet('oassist', 'assist'); bindSet('ohead', 'head'); bindSet('oblood', 'blood'); bindSet('oastr', 'astr', 1); bindSet('opull', 'pull', 1);
+  [['osr', 'sRed'], ['os2', 's2x'], ['os4', 's4x'], ['os8', 's8x'], ['osf', 'sFire']].forEach(([i, k]) => bindSet(i, k, 1));
   bindSet('oshadow', 'shadows'); bindSet('oeffects', 'effects'); bindSet('ofps', 'fps'); bindSet('otouch', 'touch');
   bindSet('oscale', 'scale', 1); bindSet('ofov', 'fov', 1); bindSet('osens', 'sens', 1); bindSet('otsens', 'tsens', 1); bindSet('ovol', 'vol', 1); bindSet('omus', 'music', 1);
   $('oedit').onclick = () => openEditor();

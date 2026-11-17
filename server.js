@@ -318,7 +318,7 @@ class Room {
     if (this.mode === 'aberto' && this.sqs > 1 && !sq) sq = this.openSquad();
     if (sq) { const q = this.squads.get(sq); if (q) q.n++; }
     c.sq = sq || 0;
-    const pl = this.sim.addPlayer({ sq, team, name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p) });
+    const pl = this.sim.addPlayer({ sq, team, name: p.name, loadout: p.loadout, uniform: p.uniform, level: p.level, upgrades: p.upgrades, look: S.lookOf(p), att: p.att });
     c.room = this; c.pid = pl.id; this.members.set(pl.id, c);
     c.send({ t: 'joined', pid: pl.id, room: { id: this.id, name: this.name, mode: this.mode, map: this.mapId, code: this.code, priv: this.priv, ranked: this.ranked } });
     pushVG([...this.members.values()]); if (c.party) pushVG(c.party.members);
@@ -645,7 +645,7 @@ function handle(c, m) {
       if (err) c.send({ t: 'err', m: err }); else { saveProfiles(); c.send({ t: 'profile', profile: c.profile }); }
       return;
     }
-    case 'equip': S.equip(c.profile, { primary: m.primary, secondary: m.secondary, uniform: m.uniform, char: m.char, shirt: m.shirt, pants: m.pants, wskin: m.wskin }); saveProfiles(); if (c.party) pushParty(c.party); return c.send({ t: 'profile', profile: c.profile });
+    case 'equip': S.equip(c.profile, { primary: m.primary, secondary: m.secondary, uniform: m.uniform, char: m.char, shirt: m.shirt, pants: m.pants, wskin: m.wskin, att: m.att }); saveProfiles(); if (c.party) pushParty(c.party); return c.send({ t: 'profile', profile: c.profile });
     case 'rename': c.profile.name = S.sanitizeName(m.name); saveProfiles(); broadcastOnline(); return c.send({ t: 'profile', profile: c.profile });
     case 'invite': {
       const to = clients.get(m.to | 0);
