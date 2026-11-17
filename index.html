@@ -5672,9 +5672,7 @@ const Voice = (() => {
       Sfx.shot(w.id);
       fw.flash = 0.05; fw.kick = Math.min(1.4, fw.kick + (w.id === 'sniper' || w.pump || w.id === 'deagle' ? 1.2 : 0.5));
       if (w.pump || w.id === 'sniper') { fw.pumpT = 0; setTimeout(() => Sfx.pump(), 250); }
-      const rk = w.recoil * (this.fw.adsT > 0.5 ? 0.7 : 1) * (L.crouch ? 0.8 : 1);
-      this.look.pitch = Math.min(1.5, this.look.pitch + rk); fw.recoilAcc += rk;
-      // sem recuo para os lados: a mira fica reta (só sobe um pouco e volta)
+      // sem recuo na câmera: a tela e o chão não tremem ao atirar (a precisão de cada arma continua pela dispersão)
       // traçante e impacto locais (visual)
       const eye = this.eye(), d = S.aimDir(sYaw, sPitch);
       const spread = (fw.adsT > 0.5 ? w.adsSpread : w.spread) * (Math.hypot(L.vx, L.vz) > 1.5 || !L.onGround ? w.moveMul : 1);
