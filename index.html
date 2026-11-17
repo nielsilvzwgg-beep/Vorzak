@@ -4505,7 +4505,7 @@ const Assets = (() => {
 /* Sons sintetizados em tempo real (WebAudio) — nenhum arquivo externo. */
 const Sfx = (() => {
   'use strict';
-  let ctx = null, master = null, noiseBuf = null, vol = 0.8;
+  let ctx = null, master = null, noiseBuf = null, vol = 0.8, gun = null;
   function init() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume().catch(() => {}); return; }
     try {
@@ -4515,9 +4515,50 @@ const Sfx = (() => {
       master.connect(comp); comp.connect(ctx.destination);
       noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
       const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      gun = gunBus();
     } catch (e) { ctx = null; }
   }
-  function setVolume(v) { vol = v; if (master) master.gain.value = v; }
+  function setVolume(v) { vol = v; if (master) master.gain.value = v; if (gun) gun.out.gain.value = v * 1.15; }
+  // ------------------------------------------------------------ tiros (sem silenciador): canal próprio, alto e limpo
+  // estalo seco (agudo) + estouro do disparo + grave do impacto + eco do ambiente; um limitador segura o volume sem abafar
+  function gunBus() {
+    const sat = ctx.createWaveShaper(), n = 2048, c = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(2.2 * x) / Math.tanh(2.2); } // saturação leve: tiro "estoura"
+    sat.curve = c; sat.oversample = '4x';
+    const outG = ctx.createGain(); outG.gain.value = vol * 1.15;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -4; lim.knee.value = 2; lim.ratio.value = 20; lim.attack.value = 0.0008; lim.release.value = 0.09;
+    sat.connect(outG); outG.connect(lim); lim.connect(ctx.destination);
+    // eco/reverberação do ambiente (resposta ao impulso gerada aqui)
+    const len = Math.floor(ctx.sampleRate * 1.6), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = ir.getChannelData(ch); let lp = 0;
+      for (let i = 0; i < len; i++) {
+        const t = i / ctx.sampleRate, slap = t > 0.07 && t < 0.11 ? 2.2 : 1; // reflexo de parede/prédio
+        lp += (Math.random() * 2 - 1 - lp) * (0.55 - 0.4 * Math.min(1, t / 1.2)); // vai ficando mais grave no fim
+        d[i] = lp * Math.pow(1 - i / len, 3.2) * slap * 0.9;
+      }
+    }
+    const rev = ctx.createConvolver(); rev.buffer = ir; rev.normalize = true;
+    const revG = ctx.createGain(); revG.gain.value = 0.9; rev.connect(revG); revG.connect(outG);
+    return { sat, out: outG, rev };
+  }
+  // perfil de cada arma: estalo (agudo), estouro (faixa média), grave, cauda e mecanismo
+  const GUN = {
+    pistol: { ck: 0.9, ckF: 3200, bd: 0.85, bdF: 1500, bdQ: 0.9, bdT: 0.075, bm: 0.7, b0: 165, b1: 60, bmT: 0.09, tl: 0.32, tlT: 0.32, rv: 0.3, mech: 0.12 },
+    deagle: { ck: 1.1, ckF: 2600, bd: 1.0, bdF: 950, bdQ: 0.8, bdT: 0.12, bm: 1.0, b0: 120, b1: 42, bmT: 0.16, tl: 0.5, tlT: 0.6, rv: 0.42, mech: 0.1 },
+    ak47: { ck: 1.0, ckF: 2400, bd: 1.0, bdF: 1050, bdQ: 0.8, bdT: 0.1, bm: 0.95, b0: 125, b1: 45, bmT: 0.12, tl: 0.42, tlT: 0.5, rv: 0.38, mech: 0.16 },
+    m4a1: { ck: 1.05, ckF: 3400, bd: 0.95, bdF: 1400, bdQ: 0.9, bdT: 0.085, bm: 0.8, b0: 145, b1: 55, bmT: 0.1, tl: 0.38, tlT: 0.45, rv: 0.35, mech: 0.14 },
+    smg: { ck: 0.85, ckF: 3600, bd: 0.8, bdF: 1800, bdQ: 1.0, bdT: 0.06, bm: 0.6, b0: 175, b1: 70, bmT: 0.07, tl: 0.28, tlT: 0.28, rv: 0.28, mech: 0.13 },
+    doze: { ck: 1.0, ckF: 2000, bd: 1.15, bdF: 700, bdQ: 0.7, bdT: 0.16, bm: 1.15, b0: 95, b1: 36, bmT: 0.2, tl: 0.6, tlT: 0.8, rv: 0.45, mech: 0 },
+    maverick: { ck: 1.0, ckF: 1900, bd: 1.2, bdF: 650, bdQ: 0.7, bdT: 0.17, bm: 1.2, b0: 90, b1: 34, bmT: 0.22, tl: 0.62, tlT: 0.85, rv: 0.45, mech: 0 },
+    sniper: { ck: 1.3, ckF: 2800, bd: 1.15, bdF: 800, bdQ: 0.7, bdT: 0.17, bm: 1.3, b0: 85, b1: 30, bmT: 0.28, tl: 0.75, tlT: 1.3, rv: 0.55, mech: 0 },
+  };
+  function burst(t, dur, type, freq, q, gain, dest, atk = 0.0005) { // ruído filtrado com ataque instantâneo
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf;
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + atk); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * 0.8); s.stop(t + dur + 0.05);
+  }
   // ------------------------------------------------------------ música de suspense (login e menus)
   // Gerada em tempo real: zumbido grave, batida lenta de coração, acordes sombrios e notas de sino com eco.
   const Music = {
@@ -4616,13 +4657,26 @@ const Sfx = (() => {
   }
   // dist em metros, pan -1..1
   function shot(w, dist = 0, pan = 0) {
-    if (!ctx) return;
-    const s = SHARED.WEAPONS[w].snd, t = ctx.currentTime, att = 1 / (1 + dist * 0.05), d = out(pan);
-    const lp = s.f * 3 / (1 + dist * 0.03);
-    noise(t, s.d, lp, 0.7, s.v * att, 'lowpass', d);
-    noise(t, 0.04, 3000 / (1 + dist * 0.05), 0.5, s.v * 0.6 * att, 'bandpass', d);
-    tone(t, s.d * 0.9, s.b * 1.6, s.b * 0.5, s.v * 0.9 * att, 'sine', d);
-    if (dist > 25) noise(t + 0.08 + dist * 0.002, s.d * 2, 600, 0.5, 0.25 * att * s.v, 'lowpass', d); // eco
+    if (!ctx || !gun) return;
+    const P = GUN[w] || GUN.m4a1, r = 0.96 + Math.random() * 0.08; // pequena variação: cada tiro soa um pouco diferente
+    const t = ctx.currentTime + Math.min(0.25, dist / 343); // o som chega com a velocidade do som
+    const att = 1 / (1 + dist * 0.035), far = Math.min(1, dist / 80);
+    // caminho seco: posição (estéreo) e perda de agudos com a distância
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.max(1800, 20000 / (1 + dist * 0.06)); lp.Q.value = 0.5;
+    const dry = ctx.createGain(); dry.gain.value = att;
+    let node = lp; if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan || 0)) * 0.85; lp.connect(p); node = p; }
+    node.connect(dry); dry.connect(gun.sat);
+    // eco: de longe ouve-se mais o ambiente que o tiro
+    const wet = ctx.createGain(); wet.gain.value = P.rv * (0.6 + far * 1.4) * Math.max(0.25, att * 1.6); lp.connect(wet); wet.connect(gun.rev);
+    burst(t, 0.012, 'highpass', P.ckF * r, 0.7, P.ck, lp);                // estalo da bala/boca do cano
+    burst(t, 0.02, 'bandpass', 5200 * r, 0.6, P.ck * 0.55, lp);           // brilho do estampido
+    burst(t, P.bdT, 'bandpass', P.bdF * r, P.bdQ, P.bd, lp, 0.0012);      // estouro do disparo
+    burst(t, P.tlT, 'lowpass', 1400 * r, 0.5, P.tl, lp, 0.003);           // rajada de gás/cauda
+    const o = ctx.createOscillator(), og = ctx.createGain();               // grave (pressão)
+    o.type = 'sine'; o.frequency.setValueAtTime(P.b0 * r, t); o.frequency.exponentialRampToValueAtTime(P.b1, t + P.bmT);
+    og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(P.bm, t + 0.002); og.gain.exponentialRampToValueAtTime(0.0005, t + P.bmT);
+    o.connect(og); og.connect(lp); o.start(t); o.stop(t + P.bmT + 0.05);
+    if (P.mech && dist < 25) burst(t + 0.03, 0.02, 'bandpass', 3800, 4, P.mech * att, lp); // ferrolho voltando (só de perto)
   }
   function click(t, f = 2500, g = 0.25) { noise(t, 0.035, f, 3, g, 'bandpass'); }
   function reload(w, dur) {
