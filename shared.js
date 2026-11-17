@@ -21,6 +21,8 @@
     SPAWN_PROT: 1.5, MEDKIT_RESPAWN: 20, AMMO_BOX: 30, AMMO_RESPAWN: 25, BR_BUSCA: 15, BR_LOBBY: 20,
   };
   const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8 };
+  // pulo de janela (animação "Big Jump" do Mixamo): quadros usados, onde o corpo cruza a parede e o avanço do quadril por quadro
+  const VAULT = { K0: 9, K1: 66, PL: 3.1, SPD: 1.2, BAND: 2.115, FWD: [0.0, 0.114, 0.245, 0.378, 0.503, 0.639, 0.782, 0.929, 1.064, 1.196, 1.345, 1.499, 1.66, 1.791, 1.914, 2.033, 2.152, 2.262, 2.36, 2.448, 2.539, 2.641, 2.747, 2.847, 2.946, 3.046, 3.144, 3.247, 3.357, 3.467, 3.578, 3.686, 3.789, 3.89, 4.0, 4.109, 4.224, 4.345, 4.466, 4.593, 4.717, 4.827, 4.977, 5.082, 5.171, 5.222, 5.244, 5.277, 5.304, 5.329, 5.367, 5.405, 5.44, 5.482, 5.527, 5.571, 5.613, 5.656, 5.699, 5.744, 5.79, 5.838, 5.887, 5.934, 5.977, 6.021, 6.075, 6.137, 6.193, 6.255, 6.316, 6.377] };
 
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const num = (v, d = 0) => (typeof v === 'number' && isFinite(v) ? v : d);
@@ -1055,6 +1057,75 @@
     }
     return -1;
   }
+  // ---------------------------------------------------------------- pulo de janela
+  const vfwd = (f) => { const F = VAULT.FWD, i = Math.max(0, Math.min(F.length - 2, Math.floor(f))), t = f - i; return F[i] + (F[i + 1] - F[i]) * t; };
+  let VCROSS = VAULT.K0; while (vfwd(VCROSS) < VAULT.PL) VCROSS += 0.05; // quadro em que o corpo passa pela parede
+  function boxAt(x, z, y0, y1) { // caixa fixa (não rampa) que ocupa o ponto (x, z) entre as alturas y0 e y1
+    const G = MAP.G, a = CELLS.get((Math.floor(x / G) + 4096) * 8192 + (Math.floor(z / G) + 4096)); if (!a) return null;
+    let best = null;
+    for (let i = 0; i < a.length; i++) { const b = a[i]; if (b[6] !== 'ramp' && x >= b[0] && x <= b[3] && z >= b[2] && z <= b[5] && b[4] > y0 && b[1] < y1 && (!best || b[1] < best[1])) best = b; }
+    return best;
+  }
+  function floorAt(x, z, top) { // chão mais alto abaixo de "top" (0 = terreno)
+    const G = MAP.G, a = CELLS.get((Math.floor(x / G) + 4096) * 8192 + (Math.floor(z / G) + 4096)); let y = 0;
+    if (a) for (let i = 0; i < a.length; i++) { const b = a[i]; if (x >= b[0] && x <= b[3] && z >= b[2] && z <= b[5]) { const t = b[6] === 'ramp' ? rampTop(b, x, z) : b[4]; if (t <= top && t > y) y = t; } }
+    return y;
+  }
+  // janela à frente do jogador? (peitoril na altura da cintura, vão livre em cima e verga por cima: só janela, não muro)
+  function findWindow(p) {
+    if (!p.alive || p.car || p.down || !p.onGround || p.vault) return null;
+    const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw), onX = Math.abs(fx) >= Math.abs(fz);
+    const ax = onX ? Math.sign(fx) : 0, az = onX ? 0 : Math.sign(fz);
+    if (Math.abs(onX ? fx : fz) < 0.74) return null; // precisa estar de frente para a parede
+    const base = p.y;
+    let wall = null, s;
+    for (s = 0.2; s <= 1.8; s += 0.05) { wall = boxAt(p.x + ax * s, p.z + az * s, base + 0.3, base + 0.5); if (wall) break; }
+    if (!wall) return null;
+    const sill = wall[4];
+    if (sill - base < 0.45 || sill - base > 1.4) return null;
+    // vão da janela: largura pela própria caixa do peitoril
+    const l0 = onX ? wall[2] : wall[0], l1 = onX ? wall[5] : wall[3], wd = l1 - l0, lc = (l0 + l1) / 2, lp = onX ? p.z : p.x;
+    if (wd < 0.6 || wd > 3.2 || Math.abs(lp - lc) > wd / 2 + 0.1) return null;
+    const n0 = onX ? wall[0] : wall[2], n1 = onX ? wall[3] : wall[5], th = n1 - n0; if (th > 0.8) return null;
+    const pc = (n0 + n1) / 2, ff = (onX ? ax : az) > 0 ? n1 : n0, ap = onX ? p.x : p.z, sg = onX ? ax : az;
+    const d0 = (pc - ap) * sg; if (d0 < 0.25 || d0 > 1.7) return null;
+    const P = (along, lat) => (onX ? [along, lat] : [lat, along]);
+    let top = Infinity;
+    for (const lo of [0, -wd / 2 + 0.22, wd / 2 - 0.22]) {
+      const [cx, cz] = P(pc, lc + lo);
+      if (boxAt(cx, cz, sill + 0.02, sill + 0.7)) return null; // vão fechado
+      const lin = boxAt(cx, cz, sill + 0.6, sill + 2.4); if (!lin) return null; // sem verga: é muro, não janela
+      top = Math.min(top, lin[1]);
+    }
+    if (top - sill < 0.72) return null;
+    // do outro lado: chão e espaço livre para cair rolando
+    const [gx, gz] = P(ff + sg * (C.R + 0.35), lc), y1 = floorAt(gx, gz, base + 0.3);
+    if (base - y1 > 4) return null;
+    let avail = 0;
+    for (let a = C.R + 0.1; a <= 3.1; a += 0.1) { const [x, z] = P(ff + sg * a, lc); if (collides(x, y1 + 0.05, z, C.R, C.H - 0.1, true)) break; avail = a; }
+    if (avail < C.R + 0.5) return null;
+    const need = vfwd(VAULT.K1) - VAULT.PL, after = Math.abs(ff - pc) + avail - 0.05;
+    const [wx, wz] = P(pc, lc);
+    return { wx, wz, ax, az, d0, lat: lp - lc, sa: Math.min(1, after / need), y0: base, y1, sh: (sill + top) / 2 - base - VAULT.BAND, yaw: Math.atan2(-ax, -az) };
+  }
+  function vaultPos(v, f) {
+    const fa = vfwd(Math.min(f, VAULT.K1)), fs = vfwd(VAULT.K0);
+    const along = fa <= VAULT.PL ? (fa - fs) / (VAULT.PL - fs) * v.d0 : v.d0 + (fa - VAULT.PL) * v.sa;
+    const k = Math.min(1, Math.max(0, (f - VAULT.K0) / (VCROSS - VAULT.K0))), lat = v.lat * (1 - k * k * (3 - 2 * k));
+    const bx = v.ax ? 0 : 1, bz = v.ax ? 1 : 0; // eixo lateral
+    const u = Math.min(1, Math.max(0, (f - 33) / 12)), y = v.y0 + (v.y1 - v.y0) * u * u * (3 - 2 * u);
+    return [v.wx - v.ax * v.d0 + v.ax * along + bx * lat, y, v.wz - v.az * v.d0 + v.az * along + bz * lat];
+  }
+  const vaultFrame = (v) => VAULT.K0 + v.t * 30 * VAULT.SPD;
+  function vaultStep(p, dt) {
+    const v = p.vault; v.t += dt;
+    const f = vaultFrame(v), q = vaultPos(v, f);
+    p.yaw = v.yaw; p.ads = false; p.sprint = false; p.crouch = false;
+    if (dt > 0) { p.vx = (q[0] - p.x) / dt; p.vz = (q[2] - p.z) / dt; }
+    p.x = q[0]; p.y = q[1]; p.z = q[2]; p.vy = 0;
+    p.onGround = f < 13 || f > 44;
+    if (f >= VAULT.K1) { p.vault = null; p.vx = p.vz = 0; p.onGround = true; if (collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = true; }
+  }
   function applyInput(p, inp) {
     const dt = clamp(num(inp.dt, 0), 0, 0.05);
     p.yaw = num(inp.yaw, p.yaw);
@@ -1067,6 +1138,7 @@
       const sp = seatPos(p.car, p.seat); p.x = sp[0]; p.z = sp[1]; p.y = 0.12; p.vx = p.vy = p.vz = 0; p.onGround = true; p.crouch = true; p.sprint = false;
       return;
     }
+    if (p.vault) { vaultStep(p, dt); return; } // pulando a janela: a animação conduz o corpo
     if (b & BTN.CROUCH) p.crouch = true;
     else if (p.crouch && !collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = false;
     const h = p.crouch ? C.HC : C.H;
@@ -1085,7 +1157,11 @@
     const wx = (-sy * f + cy * s) * speed, wz = (-cy * f - sy * s) * speed;
     const k = p.down ? Math.min(1, dt * 3) : p.onGround ? Math.min(1, dt * 14) : Math.min(1, dt * 2.5);
     p.vx += (wx - p.vx) * k; p.vz += (wz - p.vz) * k;
-    if ((b & BTN.JUMP) && p.onGround && !p.crouch && !p.down) { p.vy = C.JUMP; p.onGround = false; }
+    if ((b & BTN.JUMP) && p.onGround && !p.crouch && !p.down) {
+      const wv = findWindow(p); // de frente para uma janela: pula por ela
+      if (wv) { wv.t = 0; p.vault = wv; vaultStep(p, dt); return; }
+      p.vy = C.JUMP; p.onGround = false;
+    }
     p.vy -= C.GRAV * dt;
     if (p.vy < -40) p.vy = -40;
     // eixo X
@@ -1620,7 +1696,7 @@
       if (!p || !a || this.state !== 'playing') return;
       if (this.br && this.ph !== 'livre') { if (a.a === 'leap' && this.ph === 'trem') this.leap(p); if (this.ph !== 'trem' || p.train) return; }
       switch (a.a) {
-        case 'shoot': if ((p.car && p.seat === 0) || p.down) return; return this.shoot(p, a); // motorista e quem está caído não atiram
+        case 'shoot': if ((p.car && p.seat === 0) || p.down || p.vault) return; return this.shoot(p, a); // motorista e quem está caído não atiram
         case 'reload': return this.reload(p);
         case 'switch': {
           const s = a.s === 1 ? 1 : 0;
@@ -1629,7 +1705,7 @@
         }
         case 'grab': if (p.car) return; return this.grab(p, a);
         case 'buy': return this.buy(p, String(a.it || ''));
-        case 'car': return this.enterCar(p, a.id, a.seat);
+        case 'car': if (p.vault) return; return this.enterCar(p, a.id, a.seat);
         case 'carx': return this.leaveCar(p);
         case 'med':
           if (p.alive && !p.down && p.medkits > 0 && p.hp < C.MAXHP && !p.medUntil) { p.medUntil = this.time + C.MEDTIME; p.reloadUntil = 0; this.events.push({ e: 'medstart', id: p.id }); }
@@ -2026,7 +2102,7 @@
       const pl = [];
       for (const p of this.players.values()) {
         const fl = (p.alive ? 1 : 0) | (p.crouch ? 2 : 0) | (p.ads ? 4 : 0) | (p.reloadUntil ? 8 : 0) | (p.medUntil ? 16 : 0) | (p.onGround ? 32 : 0) | (this.time < p.spawnProt ? 64 : 0) | (p.sprint && p.onGround ? 128 : 0) | (p.car ? 256 : 0) | (p.helmet > 0 ? 512 : 0) | (p.vest > 0 ? 1024 : 0) | (p.down ? 2048 : 0);
-        pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths]);
+        pl.push([p.id, r2(p.x), r2(p.y), r2(p.z), r3(p.yaw), r3(p.pitch), fl, p.hp | 0, p.team, p.weapons[p.cur], p.kills, p.deaths, p.vault ? [r2(vaultFrame(p.vault)), r2(p.vault.sh)] : 0]);
       }
       const mk = maskOf(this.medkits);
       const s = { t: 's', tm: r3(this.time), p: pl, sc: this.score, tl: this.timeLimit ? Math.max(0, Math.round(this.timeLimit - this.matchTime)) : -1, rd: this.round, st: this.state, mk, ev: this.events };
@@ -2047,6 +2123,7 @@
         ra: p.alive ? 0 : isFinite(p.respawnAt) ? r1(Math.max(0, p.respawnAt - this.time)) : -1, xp: p.xp, sp: this.time < p.spawnProt ? 1 : 0,
         tn: p.train ? 1 : 0, to: p.train ? p.train.off : 0, tz: p.train ? p.train.dz : 0,
         car: p.car ? [p.car.id, p.seat, p.car.x, p.car.z, p.car.yaw, p.car.v, p.car.st] : 0,
+        vt: p.vault ? Object.assign({}, p.vault) : 0,
         dn: p.down ? 1 : 0, $: this.shop ? p.money | 0 : -1, hm: Math.round(p.helmet || 0), vs: Math.round(p.vest || 0),
       };
     }
@@ -2057,7 +2134,7 @@
 
   return {
     isRounds, isFFA, hasBit, HOUSES, PROP_BOXES, MAPS, mapFor, useMap, trainFront, trainBoxes, indexMap, C, BTN, WEAPONS, WEAPON_LIST, UNIFORMS, UPGRADES, COSMETICS, sanitizeLook, lookOf, MAP: MAP_BASE, MISSIONS, MODE_NAMES,
-    clamp, collides, applyInput, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, CAR_T, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf,
+    clamp, collides, applyInput, findWindow, VAULT, waterAt, carStep, carBlocked, seatPos, carFwd, CAR, CAR_T, OPEN_MAPS, ARENAS, SHOP, raycastWorld, rayPlayer, aimDir, weaponOf,
     buildNav, findPath, levelInfo, xpForLevel, newProfile, fixProfile, addXp, applyMatchResult, buy, equip, rankName,
     sanitizeName, sanitizeChat, GameSim,
   };
