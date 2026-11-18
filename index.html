@@ -4849,13 +4849,16 @@ const Assets = (() => {
     const cache = model._anims || (model._anims = {}); if (cache[name]) return cache[name];
     const A = ANIMS[name], r = model.rest, bi = model.bi, J = {}; A.joints.forEach((n, i) => (J[n] = i));
     const RP = (n) => [r[bi[n] * 3], r[bi[n] * 3 + 1], r[bi[n] * 3 + 2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-    const rf = frame3(sub(RP('LeftUpLeg'), RP('RightUpLeg')), sub(RP('Spine'), RP('Hips')));
+    // "para cima" do quadril: o osso da coluna acima dele. Alguns modelos (Cyberpunk) têm a Spine no mesmo ponto do Hips:
+    // aí usa o próximo osso da coluna (senão a direção é zero e o corpo gira à toa — ele desmontava correndo)
+    const UP = ['Spine', 'Spine1', 'Spine2', 'Neck'].find((n) => bi[n] != null && J[n] != null && Math.hypot(...sub(RP(n), RP('Hips'))) > 0.03) || 'Spine';
+    const rf = frame3(sub(RP('LeftUpLeg'), RP('RightUpLeg')), sub(RP(UP), RP('Hips')));
     const frames = A.p.map((P) => {
       const AP = (n) => [P[J[n] * 3], P[J[n] * 3 + 1], P[J[n] * 3 + 2]];
       const D = new Array(model.n), Qs = new Array(model.n);
       for (let j = 0; j < model.n; j++) {
         const nm = model.bones[j], pj = model.parent[j];
-        if (pj < 0) D[j] = mm3(frame3(sub(AP('LeftUpLeg'), AP('RightUpLeg')), sub(AP('Spine'), AP('Hips'))), tr3(rf));
+        if (pj < 0) D[j] = mm3(frame3(sub(AP('LeftUpLeg'), AP('RightUpLeg')), sub(AP(UP), AP('Hips'))), tr3(rf));
         else if (AIM[nm] && J[AIM[nm]] != null && J[nm] != null) {
           const rd = nm === 'Head' ? [0, 1, 0] : sub(RP(AIM[nm]), RP(nm));
           D[j] = mm3(rotTo(mv3(D[pj], rd), sub(AP(AIM[nm]), AP(nm))), D[pj]);
@@ -6759,7 +6762,10 @@ const Voice = (() => {
         const dr = rp._swAt && o.t - rp._swAt < 0.45 ? 1 - (o.t - rp._swAt) / 0.45 : 0, de = dr * dr; // sacando: a arma sobe do quadril
         const ie = rp.id === this.myId && this.active ? this.inspectK() : 0;
         if (o.pistol) M4.compose(tmp, 0.05 - 0.05 * ie, 0.36 - 0.35 * de + 0.05 * ie, -0.42 + 0.25 * de + 0.1 * ie, 0.9 * ie, -body - 1.0 * de, -0.5 * ie);
-        else M4.compose(tmp, 0.07 - 0.06 * ie, 0.31 - 0.3 * de + 0.06 * ie, -0.3 + 0.2 * de + 0.08 * ie, 0.85 * ie, -body - 0.9 * de, -0.55 * ie);
+        else { // correndo/agachado o tronco curva para a frente: a arma vai junto para a frente (senão a coronha atravessa as costas)
+          const bend = Math.max(o.runW || 0, o.crW || 0) * (1 - (o.vW || 0));
+          M4.compose(tmp, 0.07 - 0.06 * ie, 0.31 - 0.3 * de + 0.06 * ie + 0.04 * bend, -0.3 + 0.2 * de + 0.08 * ie - 0.22 * bend, 0.85 * ie, -body - 0.9 * de, -0.55 * ie);
+        }
         M4.mul(wC, wT, tmp);
         if (o.prone) { // arma no chão à frente, no referencial do corpo deitado
           const PR = this._prR, iv = this._prI || (this._prI = M4.create()), gw = this._prG || (this._prG = M4.create());
