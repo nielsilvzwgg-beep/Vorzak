@@ -23,7 +23,9 @@
   };
   const BTN = { JUMP: 1, CROUCH: 2, SPRINT: 4, ADS: 8, PRONE: 16 };
   // pulo de janela (animação "Big Jump" do Mixamo): quadros usados, onde o corpo cruza a parede e o avanço do quadril por quadro
-  const VAULT = { K0: 9, K1: 66, PL: 3.1, SPD: 1.2, BAND: 2.115, FWD: [0.0, 0.114, 0.245, 0.378, 0.503, 0.639, 0.782, 0.929, 1.064, 1.196, 1.345, 1.499, 1.66, 1.791, 1.914, 2.033, 2.152, 2.262, 2.36, 2.448, 2.539, 2.641, 2.747, 2.847, 2.946, 3.046, 3.144, 3.247, 3.357, 3.467, 3.578, 3.686, 3.789, 3.89, 4.0, 4.109, 4.224, 4.345, 4.466, 4.593, 4.717, 4.827, 4.977, 5.082, 5.171, 5.222, 5.244, 5.277, 5.304, 5.329, 5.367, 5.405, 5.44, 5.482, 5.527, 5.571, 5.613, 5.656, 5.699, 5.744, 5.79, 5.838, 5.887, 5.934, 5.977, 6.021, 6.075, 6.137, 6.193, 6.255, 6.316, 6.377] };
+  // pulo de janela com a animação "Jumping Down" (Mixamo): sobe até o peitoril agachando (K0→KC), salta pela janela e cai
+  // do outro lado (pousa em FL), levanta (até K1). FWD: avanço do quadril por quadro; FEET: altura dos pés por quadro (na animação)
+  const VAULT = { K0: 6, KC: 15, FL: 48, K1: 62, SPD: 1.25, FWD: [0.0,-0.0,-0.0001,-0.0002,-0.0002,0.0,0.0015,0.0022,0.0028,0.0042,0.0072,0.0124,0.0202,0.0314,0.0465,0.0661,0.0904,0.1188,0.1505,0.1849,0.222,0.2612,0.3025,0.3461,0.3885,0.4266,0.457,0.4783,0.4962,0.5139,0.5373,0.5699,0.6053,0.6493,0.6986,0.7531,0.8124,0.8753,0.9405,1.0068,1.0738,1.1414,1.2085,1.2724,1.3314,1.3859,1.4361,1.4781,1.5053,1.5192,1.5291,1.5406,1.5466,1.5545,1.5633,1.5718,1.58,1.5879,1.5953,1.6015,1.6062,1.6103,1.6145,1.6193,1.6239,1.6275,1.6294,1.6302,1.6308,1.6316,1.632,1.6313,1.6297,1.6278,1.6259,1.6243,1.6228,1.6216,1.6207,1.62,1.6193,1.6187,1.618,1.6173,1.6164,1.6153,1.6151,1.6149,1.6147,1.6146,1.6145,1.6144,1.6142], FEET: [1.1322,1.1322,1.1322,1.1322,1.1322,1.1322,1.1324,1.1327,1.1328,1.1331,1.1339,1.1343,1.1347,1.1353,1.1367,1.1348,1.1321,1.13,1.1286,1.1274,1.1261,1.1255,1.1267,1.1278,1.1275,1.1353,1.1805,1.2675,1.3765,1.4902,1.5899,1.6542,1.6897,1.6852,1.651,1.5834,1.4757,1.336,1.181,1.0242,0.873,0.7312,0.599,0.4717,0.3459,0.2149,0.0903,0.0168,0.017,0.0151,0.0099,0.0051,0.0052,0.0068,0.0079,0.0059,0.0058,0.0054,0.005,0.0046,0.0047,0.0046,0.003,0.002,0.0018,0.0016,0.0014,0.0012,0.0011,0.0012,0.0012,0.0013,0.0014,0.0015,0.0017,0.0017,0.0019,0.0019,0.002,0.002,0.0021,0.0022,0.0022,0.0022,0.0022,0.0023,0.0022,0.0022,0.0022,0.0023,0.0023,0.0022,0.0022] };
 
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const num = (v, d = 0) => (typeof v === 'number' && isFinite(v) ? v : d);
@@ -1137,8 +1139,9 @@
     return -1;
   }
   // ---------------------------------------------------------------- pulo de janela
-  const vfwd = (f) => { const F = VAULT.FWD, i = Math.max(0, Math.min(F.length - 2, Math.floor(f))), t = f - i; return F[i] + (F[i + 1] - F[i]) * t; };
-  let VCROSS = VAULT.K0; while (vfwd(VCROSS) < VAULT.PL) VCROSS += 0.05; // quadro em que o corpo passa pela parede
+  const vtabS = (F, f) => { const i = Math.max(0, Math.min(F.length - 2, Math.floor(f))), t = Math.min(1, Math.max(0, f - i)); return F[i] + (F[i + 1] - F[i]) * t; };
+  const vfwd = (f) => vtabS(VAULT.FWD, f), vfeet = (f) => vtabS(VAULT.FEET, f);
+  const VFEND = vfeet(VAULT.K1), VHD = vfeet(VAULT.KC) - VFEND; // altura da queda na animação (do peitoril ao chão)
   function boxAt(x, z, y0, y1) { // caixa fixa (não rampa) que ocupa o ponto (x, z) entre as alturas y0 e y1
     const G = MAP.G, a = CELLS.get((Math.floor(x / G) + 4096) * 8192 + (Math.floor(z / G) + 4096)); if (!a) return null;
     let best = null;
@@ -1183,16 +1186,23 @@
     let avail = 0;
     for (let a = C.R + 0.1; a <= 3.1; a += 0.1) { const [x, z] = P(ff + sg * a, lc); if (collides(x, y1 + 0.05, z, C.R, C.H - 0.1, true)) break; avail = a; }
     if (avail < C.R + 0.5) return null;
-    const need = vfwd(VAULT.K1) - VAULT.PL, after = Math.abs(ff - pc) + avail - 0.05;
+    const need = vfwd(VAULT.K1) - vfwd(VAULT.KC), after = Math.abs(ff - pc) + avail - 0.05;
     const [wx, wz] = P(pc, lc);
-    return { wx, wz, ax, az, d0, lat: lp - lc, sa: Math.min(1, after / need), y0: base, y1, sh: (sill + top) / 2 - base - VAULT.BAND, yaw: Math.atan2(-ax, -az) };
+    return { wx, wz, ax, az, d0, lat: lp - lc, sa: Math.min(1, after / need), y0: base, y1, sill, sh: 0, yaw: Math.atan2(-ax, -az) };
   }
+  // posição do corpo (pés) no quadro f: sobe até o peitoril, depois segue a animação (queda ajustada à altura real da janela)
   function vaultPos(v, f) {
-    const fa = vfwd(Math.min(f, VAULT.K1)), fs = vfwd(VAULT.K0);
-    const along = fa <= VAULT.PL ? (fa - fs) / (VAULT.PL - fs) * v.d0 : v.d0 + (fa - VAULT.PL) * v.sa;
-    const k = Math.min(1, Math.max(0, (f - VAULT.K0) / (VCROSS - VAULT.K0))), lat = v.lat * (1 - k * k * (3 - 2 * k));
+    const sm = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
     const bx = v.ax ? 0 : 1, bz = v.ax ? 1 : 0; // eixo lateral
-    const u = Math.min(1, Math.max(0, (f - 33) / 12)), y = v.y0 + (v.y1 - v.y0) * u * u * (3 - 2 * u);
+    const sill = v.sill != null ? v.sill : v.y0 + 0.9;
+    let along, y;
+    if (f <= VAULT.KC) { const u = sm((f - VAULT.K0) / (VAULT.KC - VAULT.K0)); along = v.d0 * u; y = v.y0 + (sill - v.y0) * u; }
+    else {
+      along = v.d0 + (vfwd(Math.min(f, VAULT.K1)) - vfwd(VAULT.KC)) * v.sa;
+      y = v.y1 + (vfeet(Math.min(f, VAULT.K1)) - VFEND) * ((sill - v.y1) / VHD);
+      if (f >= VAULT.FL) y = Math.max(v.y1, Math.min(y, v.y1 + 0.05)); // pousou: pés no chão
+    }
+    const lat = v.lat * (1 - sm((f - VAULT.K0) / (VAULT.KC - VAULT.K0)));
     return [v.wx - v.ax * v.d0 + v.ax * along + bx * lat, y, v.wz - v.az * v.d0 + v.az * along + bz * lat];
   }
   const vaultFrame = (v) => VAULT.K0 + v.t * 30 * VAULT.SPD;
@@ -1202,7 +1212,7 @@
     p.yaw = v.yaw; p.ads = false; p.sprint = false; p.crouch = false; p.prone = false;
     if (dt > 0) { p.vx = (q[0] - p.x) / dt; p.vz = (q[2] - p.z) / dt; }
     p.x = q[0]; p.y = q[1]; p.z = q[2]; p.vy = 0;
-    p.onGround = f < 13 || f > 44;
+    p.onGround = f < VAULT.K0 + 2 || f >= VAULT.FL;
     if (f >= VAULT.K1) { p.vault = null; p.vx = p.vz = 0; p.onGround = true; if (collides(p.x, p.y, p.z, C.R, C.H)) p.crouch = true; }
   }
   // queda livre (rápida, direção pelo analógico) e paraquedas (lento, plana); abre tocando no botão ou sozinho perto do chão
@@ -2076,7 +2086,10 @@
     }
     // trem: anda pelo trilho conforme o tempo da partida e empurra quem estiver na frente para o lado
     trainTick() {
-      const tr = this.map.train, tt = this.br ? (this.trainStartAt ? this.time - this.trainStartAt + tr.delay : 0) : this.matchTime;
+      const tr = this.map.train, t0 = this.br ? (this.trainStartAt ? this.time - this.trainStartAt + tr.delay : 0) : this.matchTime;
+      // depois de chegar ao fim: espera 40 s, volta escondido para a ponta do trilho (na borda do mapa) e passa de novo (8 s parado)
+      const Tt = (tr.x1 - tr.x0) / tr.speed, first = tr.delay + Tt + 40, lap = Tt + 40 + 8;
+      const tt = t0 <= first ? t0 : (t0 - first) % lap + tr.delay - 8;
       const x = trainFront(tr, tt), moving = tt > tr.delay && x < tr.x1;
       this.trainX = x; trainBoxes(tr, x, this.dyn, moving);
       const st = moving ? 1 : x >= tr.x1 ? 2 : 0;
